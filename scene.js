@@ -42,6 +42,22 @@
       stroke(c,x,y,range(30,140),range(2,9),col,-.035,.08,3);
     }
   }
+  function refineCliffs(){
+    // Follow the guide's actual light planes and joints; keep distant rock softer.
+    const luminance=(x,y)=>{
+      const at=(clamp(y,0,H-1)*W+clamp(x,0,W-1))*4;
+      return pixels[at]*.3+pixels[at+1]*.55+pixels[at+2]*.15;
+    };
+    for(let y=130;y<650;y+=2)for(let x=2;x<W-2;x+=2){
+      const col=pigment(x,y);
+      if(col.sky||col.leaf||y<skyline[x]+2)continue;
+      const depth=x>820&&x<1020?.45:1;
+      const local=(luminance(x-4,y)+luminance(x+4,y))*.5;
+      const definition=clamp(((col.l-142)*.16+(col.l-local)*.32)*depth,-15,17);
+      col.r+=definition;col.g+=definition;col.b+=definition*.9;
+      stroke(p,x,y,range(2.5,7),range(.65,1.7),col,1.53+range(-.1,.1),.5,2);
+    }
+  }
   async function buildPainting(){
     seed=4176;sky(p,0);
     // Successive coats follow the real landforms. No source photograph is drawn onto the visible canvas.
@@ -58,7 +74,7 @@
       const x=range(852,925),y=range(425,485),col=pigment(x,y);
       if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
     }
-    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    refineCliffs();cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function fit(){
     const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=document.querySelector('main').clientHeight;
@@ -296,12 +312,12 @@
       skyline[x]=y;
     }
     cacheClouds();cacheWaterfall();
-    const cached=new Image();cached.src='assets/yosemite-painting.webp';
+    const cached=new Image();cached.src='assets/yosemite-painting.webp?v=cliffs-1';
     cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
     cached.onerror=()=>buildPainting();
   };
   img.onerror=()=>{
-    const cached=new Image();cached.src='assets/yosemite-painting.webp';
+    const cached=new Image();cached.src='assets/yosemite-painting.webp?v=cliffs-1';
     cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
     cached.onerror=()=>{document.documentElement.dataset.sceneReady='error';};
   };
