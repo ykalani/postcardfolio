@@ -266,4 +266,8 @@
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   window.breezePaused=reduce.matches;reduce.addEventListener('change',e=>{window.breezePaused=e.matches;if(e.matches)fit();});
   fit();requestAnimationFrame(animate);
+  if(matchMedia('(max-width:650px)').matches){
+    history.scrollRestoration='manual';
+    requestAnimationFrame(()=>scrollTo({top:(document.documentElement.scrollHeight-innerHeight)/2,behavior:'instant'}));
+  }
 })();
