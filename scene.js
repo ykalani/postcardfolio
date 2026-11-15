@@ -61,7 +61,7 @@
     cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function fit(){
-    const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
+    const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=document.querySelector('main').clientHeight;
     scale=Math.max(w/W,h/H);ox=w*.5-W*scale*(w<650?.535:.5);oy=(h-H*scale)*.5;
     for(const c of [canvas,motion]){c.width=w*dpr;c.height=h*dpr;c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
     ctx.fillStyle='#b0c7ca';ctx.fillRect(0,0,w,h);
@@ -161,7 +161,7 @@
     requestAnimationFrame(animate);
     if(!ready||!pixels||document.hidden||window.breezePaused||now-last<40)return;
     const dt=Math.min((now-last)/1000,.08);last=now;clock+=dt;
-    air.clearRect(0,0,innerWidth,innerHeight);air.save();air.translate(ox,oy);air.scale(scale,scale);
+    air.clearRect(0,0,innerWidth,motion.height/(Math.min(devicePixelRatio||1,2)));air.save();air.translate(ox,oy);air.scale(scale,scale);
     driftingClouds(air,clock);
     waterfall(air,clock);
     rustlingTrees(air,clock);birds(air,clock);
