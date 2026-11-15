@@ -58,7 +58,7 @@
       const x=range(852,925),y=range(425,485),col=pigment(x,y);
       if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
     }
-    ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function fit(){
     const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
@@ -68,12 +68,12 @@
     if(ready){
       ctx.drawImage(painting,ox,oy,W*scale,H*scale);
       air.save();air.translate(ox,oy);air.scale(scale,scale);
-      driftingClouds(air,clock);waterfall(air,clock);foregroundPine(air,clock,0);air.restore();
+      driftingClouds(air,clock);waterfall(air,clock);rustlingTrees(air,clock);birds(air,clock);air.restore();
     }
   }
   const cloudSprites=[];
   function cacheClouds(){
-    const banks=[{x:620,y:72,w:580,h:145,speed:2.6},{x:55,y:155,w:340,h:100,speed:1.5},{x:1240,y:190,w:420,h:110,speed:1.9}];
+    const banks=[{x:620,y:72,w:580,h:145,speed:10.4},{x:55,y:155,w:340,h:100,speed:6.5},{x:1240,y:190,w:420,h:110,speed:8.1}];
     for(const bank of banks){
       const sprite=document.createElement('canvas');sprite.width=bank.w;sprite.height=bank.h;
       const c=sprite.getContext('2d');
@@ -98,52 +98,73 @@
     c.restore();
   }
   function waterfall(c,t){
-    // Bridalveil Fall, at its actual position beneath Cathedral Rocks.
-    const top=462,bottom=542;
+    // A continuous veil stays attached to the lip, with faster descending streaks inside it.
+    const top=462,bottom=558,wind=Math.sin(t*.65)*1.9;
     c.save();
-    for(let i=0;i<175;i++){
-      const phase=(i/175+t*.19)%1,y=top+phase*(bottom-top),spread=.7+phase*2.4;
-      const x=1040+Math.sin(phase*5+t*.6)*spread+phase*2;
-      c.strokeStyle=`rgba(233,237,219,${.4+.45*Math.sin(phase*Math.PI)})`;c.lineWidth=.5+(i%4)*.35;c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.sin(t+i)*.6,y+3+(i%5));c.stroke();
+    const flow=c.createLinearGradient(0,top,0,bottom);
+    flow.addColorStop(0,'rgba(250,248,229,.75)');flow.addColorStop(.65,'rgba(241,244,227,.6)');flow.addColorStop(1,'rgba(235,241,225,.03)');
+    c.fillStyle=flow;c.beginPath();c.moveTo(1038.6,top);c.bezierCurveTo(1038,492,1038+wind,526,1036+wind,558);c.lineTo(1050+wind,558);c.bezierCurveTo(1043+wind,526,1044,492,1042,top);c.closePath();c.fill();
+    for(let i=0;i<110;i++){
+      const phase=(i/110+t*.31)%1,y=top+phase*(bottom-top),spread=.6+phase*3.2;
+      const x=1040+Math.sin(i*23.1)*spread+phase*phase*(wind+2);
+      c.strokeStyle=`rgba(251,249,232,${.3+.5*Math.sin(phase*Math.PI)})`;c.lineWidth=.5+(i%3)*.3;c.beginPath();c.moveTo(x,y);c.lineTo(x+.2,y+3+i%5);c.stroke();
     }
-    // Mist breathes at the base of the falls.
-    const mist=c.createRadialGradient(1043,542,0,1043,542,9+Math.sin(t*.6)*2);mist.addColorStop(0,'rgba(240,241,223,.25)');mist.addColorStop(1,'rgba(232,234,218,0)');c.fillStyle=mist;c.fillRect(1025,526,38,36);c.restore();
-  }
-  const pineLimbs=[];
-  let pineTrunk;
-  function cachePine(){
-    pineTrunk=document.createElement('canvas');pineTrunk.width=90;pineTrunk.height=820;
-    const c=pineTrunk.getContext('2d');
-    c.fillStyle='#394b3c';c.beginPath();c.moveTo(34,820);c.bezierCurveTo(42,600,48,300,47,0);c.bezierCurveTo(56,300,59,600,67,820);c.closePath();c.fill();
-    for(let i=0;i<200;i++)stroke(c,range(40,64),range(80,820),range(10,95),range(.5,2),{r:110,g:107,b:78},-1.56,.42,2);
-    for(let i=0;i<25;i++){
-      const side=i%2?1:-1,height=15+i*29,length=(12+i*5.8)*range(.8,1.1),sprite=document.createElement('canvas');sprite.width=240;sprite.height=105;
-      const c=sprite.getContext('2d');c.strokeStyle='#334c3c';c.lineWidth=2.1;c.beginPath();c.moveTo(8,79);c.bezierCurveTo(length*.3,65,length*.65,83,length,54);c.stroke();
-      for(let j=0;j<190;j++){
-        const x=range(10,length),u=x/length,y=75-u*13+Math.sin(u*9)*4;
-        stroke(c,x,y+range(-8,8),range(4,16),range(1,3),{r:45+range(0,35),g:68+range(0,32),b:46+range(0,22)},range(-2.7,-.3),.75,3);
-      }
-      pineLimbs.push({sprite,side,y:height,length,phase:range(0,1)});
-    }
-  }
-  function foregroundPine(c,t,gust){
-    if(!pineTrunk)return;
-    c.save();c.translate(innerWidth<650?650:136,1005);if(innerWidth<650)c.scale(.65,.65);c.drawImage(pineTrunk,-47,-820);
-    for(const limb of pineLimbs){
-      const wind=(Math.sin(t*.85)+.3*Math.sin(t*1.7)+gust)*.008*(1-limb.y/1100);
-      c.save();c.translate(0,-820+limb.y);c.scale(limb.side,1);c.rotate(wind*limb.side);c.drawImage(limb.sprite,-8,-79);c.restore();
+    for(let i=0;i<7;i++){
+      const phase=(t*.13+i/7)%1,x=1044+wind+Math.sin(i*2.1)*phase*13,y=551+phase*13,r=3+phase*12;
+      const mist=c.createRadialGradient(x,y,0,x,y,r);mist.addColorStop(0,`rgba(236,242,226,${(1-phase)*.12})`);mist.addColorStop(1,'rgba(236,242,226,0)');c.fillStyle=mist;c.fillRect(x-r,y-r,r*2,r*2);
     }
     c.restore();
+  }
+  const canopy=[];
+  function cacheCanopy(){
+    canopy.length=0;
+    if(!pixels)return;
+    const paint=p.getImageData(0,0,W,H).data;
+    // Lift actual painted foliage out of the terrain. Its texture and palette stay identical.
+    for(let y=150;y<H;y+=95)for(let x=0;x<W;x+=95){
+      if(y<625&&x>160)continue;
+      const w=Math.min(115,W-x),h=Math.min(115,H-y),sprite=document.createElement('canvas');
+      sprite.width=w;sprite.height=h;
+      const c=sprite.getContext('2d'),image=c.createImageData(w,h);let visible=0;
+      for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
+        const at=((y+yy)*W+x+xx)*4,local=(yy*w+xx)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2];
+        if(g<b*.96||g<r*.88||r+g+b>535||y+yy<skyline[x+xx]+6)continue;
+        const edge=Math.min(1,xx/12,yy/12,(w-xx)/12,(h-yy)/12);
+        image.data[local]=paint[at];image.data[local+1]=paint[at+1];image.data[local+2]=paint[at+2];image.data[local+3]=Math.round(220*edge);visible++;
+      }
+      if(visible<90)continue;
+      c.putImageData(image,0,0);
+      canopy.push({sprite,x,y,depth:(y/H)**2,phase:x*.005+y*.002,pine:x<170});
+    }
+  }
+  function rustlingTrees(c,t){
+    const gust=Math.sin(t*.8)*.65+Math.sin(t*1.7)*.25;
+    for(const patch of canopy){
+      const breeze=Math.sin(t*2.1+patch.phase)*.45+gust;
+      const flex=patch.pine?1.7+(1-patch.y/H)*2:patch.depth*2.2;
+      c.drawImage(patch.sprite,patch.x+breeze*flex,patch.y+Math.sin(t*1.3+patch.phase)*flex*.24);
+    }
+  }
+  function birds(c,t){
+    // A small group crosses the open sky together, alternately flapping and gliding.
+    const flight=(t*21+860)%(W+440)-220;
+    for(let i=0;i<3;i++){
+      const x=flight+i*31,y=270+i*16+Math.sin(t*.25+i*.7)*17;
+      if(x<0||x>=W||y>skyline[Math.floor(x)]-15)continue;
+      const glide=Math.sin(t*.8+i)>.35,flap=glide?-1.4:Math.sin(t*5.2+i*.65)*4.5,size=i===0?7:5.5;
+      c.strokeStyle='rgba(39,56,57,.88)';c.lineWidth=i===0?1.5:1.2;c.lineCap='round';
+      c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-2,x,y);c.quadraticCurveTo(x+size*.45,y-2,x+size,y+flap);c.stroke();
+      c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.9,1.8,-.35,0,Math.PI*2);c.fill();
+    }
   }
   function animate(now){
     requestAnimationFrame(animate);
     if(!ready||!pixels||document.hidden||window.breezePaused||now-last<40)return;
     const dt=Math.min((now-last)/1000,.08);last=now;clock+=dt;
     air.clearRect(0,0,innerWidth,innerHeight);air.save();air.translate(ox,oy);air.scale(scale,scale);
-    const gust=Math.sin(clock*.7)*.5+Math.sin(clock*1.9)*.2;
     driftingClouds(air,clock);
     waterfall(air,clock);
-    foregroundPine(air,clock,gust);
+    rustlingTrees(air,clock);birds(air,clock);
     air.restore();
   }
   const img=new Image();img.decoding='async';img.src='assets/yosemite-guide.jpg';
@@ -154,14 +175,14 @@
       for(;y<650;y++){const i=(y*W+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];if(!(b>160&&b>r*1.3&&b>g*1.04&&b-r>45))break;}
       skyline[x]=y;
     }
-    cacheClouds();cachePine();
+    cacheClouds();
     const cached=new Image();cached.src='assets/yosemite-painting.webp';
-    cached.onload=()=>{p.drawImage(cached,0,0,W,H);ready=true;fit();document.documentElement.dataset.sceneReady='true';};
+    cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
     cached.onerror=()=>buildPainting();
   };
   img.onerror=()=>{
     const cached=new Image();cached.src='assets/yosemite-painting.webp';
-    cached.onload=()=>{p.drawImage(cached,0,0,W,H);ready=true;fit();document.documentElement.dataset.sceneReady='true';};
+    cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
     cached.onerror=()=>{document.documentElement.dataset.sceneReady='error';};
   };
   window.paintLandscape=buildPainting;
