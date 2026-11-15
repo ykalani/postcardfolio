@@ -85,6 +85,15 @@
         const col=v>.67?{r:193,g:206,b:207}:{r:248,g:241,b:221};
         stroke(c,x,y,range(5,28),range(1.5,4),col,-.04,range(.15,.4),3);
       }
+      // Granulated pigment and sparse paper breaks remain fixed as the bank drifts.
+      const texture=c.getImageData(0,0,sprite.width,sprite.height);
+      for(let k=0;k<texture.data.length;k+=4){
+        if(texture.data[k+3]<8)continue;
+        const grain=(rand()-.5)*18;
+        for(let channel=0;channel<3;channel++)texture.data[k+channel]=clamp(texture.data[k+channel]+grain,0,255);
+        if(rand()<.045)texture.data[k+3]*=.5;
+      }
+      c.putImageData(texture,0,0);
       cloudSprites.push({...bank,sprite});
     }
   }
@@ -250,21 +259,22 @@
     }
   }
   function birds(c,t){
-    // A steady circling flock stays in the visible sky, including the portrait crop.
+    // Two staggered flocks travel only east; they wrap after the last bird leaves the view.
     const visibleLeft=-ox/scale,visibleRight=(innerWidth-ox)/scale;
-    const left=Math.max(400,visibleLeft+40),right=Math.min(1240,visibleRight-40);
-    const center=(left+right)/2,radius=Math.max(0,(right-left)/2-40),spacing=Math.min(27,(right-left)/7),orbit=t*.075;
-    const flight=center+Math.sin(orbit)*radius,heading=Math.cos(orbit);
-    const turn=.45+.55*Math.abs(heading);
-    for(let i=0;i<3;i++){
-      const x=flight-i*spacing*heading,y=230+i*16+Math.cos(orbit)*18;
-      const wingPhase=t*5.1-i*.55;
-      const glide=(Math.sin(t*.55-i*.3)+1)/2;
-      const flap=Math.sin(wingPhase)*3.5*(1-glide*.7)-glide*1.7;
-      const size=(i===0?6.5:5.5)*turn;
-      c.strokeStyle='rgba(39,56,57,.86)';c.lineWidth=i===0?1.35:1.1;c.lineCap='round';
-      c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-1.8,x,y);c.quadraticCurveTo(x+size*.45,y-1.8,x+size,y+flap);c.stroke();
-      c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.8,1.65,-heading*.3,0,Math.PI*2);c.fill();
+    const span=visibleRight-visibleLeft+180,spacing=Math.min(24,(visibleRight-visibleLeft)/9);
+    for(let flock=0;flock<2;flock++){
+      const phase=(t/32+flock*.5+.19)%1,flight=visibleLeft-60+phase*span;
+      for(let i=0;i<3;i++){
+        const x=flight-i*spacing,y=224+flock*26+i*10+Math.sin(t*.3+flock)*4;
+        if(x<visibleLeft-8||x>visibleRight+8||x<0||x>=W||y>skyline[Math.floor(x)]-12)continue;
+        const wingPhase=t*5.1-i*.55-flock;
+        const glide=(Math.sin(t*.55-i*.3-flock)+1)/2;
+        const flap=Math.sin(wingPhase)*3.5*(1-glide*.7)-glide*1.7;
+        const size=i===0?6.5:5.5;
+        c.strokeStyle='rgba(39,56,57,.86)';c.lineWidth=i===0?1.35:1.1;c.lineCap='round';
+        c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-1.8,x,y);c.quadraticCurveTo(x+size*.45,y-1.8,x+size,y+flap);c.stroke();
+        c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.8,1.65,-.3,0,Math.PI*2);c.fill();
+      }
     }
   }
   function animate(now){
