@@ -50,7 +50,23 @@
       c.fillStyle = i % 3 ? 'rgba(255,250,231,.13)' : 'rgba(121,152,151,.06)';
       c.fillRect(random()*600, random()*600, .4+random(), .4+random());
     }
+    // Broken dry-brush scratches sit over the broad coats; the opaque paper stays beneath.
+    c.lineCap='butt';
+    for(let i=0;i<2100;i++){
+      const x=random()*600,y=random()*600,length=7+random()*49;
+      c.setLineDash([.6+random()*2.2,.8+random()*3]);
+      c.strokeStyle=i%3?'rgba(255,250,227,.24)':'rgba(117,148,146,.13)';
+      c.lineWidth=.35+random()*.85;c.beginPath();c.moveTo(x,y);c.lineTo(x+length,y-2-random()*3);c.stroke();
+    }
+    c.setLineDash([]);
     c.restore();
+    const texture=c.getImageData(0,0,600,600);
+    for(let k=0;k<texture.data.length;k+=4){
+      if(!texture.data[k+3])continue;
+      const grain=(random()-.5)*15;
+      for(let channel=0;channel<3;channel++)texture.data[k+channel]+=grain;
+    }
+    c.putImageData(texture,0,0);
     return sprite;
   }
 

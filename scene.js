@@ -85,6 +85,15 @@
         const col=v>.67?{r:193,g:206,b:207}:{r:248,g:241,b:221};
         stroke(c,x,y,range(5,28),range(1.5,4),col,-.04,range(.15,.4),3);
       }
+      // Granulated pigment and sparse paper breaks remain fixed as the bank drifts.
+      const texture=c.getImageData(0,0,sprite.width,sprite.height);
+      for(let k=0;k<texture.data.length;k+=4){
+        if(texture.data[k+3]<8)continue;
+        const grain=(random()-.5)*18;
+        for(let channel=0;channel<3;channel++)texture.data[k+channel]=clamp(texture.data[k+channel]+grain,0,255);
+        if(random()<.045)texture.data[k+3]*=.5;
+      }
+      c.putImageData(texture,0,0);
       cloudSprites.push({...bank,sprite});
     }
   }
@@ -98,7 +107,7 @@
     }
     c.restore();
   }
-  const fallMist=[];
+  const fallMist=[],fallTop=462,fallBase=524,fallHeight=fallBase-fallTop;
   function cacheWaterfall(){
     const savedSeed=seed;seed=4910;
     // Chalk-like spray keeps the same dry pigment edges as the landscape.
@@ -123,7 +132,7 @@
     // Thin, overlapping washes open into an asymmetric, wind-blown veil.
     for(let layer=0;layer<7;layer++){
       const offset=(layer-3)*.27,finish=.83+(layer%3)*.055;
-      const wash=c.createLinearGradient(0,462,0,565);
+      const wash=c.createLinearGradient(0,fallTop,0,fallBase);
       wash.addColorStop(0,'rgba(248,246,224,.19)');wash.addColorStop(.32,'rgba(236,242,225,.16)');wash.addColorStop(.73,'rgba(224,236,221,.08)');wash.addColorStop(1,'rgba(218,232,218,0)');
       c.fillStyle=wash;c.beginPath();
       for(let side=-1;side<=1;side+=2){
@@ -131,7 +140,7 @@
           const q=side===-1?k/35*finish:(35-k)/35*finish;
           const width=1.4+Math.sin(q*1.8)*3.5+q**3*8;
           const edge=Math.sin(q*38+layer*1.7-t*.5)*q*.7;
-          const x=fallPosition(q,t)+(offset+side*.55)*width+edge,y=462+q*99;
+          const x=fallPosition(q,t)+(offset+side*.55)*width+edge,y=fallTop+q*fallHeight;
           if(side===-1&&k===0)c.moveTo(x,y);else c.lineTo(x,y);
         }
       }
@@ -145,7 +154,7 @@
         const xx=fallPosition(v,t)+side*(2.2+v*4.5+v**4*13);
         const alpha=(.26+(1-Math.abs(side)*2)*.3)*(1-q)**.9;
         c.strokeStyle=i%4===0?`rgba(178,204,201,${alpha*.65})`:`rgba(240,243,224,${alpha})`;
-        c.lineWidth=i%3===0?.65:.35;c.beginPath();c.moveTo(x,462+q*99);c.lineTo(xx,462+v*99);c.stroke();
+        c.lineWidth=i%3===0?.65:.35;c.beginPath();c.moveTo(x,fallTop+q*fallHeight);c.lineTo(xx,fallTop+v*fallHeight);c.stroke();
       }
     }
     c.strokeStyle='rgba(250,248,227,.86)';c.lineWidth=1.5;c.beginPath();c.moveTo(1039.6,462);c.quadraticCurveTo(1039.3,468,1040,474);c.stroke();
@@ -154,53 +163,54 @@
     c.lineCap='butt';
     for(let i=0;i<115;i++){
       const age=(i*.61803398875+t*(.34+(i%5)*.011))%1,q=age**1.65;
-      const side=Math.sin(i*17.31),length=.025+(i%7)*.006,end=Math.min(1.02,q+length);
+      const side=Math.sin(i*17.31),length=.025+(i%7)*.006,end=Math.min(1,q+length);
       c.beginPath();
       for(let v=q;v<=end;v+=.008){
         const width=1.1+v*4+v**4*11;
-        const x=fallPosition(v,t)+side*width*.5+Math.sin(v*38+i)*v*.19,y=462+v*99;
+        const x=fallPosition(v,t)+side*width*.5+Math.sin(v*38+i)*v*.19,y=fallTop+v*fallHeight;
         if(v===q)c.moveTo(x,y);else c.lineTo(x,y);
       }
-      const edgeFade=Math.min(1,(1.02-q)*3.4);
+      const edgeFade=Math.min(1,(1-q)*3.4);
       c.strokeStyle=i%5===0?`rgba(185,210,207,${edgeFade*.55})`:`rgba(249,247,227,${edgeFade*(.3+(i%4)*.11)})`;
       c.lineWidth=.25+(i%3)*.19;c.stroke();
     }
   }
   function fallingMist(c,t){
     if(!fallMist.length)return;
-    // Spray is born at the foot, then rises sideways and thins into the forest.
+    // Spray rises from the cliff base and stays above the foreground forest.
     for(let i=0;i<8;i++){
       const age=(t*.11+i/8)%1,wind=1+Math.sin(t*.48)*.5;
-      const x=fallPosition(.97,t)+age*wind*13+Math.sin(i*2.4)*age*5,y=559-age*8;
+      const x=fallPosition(.97,t)+age*wind*13+Math.sin(i*2.4)*age*5,y=fallBase-2-age*8;
       const size=.25+age*.57;
       c.save();c.globalAlpha=Math.sin(age*Math.PI)*.63;c.translate(x,y);c.scale(size,size);c.rotate(-age*.15);c.drawImage(fallMist[i%4],-27,-19);c.restore();
     }
     // Fine spray follows the same wind; no randomly respawned particles.
     c.fillStyle='rgba(235,242,225,.22)';
     for(let i=0;i<30;i++){
-      const age=(t*.22+i*.618)%1,x=fallPosition(.97,t)+Math.sin(i*8)*age*7+age*7,y=554+age*13;
+      const age=(t*.22+i*.618)%1,x=fallPosition(.97,t)+Math.sin(i*8)*age*7+age*7,y=fallBase-3-age*7;
       c.globalAlpha=(1-age)*.45;c.fillRect(x,y,.4,.9);
     }
     c.globalAlpha=1;
   }
   function waterfall(c,t){
     c.save();
+    c.beginPath();c.rect(0,0,W,fallBase);c.clip();
     fallingVeil(c,t);
     fallingRibbons(c,t);
     fallingMist(c,t);
     c.restore();
   }
-  const canopy=[];
+  const canopy=[],looseLeaves=[],leafSprites=[];
   let foreground;
   function foregroundDepth(x,y){
     const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
     const pine=(1-smooth(125,285,x))*smooth(110,300,y);
     const right=smooth(1180,1530,x)*smooth(410,790,y);
-    const bottom=smooth(765+Math.sin(x*.006)*28,990,y);
+    const bottom=smooth(650+Math.sin(x*.006)*35,925,y);
     return Math.max(pine,right,bottom);
   }
   function cacheCanopy(){
-    canopy.length=0;
+    canopy.length=0;looseLeaves.length=0;leafSprites.length=0;
     if(!pixels)return;
     const paint=p.getImageData(0,0,W,H).data;
     foreground=document.createElement('canvas');foreground.width=W;foreground.height=H;
@@ -224,7 +234,7 @@
       if(y<615&&x>190&&x<1180)continue;
       const w=Math.min(115,W-x),h=Math.min(115,H-y),sprite=document.createElement('canvas');
       sprite.width=w;sprite.height=h;
-      const c=sprite.getContext('2d'),image=c.createImageData(w,h);let visible=0,near=0;
+      const c=sprite.getContext('2d'),image=c.createImageData(w,h);let visible=0,near=0,leafX=0,leafY=0;
       for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
         const at=((y+yy)*W+x+xx)*4,local=(yy*w+xx)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2];
         if(g<b*.96||g<r*.88||r+g+b>555||y+yy<skyline[x+xx]+6)continue;
@@ -232,39 +242,62 @@
         const alpha=front.data[at+3]/255;
         for(let k=0;k<3;k++)image.data[local+k]=paint[at+k]*(1-alpha)+front.data[at+k]*alpha;
         image.data[local+3]=Math.round((150+depth*95)*edge);visible++;near+=depth;
+        if(edge===1&&depth>.2&&visible%53===0){leafX=x+xx;leafY=y+yy;}
       }
       if(visible<90)continue;
       c.putImageData(image,0,0);
       canopy.push({sprite,x,y,near:near/visible,pine:x<190});
+      if(leafY)looseLeaves.push({x:leafX,y:leafY,phase:((x*13+y*7)%997)/997,duration:9+(x%7),size:.6+near/visible*.7});
     }
+    const savedSeed=seed;seed=7183;
+    for(const col of [{r:125,g:139,b:92},{r:166,g:167,b:111},{r:94,g:116,b:81},{r:184,g:171,b:118}]){
+      const sprite=document.createElement('canvas');sprite.width=22;sprite.height=14;
+      const c=sprite.getContext('2d');
+      for(let i=0;i<16;i++)stroke(c,range(7,14),range(5,9),range(2,6),range(.6,1.8),col,range(-.5,.5),.55,2);
+      leafSprites.push(sprite);
+    }
+    seed=savedSeed;
   }
   function rustlingTrees(c,t){
     for(const patch of canopy){
       // One gust travels across the near canopy; high branches yield more than their trunks.
       const windTime=t-patch.x*.0016;
       const gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
-      const flutter=Math.sin(t*3.1+patch.x*.014+patch.y*.009)*.16;
-      const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*3.6;
+      const flutter=Math.sin(t*3.1+patch.x*.014+patch.y*.009)*.16+Math.sin(t*4.7-patch.x*.021)*patch.near*.1;
+      const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*7;
       const sway=(gust+flutter)*flex;
-      c.drawImage(patch.sprite,patch.x+sway,patch.y+Math.sin(windTime*1.2)*flex*.12);
+      const anchor=patch.sprite.height;
+      c.save();c.translate(patch.x+patch.sprite.width*.5,patch.y+anchor);
+      c.rotate(-sway*.0025);c.drawImage(patch.sprite,-patch.sprite.width*.5+sway,-anchor+Math.sin(windTime*1.2)*flex*.18);c.restore();
+    }
+    // Pigment flecks lift from the canopy, turn in the gust, then settle out of sight.
+    for(let i=0;i<looseLeaves.length;i++){
+      const leaf=looseLeaves[i],age=(t/leaf.duration+leaf.phase)%1;
+      const breeze=Math.sin((t-leaf.x*.0016)*.75),arc=Math.sin(age*Math.PI);
+      const x=leaf.x+age*(100+leaf.size*55)+arc*Math.sin(t*.7+i)*18;
+      const y=leaf.y-arc*(28+leaf.size*20)+age*age*90;
+      c.save();c.globalAlpha=arc*arc*.72;c.translate(x,y);c.rotate(age*5+Math.sin(t*1.6+i)*.6);
+      c.scale(leaf.size*(.25+.75*Math.abs(Math.cos(t*2.2+i))),leaf.size);
+      c.transform(1,0,breeze*.25,1,0,0);c.drawImage(leafSprites[i%leafSprites.length],-11,-7);c.restore();
     }
   }
   function birds(c,t){
-    // A steady circling flock stays in the visible sky, including the portrait crop.
+    // Two staggered flocks travel only east; they wrap after the last bird leaves the view.
     const visibleLeft=-ox/scale,visibleRight=(innerWidth-ox)/scale;
-    const left=Math.max(400,visibleLeft+40),right=Math.min(1240,visibleRight-40);
-    const center=(left+right)/2,radius=Math.max(0,(right-left)/2-40),spacing=Math.min(27,(right-left)/7),orbit=t*.075;
-    const flight=center+Math.sin(orbit)*radius,heading=Math.cos(orbit);
-    const turn=.45+.55*Math.abs(heading);
-    for(let i=0;i<3;i++){
-      const x=flight-i*spacing*heading,y=230+i*16+Math.cos(orbit)*18;
-      const wingPhase=t*5.1-i*.55;
-      const glide=(Math.sin(t*.55-i*.3)+1)/2;
-      const flap=Math.sin(wingPhase)*3.5*(1-glide*.7)-glide*1.7;
-      const size=(i===0?6.5:5.5)*turn;
-      c.strokeStyle='rgba(39,56,57,.86)';c.lineWidth=i===0?1.35:1.1;c.lineCap='round';
-      c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-1.8,x,y);c.quadraticCurveTo(x+size*.45,y-1.8,x+size,y+flap);c.stroke();
-      c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.8,1.65,-heading*.3,0,Math.PI*2);c.fill();
+    const span=visibleRight-visibleLeft+180,spacing=Math.min(24,(visibleRight-visibleLeft)/9);
+    for(let flock=0;flock<2;flock++){
+      const phase=(t/32+flock*.5+.19)%1,flight=visibleLeft-60+phase*span;
+      for(let i=0;i<3;i++){
+        const x=flight-i*spacing,y=224+flock*26+i*10+Math.sin(t*.3+flock)*4;
+        if(x<visibleLeft-8||x>visibleRight+8||x<0||x>=W||y>skyline[Math.floor(x)]-12)continue;
+        const wingPhase=t*5.1-i*.55-flock;
+        const glide=(Math.sin(t*.55-i*.3-flock)+1)/2;
+        const flap=Math.sin(wingPhase)*3.5*(1-glide*.7)-glide*1.7;
+        const size=i===0?6.5:5.5;
+        c.strokeStyle='rgba(39,56,57,.86)';c.lineWidth=i===0?1.35:1.1;c.lineCap='round';
+        c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-1.8,x,y);c.quadraticCurveTo(x+size*.45,y-1.8,x+size,y+flap);c.stroke();
+        c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.8,1.65,-.3,0,Math.PI*2);c.fill();
+      }
     }
   }
   function animate(now){
