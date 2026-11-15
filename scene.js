@@ -67,6 +67,7 @@
     ctx.fillStyle='#b0c7ca';ctx.fillRect(0,0,w,h);
     if(ready){
       ctx.drawImage(painting,ox,oy,W*scale,H*scale);
+      if(foreground)ctx.drawImage(foreground,ox,oy,W*scale,H*scale);
       air.save();air.translate(ox,oy);air.scale(scale,scale);
       driftingClouds(air,clock);waterfall(air,clock);rustlingTrees(air,clock);birds(air,clock);air.restore();
     }
@@ -190,45 +191,80 @@
     c.restore();
   }
   const canopy=[];
+  let foreground;
+  function foregroundDepth(x,y){
+    const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
+    const pine=(1-smooth(125,285,x))*smooth(110,300,y);
+    const right=smooth(1180,1530,x)*smooth(410,790,y);
+    const bottom=smooth(765+Math.sin(x*.006)*28,990,y);
+    return Math.max(pine,right,bottom);
+  }
   function cacheCanopy(){
     canopy.length=0;
     if(!pixels)return;
     const paint=p.getImageData(0,0,W,H).data;
-    // Lift actual painted foliage out of the terrain. Its texture and palette stay identical.
-    for(let y=150;y<H;y+=95)for(let x=0;x<W;x+=95){
-      if(y<625&&x>160)continue;
+    foreground=document.createElement('canvas');foreground.width=W;foreground.height=H;
+    const fc=foreground.getContext('2d'),front=fc.createImageData(W,H);
+    // The near trees use the existing pigment, with deeper shadows and warmer needle tips.
+    for(let y=140;y<H;y++)for(let x=0;x<W;x++){
+      const at=(y*W+x)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2],depth=foregroundDepth(x,y);
+      const foliage=g>b*.94&&g>r*.87,wood=r+g+b<225;
+      if(depth<.01||(!foliage&&!wood)||y<skyline[x]+4)continue;
+      const brightness=paint[at]*.3+paint[at+1]*.55+paint[at+2]*.15;
+      const highlight=clamp((brightness-145)/65,0,1);
+      front.data[at]=clamp((paint[at]-115)*1.25+99+highlight*5,0,255);
+      front.data[at+1]=clamp((paint[at+1]-115)*1.24+103+highlight*7,0,255);
+      front.data[at+2]=clamp((paint[at+2]-115)*1.2+91,0,255);
+      const green=clamp((g-b+3)/18,0,1)*clamp((g-r+12)/20,0,1);
+      front.data[at+3]=Math.round(225*depth*Math.max(green,wood?.65:0));
+    }
+    fc.putImageData(front,0,0);
+    // Feathered, overlapping cutouts preserve the painted silhouette as branches flex.
+    for(let y=140;y<H;y+=95)for(let x=0;x<W;x+=95){
+      if(y<615&&x>190&&x<1180)continue;
       const w=Math.min(115,W-x),h=Math.min(115,H-y),sprite=document.createElement('canvas');
       sprite.width=w;sprite.height=h;
-      const c=sprite.getContext('2d'),image=c.createImageData(w,h);let visible=0;
+      const c=sprite.getContext('2d'),image=c.createImageData(w,h);let visible=0,near=0;
       for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
         const at=((y+yy)*W+x+xx)*4,local=(yy*w+xx)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2];
-        if(g<b*.96||g<r*.88||r+g+b>535||y+yy<skyline[x+xx]+6)continue;
-        const edge=Math.min(1,xx/12,yy/12,(w-xx)/12,(h-yy)/12);
-        image.data[local]=paint[at];image.data[local+1]=paint[at+1];image.data[local+2]=paint[at+2];image.data[local+3]=Math.round(220*edge);visible++;
+        if(g<b*.96||g<r*.88||r+g+b>555||y+yy<skyline[x+xx]+6)continue;
+        const edge=Math.min(1,xx/14,yy/14,(w-xx)/14,(h-yy)/14),depth=foregroundDepth(x+xx,y+yy);
+        const alpha=front.data[at+3]/255;
+        for(let k=0;k<3;k++)image.data[local+k]=paint[at+k]*(1-alpha)+front.data[at+k]*alpha;
+        image.data[local+3]=Math.round((150+depth*95)*edge);visible++;near+=depth;
       }
       if(visible<90)continue;
       c.putImageData(image,0,0);
-      canopy.push({sprite,x,y,depth:(y/H)**2,phase:x*.005+y*.002,pine:x<170});
+      canopy.push({sprite,x,y,near:near/visible,pine:x<190});
     }
   }
   function rustlingTrees(c,t){
-    const gust=Math.sin(t*.8)*.65+Math.sin(t*1.7)*.25;
     for(const patch of canopy){
-      const breeze=Math.sin(t*2.1+patch.phase)*.45+gust;
-      const flex=patch.pine?1.7+(1-patch.y/H)*2:patch.depth*2.2;
-      c.drawImage(patch.sprite,patch.x+breeze*flex,patch.y+Math.sin(t*1.3+patch.phase)*flex*.24);
+      // One gust travels across the near canopy; high branches yield more than their trunks.
+      const windTime=t-patch.x*.0016;
+      const gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
+      const flutter=Math.sin(t*3.1+patch.x*.014+patch.y*.009)*.16;
+      const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*3.6;
+      const sway=(gust+flutter)*flex;
+      c.drawImage(patch.sprite,patch.x+sway,patch.y+Math.sin(windTime*1.2)*flex*.12);
     }
   }
   function birds(c,t){
-    // A small group crosses the open sky together, alternately flapping and gliding.
-    const flight=(t*21+860)%(W+440)-220;
+    // A steady circling flock stays in the visible sky, including the portrait crop.
+    const visibleLeft=-ox/scale,visibleRight=(innerWidth-ox)/scale;
+    const left=Math.max(400,visibleLeft+40),right=Math.min(1240,visibleRight-40);
+    const center=(left+right)/2,radius=Math.max(0,(right-left)/2-40),spacing=Math.min(27,(right-left)/7),orbit=t*.075;
+    const flight=center+Math.sin(orbit)*radius,heading=Math.cos(orbit);
+    const turn=.45+.55*Math.abs(heading);
     for(let i=0;i<3;i++){
-      const x=flight+i*31,y=270+i*16+Math.sin(t*.25+i*.7)*17;
-      if(x<0||x>=W||y>skyline[Math.floor(x)]-15)continue;
-      const glide=Math.sin(t*.8+i)>.35,flap=glide?-1.4:Math.sin(t*5.2+i*.65)*4.5,size=i===0?7:5.5;
-      c.strokeStyle='rgba(39,56,57,.88)';c.lineWidth=i===0?1.5:1.2;c.lineCap='round';
-      c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-2,x,y);c.quadraticCurveTo(x+size*.45,y-2,x+size,y+flap);c.stroke();
-      c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.9,1.8,-.35,0,Math.PI*2);c.fill();
+      const x=flight-i*spacing*heading,y=230+i*16+Math.cos(orbit)*18;
+      const wingPhase=t*5.1-i*.55;
+      const glide=(Math.sin(t*.55-i*.3)+1)/2;
+      const flap=Math.sin(wingPhase)*3.5*(1-glide*.7)-glide*1.7;
+      const size=(i===0?6.5:5.5)*turn;
+      c.strokeStyle='rgba(39,56,57,.86)';c.lineWidth=i===0?1.35:1.1;c.lineCap='round';
+      c.beginPath();c.moveTo(x-size,y+flap);c.quadraticCurveTo(x-size*.45,y-1.8,x,y);c.quadraticCurveTo(x+size*.45,y-1.8,x+size,y+flap);c.stroke();
+      c.fillStyle='#344b49';c.beginPath();c.ellipse(x,y,.8,1.65,-heading*.3,0,Math.PI*2);c.fill();
     }
   }
   function animate(now){

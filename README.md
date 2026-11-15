@@ -6,7 +6,7 @@ Plain HTML, CSS and JavaScript. No runtime dependencies or build step. Run `npm 
 
 The original postcard is preserved in `archive/postcard/`, excluded from Vercel deployment. The résumé is retained locally in that archive and ignored by Git.
 
-The terrain is painted with multiscale bristle strokes sampled from a CC0 photographic guide. `assets/yosemite-painting.webp` caches the initial coat. Foliage lifted from the actual painting rustles in a shared wind field. Faster drifting cloud banks, a small group of flapping and gliding birds, and a waterfall built from translucent brush washes, accelerating ribbons, and wind-carried chalk mist provide the live layers. Reduced motion is supported; hidden tabs stop drawing.
+The terrain is painted with multiscale bristle strokes sampled from a CC0 photographic guide. `assets/yosemite-painting.webp` caches the initial coat. The left pine, right trees, and bottom canopy are separated by deeper foreground shadows and warm highlights. Foliage lifted from the actual painting rustles in a shared wind field. Faster drifting cloud banks, a continuously circling flock that remains in the visible sky, and a waterfall built from translucent brush washes, accelerating ribbons, and wind-carried chalk mist provide the live layers. Reduced motion is supported; hidden tabs stop drawing.
 
 To regenerate the terrain cache after changes, call `await window.paintLandscape()` in the browser and save the data URL from `window.exportPainting()` to `assets/yosemite-painting.webp`. If the cache is missing, the browser rebuilds it automatically. If the guide fails to load, the cached painting remains available.
 
