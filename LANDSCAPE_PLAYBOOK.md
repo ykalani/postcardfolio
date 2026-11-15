@@ -1,6 +1,22 @@
 # National Park Landscape Playbook
 
-A self-contained handoff for Luna or another coding model. Read this before building the next six or seven landscapes. This records the actual implementation, the user’s feedback, the failed approaches, and the acceptance criteria—not just an aesthetic prompt.
+A shared implementation guide for the portfolio's five landscape destinations. Read this and the relevant scene brief before implementation. This records the actual implementation, the user’s feedback, the failed approaches, and the acceptance criteria—not just an aesthetic prompt.
+
+## Portfolio plan and scene briefs
+
+The agreed portfolio has five sections. These are content destinations, not a requirement to stack five full-screen canvases on one page.
+
+| Section | Landscape | Scene brief |
+| --- | --- | --- |
+| Home | Yosemite | [Yosemite](landscapes/yosemite.md) |
+| Projects | Hawaiʻi Volcanoes | [Hawaiʻi Volcanoes](landscapes/hawaii-volcanoes.md) |
+| Experience | Great Sand Dunes | [Great Sand Dunes](landscapes/great-sand-dunes.md) |
+| Writing | Olympic | [Olympic](landscapes/olympic.md) |
+| About | Sleeping Bear Dunes National Lakeshore | [Sleeping Bear](landscapes/sleeping-bear.md) |
+
+Keep shared rendering, accessibility, navigation, QA, and deployment instructions here. Keep viewpoint, palette, movement, mobile framing, and asset research in the linked briefs. Later explicit user instructions take precedence; otherwise use this guide for shared rules and the scene brief for art direction.
+
+The five-section plan is agreed. New scenes are briefs, not completed implementations or approved source assets. The current Yosemite landing and plain writing destination remain the implementation baseline until a scene or navigation change is requested. This documentation update does not authorize adding portfolio copy, a park selector, or all five pages immediately. Résumé and contact can be links rather than additional landscape destinations.
 
 ## 1. The job
 
@@ -22,7 +38,7 @@ If you have repository access, read the actual current files. This document expl
 - The bottom park/time/breeze controls and the heading “POSTCARDS FROM THE OUTSIDE” were removed. Do not bring them back.
 - Mobile has a taller, scrollable composition and opens halfway through its scrollable range. Read the current CSS for the height; it has been adjusted locally after the initial 125svh version. Do not reset the user’s current value.
 - A paper slip at bottom right says **writing**. It opens a plain page containing only **writing**, through a painted cloud curtain.
-- Bird flight must be **left to right only**, with at least one visible bird for **75% or more of the cycle** when viewing the scene’s sky. Quantify this rather than claiming it by eye.
+- In Yosemite, bird flight must be **left to right only**, with at least one visible bird for **75% or more of the cycle** when viewing the scene’s sky. Apply the same contract to new scenes that include sky birds; do not force birds into an enclosed forest or volcanic crater. Quantify this rather than claiming it by eye.
 - Clouds should visibly travel; very slow, almost imperceptible cloud movement was rejected. Both cloud banks and cloud transitions need visible paint texture.
 - Preserve existing motion-preference handling. The user explicitly asked to skip/remove reduced-motion tests. Do not run those tests or add them to the acceptance checklist.
 - The old sibling portfolio can supply factual links if needed. Its UI and prose are not design inspiration. This task is about landscapes, not new biography copy.
@@ -90,17 +106,7 @@ Before coding, write a short brief containing:
 
 Do not combine landmarks from incompatible viewpoints and call it an accurate scene. If an artistic rearrangement is needed, make it deliberate and avoid misrepresenting the geography. Verify which feature is which: Half Dome and El Capitan are not interchangeable labels.
 
-For six or seven additional parks, these are useful **creative starting briefs**, not researched asset selections or promises that all features share one viewpoint:
-
-| Park | Possible composition | Motion to explore | Research starting point |
-| --- | --- | --- | --- |
-| Zion | A clearly recognizable sandstone formation framed by canyon vegetation | Near leaves, drifting clouds, river movement if the chosen view actually includes water | https://www.nps.gov/zion/index.htm |
-| Grand Teton | Distinct peaks, lake or valley, foreground conifers/aspen | Water reflections, near branches, wind through grasses | https://www.nps.gov/grte/index.htm |
-| Glacier | A specific carved valley or lake beneath alpine terrain | Broken lake reflections, low clouds, nearby meadow plants | https://www.nps.gov/glac/index.htm |
-| Olympic | Choose one setting: rain forest, coast, or alpine country | Ferns and mist in a forest; or surf and coastal branches in a coastal view | https://www.nps.gov/olym/index.htm |
-| Bryce Canyon | Recognizable hoodoo masses with a near rim or tree frame | Cloud shadows and restrained near-branch movement | https://www.nps.gov/brca/index.htm |
-| Arches | One correctly shaped arch or rock formation with a convincing opening | Cloud passage, a little near scrub movement, restrained atmospheric shimmer | https://www.nps.gov/arch/index.htm |
-| Acadia | A coherent rocky coast or headland view with a near tree frame | Surf, distant water glints, wind in coastal vegetation | https://www.nps.gov/acad/index.htm |
+Use the five linked scene briefs above. Earlier suggestions for Zion, Grand Teton, Glacier, Bryce Canyon, Arches, and Acadia are superseded by this selection. Great Sand Dunes is a daylight scene of dune ridges, the Sangre de Cristo backdrop, and seasonal Medano Creek. Sleeping Bear is a water-led Lake Michigan sunset. Keep these two dune destinations visually distinct.
 
 Pick a real photograph for the chosen viewpoint before deciding exact landmark coordinates. Do not give every park the same clouds, pine tree, waterfall, lake, and pollen.
 
@@ -118,7 +124,7 @@ License details are in `assets/CREDITS.md`. The full original was used for prepa
 
 ### Preserve Yosemite when adding a park
 
-Do not overwrite the existing Yosemite guide, cache, credits or default scene. Give each park unique assets, for example `assets/zion/guide.jpg`, `assets/zion/painting.webp`, and `assets/zion/CREDITS.md`. Store its implementation separately or select its configuration without changing the current default experience. Avoid copying one giant renderer seven times unchanged, but do not build a generic framework before the second scene proves which code actually needs to be shared.
+Do not overwrite the existing Yosemite guide, cache, credits or default scene. Give each new scene unique assets, for example `assets/great-sand-dunes/guide.jpg`, `assets/great-sand-dunes/painting.webp`, and `assets/great-sand-dunes/CREDITS.md`. Use the scene brief's filename stem for its asset directory. Store its implementation separately or select its configuration without changing the current default experience. Avoid copying one giant renderer five times unchanged, but do not build a generic framework before the second scene proves which code actually needs to be shared.
 
 For each adaptation, explicitly revisit the hardcoded Yosemite assumptions:
 
@@ -206,7 +212,9 @@ Texture belongs inside the cloud’s mask. Random dots outside its silhouette lo
 
 Bake texture into sprites once. Animate position and a small amount of scale/depth, not random texture. The user requested faster clouds: movement must be apparent over a few seconds without turning the sky into a conveyor belt.
 
-### Birds: quantitative contract
+### Birds: quantitative contract (where present)
+
+Required for Yosemite and any new scene that deliberately includes sky birds. Record this check as not applicable when a scene omits birds; do not introduce birds just to satisfy a generic checklist.
 
 All x motion is left to right. Use staggered passes and reset only outside the visible view. Vary flap phase and smoothly blend gliding; do not abruptly reverse heading. Preserve a consistent silhouette and scale.
 
@@ -283,7 +291,7 @@ We observed median browser frame intervals near 16.7 ms after optimizing. This m
 
 ## 11. Browser QA: do this, then stop
 
-The built-in browser host was unavailable in the original session. The user explicitly authorized Playwright, which worked. Use available browser automation; do not report visual QA as unavailable without checking the authorized alternative.
+The built-in browser host was unavailable in the original session. Playwright worked and is required by repository instructions for browser automation, visual previews, and browser testing.
 
 Test the new park at desktop, portrait mobile, and a wide screen. Inspect screenshots yourself; do not rely exclusively on numeric assertions. Also inspect a short time sequence or video, because a beautiful still can hide incoherent motion.
 
@@ -293,10 +301,10 @@ Minimum checks:
 - Foreground, middle ground and background separate clearly.
 - The portrait composition keeps its central landmark and primary moving feature in view.
 - The mobile canvas uses the actual stage height, and its initial middle scroll still works.
-- Birds travel only left to right and meet the measured ≥75% visibility requirement.
-- Canopy motion belongs to the trees and does not flicker or reveal tile boundaries.
-- The focal water motion is visible; its lip/shoreline stays fixed.
-- Cloud texture stays stable while the cloud moves.
+- Where birds are present, they travel only left to right and meet the measured ≥75% visibility requirement.
+- Where canopy is present, its motion belongs to the trees and does not flicker or reveal tile boundaries.
+- The scene brief's primary movement is visible and physically anchored; water lips, banks, and shorelines stay connected to the terrain.
+- Where clouds are present, their texture stays stable while they move.
 - No JavaScript errors or missing scene assets.
 - Missing cached painting rebuilds; missing guide retains a static painting.
 - The writing slip remains readable and reachable at bottom right.
@@ -334,16 +342,16 @@ If a remote README update or another agent’s changes arrive, integrate them wi
 ## 13. Execution plan for the next model
 
 1. Inspect current source, local diffs, deployed scene, this guide, and asset credits.
-2. Confirm the first new park/viewpoint. Research its focal geometry and obtain a verified usable image.
+2. Read the relevant scene brief. Resolve its proposed viewpoint against a real reference, research its focal geometry, and obtain a verified usable image. Record the selected asset and license before rendering.
 3. Build one strong static painting. Compare it against the source and reference style.
 4. Separate foreground, distant terrain and sky. Fix portrait framing before adding motion.
 5. Implement the two or three physical movements that matter most to that park.
 6. Inspect motion. Use close-up component comparisons if something reads as a line, particle effect or pasted-on illustration.
-7. Check performance and the bird occupancy contract. Cache expensive marks.
+7. Check performance and, where birds are present, the bird occupancy contract. Cache expensive marks.
 8. Integrate through the existing cloud curtain only where navigation has been requested. Do not invent a park selector or restore removed controls.
-9. Validate the actual browser output, push and deploy when authorized, and verify the live URLs.
+9. Validate the actual browser output, commit, push, deploy to Vercel production by default under AGENTS.md, and verify the live URLs. Respect an explicit user request for a different workflow.
 10. Repeat for the remaining parks, keeping their art direction distinct. Reuse implementation patterns, not the same landscape with new colors.
 
-## 14. Copy-and-paste brief for Luna
+## 14. Copy-and-paste implementation handoff
 
-> Read LANDSCAPE_PLAYBOOK.md and inspect the current repository before editing. Build [PARK] from a verified licensed guide image as a detailed, living canvas painting in the established style. Preserve actual landmark geometry and the current website navigation. Keep the foreground, terrain and atmospheric layers visually coherent. Animate the park’s meaningful physical elements; do not add arbitrary particles or generic pasted-on trees. Birds travel left to right only and must be visible at least 75% of the sky-viewing cycle. Preserve the user’s current mobile height and centered start. Cache expensive brushwork, visually inspect desktop/mobile/wide views, test normal navigation and browser Back, and skip reduced-motion tests. Finish one park fully before multiplying the approach across the remaining six or seven. Do not overwrite unrelated local work or restore the archived postcard. Report what you built, what you checked, and any real limitation.
+> Read AGENTS.md, LANDSCAPE_PLAYBOOK.md, and landscapes/[SCENE].md; inspect current source and local diffs before editing. Implement only the requested scene from a verified licensed guide image as a detailed, living canvas painting in the established style. Resolve the brief's proposed viewpoint and record asset provenance first. Preserve actual landmark geometry, current navigation, and unrelated local work. Keep foreground, terrain, and atmospheric layers visually coherent. Animate the scene's meaningful physical elements; avoid arbitrary particles and pasted-on trees. Where sky birds are included, use left-to-right flight and measure at least 75% visible occupancy. Preserve the current mobile height and centered start, and check the brief's portrait priorities. Cache expensive brushwork. Use Playwright to inspect desktop/mobile/wide stills and motion, check affected navigation and browser Back, and skip reduced-motion tests while retaining support. Finish one scene before repeating the approach. Run relevant checks, commit, push, deploy to Vercel production by default, and verify live URLs unless the user explicitly requests another workflow. Report what you built, what you checked, and any real limitation.
