@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f0e4">
+  <title>Yash Kalani</title>
+  <script>
+    try {
+      if (sessionStorage.getItem('postcard-cloud-arrival') === 'writing') {
+        document.documentElement.classList.add('cloud-arrival');
+        window.cloudFallback = setTimeout(() => document.documentElement.classList.remove('cloud-arrival'), 3000);
+      }
+    } catch {}
+  </script>
+  <link rel="stylesheet" href="cloud-transition.css">
+  <style>
+    html,body{margin:0;min-height:100%;background:#f5f0e4;color:#304c44}
+    body{min-height:100svh;display:grid;place-items:center}
+    h1{margin:0;font:400 42px/1.2 Georgia,serif;outline:none}
+  </style>
+  <script src="cloud-transition.js" defer></script>
+</head>
+<body>
+  <h1 tabindex="-1">writing</h1>
+</body>
+</html>
