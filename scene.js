@@ -128,7 +128,7 @@
   }
   function foregroundPine(c,t,gust){
     if(!pineTrunk)return;
-    c.save();c.translate(136,1005);c.drawImage(pineTrunk,-47,-820);
+    c.save();c.translate(innerWidth<650?650:136,1005);if(innerWidth<650)c.scale(.65,.65);c.drawImage(pineTrunk,-47,-820);
     for(const limb of pineLimbs){
       const wind=(Math.sin(t*.85)+.3*Math.sin(t*1.7)+gust)*.008*(1-limb.y/1100);
       c.save();c.translate(0,-820+limb.y);c.scale(limb.side,1);c.rotate(wind*limb.side);c.drawImage(limb.sprite,-8,-79);c.restore();
