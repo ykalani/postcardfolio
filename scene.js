@@ -62,7 +62,7 @@
   }
   function fit(){
     const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=document.querySelector('main').clientHeight;
-    scale=Math.max(w/W,h/H);ox=w*.5-W*scale*(w<650?.535:.5);oy=(h-H*scale)*.5;
+    scale=Math.max(w/W,h/H);ox=w*.5-W*scale*(w<650?.563:.5);oy=(h-H*scale)*.5;
     for(const c of [canvas,motion]){c.width=w*dpr;c.height=h*dpr;c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
     ctx.fillStyle='#b0c7ca';ctx.fillRect(0,0,w,h);
     if(ready){
@@ -97,22 +97,96 @@
     }
     c.restore();
   }
+  const fallMist=[];
+  function cacheWaterfall(){
+    const savedSeed=seed;seed=4910;
+    // Chalk-like spray keeps the same dry pigment edges as the landscape.
+    for(let n=0;n<4;n++){
+      const sprite=document.createElement('canvas');sprite.width=54;sprite.height=38;
+      const c=sprite.getContext('2d');
+      for(let i=0;i<190;i++){
+        const x=range(3,47),y=range(3,33),distance=((x-26)/22)**2+((y-19)/14)**2;
+        if(distance>range(.4,1))continue;
+        stroke(c,x,y,range(1,7),range(.3,1.3),{r:224+n*3,g:231+n*2,b:217+n*3},range(-.3,.15),.085,2);
+      }
+      fallMist.push(sprite);
+    }
+    seed=savedSeed;
+  }
+  function fallPosition(q,t){
+    // The lip is fixed. The falling sheet increasingly yields to the valley wind.
+    return 1040+q*q*(8.5+Math.sin(t*.48)*3.2)+Math.sin(q*6-t*.8)*q*.9;
+  }
+  function fallingVeil(c,t){
+    c.lineCap='round';
+    // Thin, overlapping washes open into an asymmetric, wind-blown veil.
+    for(let layer=0;layer<7;layer++){
+      const offset=(layer-3)*.27,finish=.83+(layer%3)*.055;
+      const wash=c.createLinearGradient(0,462,0,565);
+      wash.addColorStop(0,'rgba(248,246,224,.19)');wash.addColorStop(.32,'rgba(236,242,225,.16)');wash.addColorStop(.73,'rgba(224,236,221,.08)');wash.addColorStop(1,'rgba(218,232,218,0)');
+      c.fillStyle=wash;c.beginPath();
+      for(let side=-1;side<=1;side+=2){
+        for(let k=0;k<=35;k++){
+          const q=side===-1?k/35*finish:(35-k)/35*finish;
+          const width=1.4+Math.sin(q*1.8)*3.5+q**3*8;
+          const edge=Math.sin(q*38+layer*1.7-t*.5)*q*.7;
+          const x=fallPosition(q,t)+(offset+side*.55)*width+edge,y=462+q*99;
+          if(side===-1&&k===0)c.moveTo(x,y);else c.lineTo(x,y);
+        }
+      }
+      c.closePath();c.fill();
+    }
+    for(let i=0;i<35;i++){
+      const side=(i/34-.5),end=.78+(i%6)*.036;
+      for(let q=(i%7)*.008;q<end;q+=.033){
+        const v=Math.min(end,q+.04),width=2.2+q*4.5+q**4*13;
+        const x=fallPosition(q,t)+side*width+Math.sin(q*29+i*1.8+t*.7)*q*.35;
+        const xx=fallPosition(v,t)+side*(2.2+v*4.5+v**4*13);
+        const alpha=(.26+(1-Math.abs(side)*2)*.3)*(1-q)**.9;
+        c.strokeStyle=i%4===0?`rgba(178,204,201,${alpha*.65})`:`rgba(240,243,224,${alpha})`;
+        c.lineWidth=i%3===0?.65:.35;c.beginPath();c.moveTo(x,462+q*99);c.lineTo(xx,462+v*99);c.stroke();
+      }
+    }
+    c.strokeStyle='rgba(250,248,227,.86)';c.lineWidth=1.5;c.beginPath();c.moveTo(1039.6,462);c.quadraticCurveTo(1039.3,468,1040,474);c.stroke();
+  }
+  function fallingRibbons(c,t){
+    c.lineCap='butt';
+    for(let i=0;i<115;i++){
+      const age=(i*.61803398875+t*(.34+(i%5)*.011))%1,q=age**1.65;
+      const side=Math.sin(i*17.31),length=.025+(i%7)*.006,end=Math.min(1.02,q+length);
+      c.beginPath();
+      for(let v=q;v<=end;v+=.008){
+        const width=1.1+v*4+v**4*11;
+        const x=fallPosition(v,t)+side*width*.5+Math.sin(v*38+i)*v*.19,y=462+v*99;
+        if(v===q)c.moveTo(x,y);else c.lineTo(x,y);
+      }
+      const edgeFade=Math.min(1,(1.02-q)*3.4);
+      c.strokeStyle=i%5===0?`rgba(185,210,207,${edgeFade*.55})`:`rgba(249,247,227,${edgeFade*(.3+(i%4)*.11)})`;
+      c.lineWidth=.25+(i%3)*.19;c.stroke();
+    }
+  }
+  function fallingMist(c,t){
+    if(!fallMist.length)return;
+    // Spray is born at the foot, then rises sideways and thins into the forest.
+    for(let i=0;i<8;i++){
+      const age=(t*.11+i/8)%1,wind=1+Math.sin(t*.48)*.5;
+      const x=fallPosition(.97,t)+age*wind*13+Math.sin(i*2.4)*age*5,y=559-age*8;
+      const size=.25+age*.57;
+      c.save();c.globalAlpha=Math.sin(age*Math.PI)*.63;c.translate(x,y);c.scale(size,size);c.rotate(-age*.15);c.drawImage(fallMist[i%4],-27,-19);c.restore();
+    }
+    // Fine spray follows the same wind; no randomly respawned particles.
+    c.fillStyle='rgba(235,242,225,.22)';
+    for(let i=0;i<30;i++){
+      const age=(t*.22+i*.618)%1,x=fallPosition(.97,t)+Math.sin(i*8)*age*7+age*7,y=554+age*13;
+      c.globalAlpha=(1-age)*.45;c.fillRect(x,y,.4,.9);
+    }
+    c.globalAlpha=1;
+  }
   function waterfall(c,t){
-    // A continuous veil stays attached to the lip, with faster descending streaks inside it.
-    const top=462,bottom=558,wind=Math.sin(t*.65)*1.9;
     c.save();
-    const flow=c.createLinearGradient(0,top,0,bottom);
-    flow.addColorStop(0,'rgba(250,248,229,.75)');flow.addColorStop(.65,'rgba(241,244,227,.6)');flow.addColorStop(1,'rgba(235,241,225,.03)');
-    c.fillStyle=flow;c.beginPath();c.moveTo(1038.6,top);c.bezierCurveTo(1038,492,1038+wind,526,1036+wind,558);c.lineTo(1050+wind,558);c.bezierCurveTo(1043+wind,526,1044,492,1042,top);c.closePath();c.fill();
-    for(let i=0;i<110;i++){
-      const phase=(i/110+t*.31)%1,y=top+phase*(bottom-top),spread=.6+phase*3.2;
-      const x=1040+Math.sin(i*23.1)*spread+phase*phase*(wind+2);
-      c.strokeStyle=`rgba(251,249,232,${.3+.5*Math.sin(phase*Math.PI)})`;c.lineWidth=.5+(i%3)*.3;c.beginPath();c.moveTo(x,y);c.lineTo(x+.2,y+3+i%5);c.stroke();
-    }
-    for(let i=0;i<7;i++){
-      const phase=(t*.13+i/7)%1,x=1044+wind+Math.sin(i*2.1)*phase*13,y=551+phase*13,r=3+phase*12;
-      const mist=c.createRadialGradient(x,y,0,x,y,r);mist.addColorStop(0,`rgba(236,242,226,${(1-phase)*.12})`);mist.addColorStop(1,'rgba(236,242,226,0)');c.fillStyle=mist;c.fillRect(x-r,y-r,r*2,r*2);
-    }
+    fallingVeil(c,t);
+    fallingRibbons(c,t);
+    fallingMist(c,t);
     c.restore();
   }
   const canopy=[];
@@ -175,7 +249,7 @@
       for(;y<650;y++){const i=(y*W+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];if(!(b>160&&b>r*1.3&&b>g*1.04&&b-r>45))break;}
       skyline[x]=y;
     }
-    cacheClouds();
+    cacheClouds();cacheWaterfall();
     const cached=new Image();cached.src='assets/yosemite-painting.webp';
     cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
     cached.onerror=()=>buildPainting();
