@@ -1,0 +1,10 @@
+{
+  "name": "postcardfolio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "check": "node --check scene.js && node --check server.mjs && node check.mjs"
+  }
+}
