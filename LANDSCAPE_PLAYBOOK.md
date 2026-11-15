@@ -172,13 +172,24 @@ Direct the marks by material:
 
 A grain overlay is only a finishing layer. It cannot replace shape, lighting, or material structure. Preserve enough contrast to separate foreground, middle distance and far distance; do not wash the whole image into equal-value texture.
 
-### Initial coat and runtime assets
+### Initial coat and runtime assets — current optimized loader
 
-Each scene should have a small guide and a cached painted WebP. Load the cached painting quickly; use the guide to prepare live masks and cutouts. If the cached painting is missing, rebuild it. If the guide fails, keep the cached painting visible as a static fallback.
+Do not download a reference photo on a normal page visit. It is an **authoring asset**, not runtime content. The initial loader did this and caused a 5–10 second wait. `assets/yosemite-guide.jpg` now stays in the repository for local asset preparation and is explicitly excluded from deployment.
 
-The existing `window.paintLandscape()` rebuilds the terrain. `window.exportPainting()` returns a WebP data URL for saving the cached coat. It exports the terrain canvas, not a screenshot containing UI or the transition curtain.
+Normal loading is now:
 
-Do not repeatedly apply foreground color grading to an already graded cached image. Keep the cached base and live foreground treatment separate, or record which stage the cache represents.
+1. Preload `assets/yosemite-display-p1.webp`, the finished painting with its foreground color treatment. Show it immediately, without waiting for animation setup.
+2. Load `assets/yosemite-live-p1.json` and the small common atlas for sky clouds, mist and pine-needle sprites. Set live readiness separately from visible readiness.
+3. Load only the foreground atlases intersecting the actual horizontal crop: left, center or right. Portrait normally needs only the center atlas. Fetch additional groups after a resize only if needed.
+4. Load `assets/cloud-curtain-p1.webp` only on writing-link intent (hover, focus, pointer down), click, or flagged arrival. Do not generate or download navigation clouds at startup.
+
+All brushwork and masks are prepared offline. During ordinary visits there is no `getImageData`, terrain classification, cloud sprite painting, or foreground pixel processing. The renderer reads saved coordinates and draws source rectangles from decoded image atlases. Loose falling leaves come only from the left pine and are capped at eight; other vegetation can rustle without shedding particles.
+
+If a live atlas fails, retain the static painting. If the optimized display image fails, try the older cached terrain as a static fallback. Do **not** download the guide and attempt to repaint the scene on a visitor’s device.
+
+For authoring, run the local dev server and use `?bake=1`. The guide is allowed only in this explicit local authoring path. `window.paintLandscape()` can rebuild the terrain; `window.exportPainting()` exports its cache. After changing art or animation masks, run `scripts/bake-assets.cjs` against the local server. Set `PLAYWRIGHT_MODULE` to an installed Playwright module if it is not installed in the project. The baker exports the display, common atlas, three foreground atlases, manifest and cloud curtain. No Playwright dependency is shipped to visitors.
+
+Version the display, manifest and matching atlas filenames together before shipping a new set; current assets use `p1`. HTML preload URLs and runtime URLs must match. Asset caching is one hour, so stale metadata must never be paired with new atlas coordinates.
 
 ## 7. Layering and art direction
 
@@ -272,13 +283,13 @@ Reset an old overlay on persisted `pageshow`. Invalidate unfinished work on `pag
 
 Clouds should begin entering promptly; an early version spent half its animation traveling invisibly offscreen. Full coverage must include corners on both wide and portrait screens. Cached sprites plus `drawImage` are sufficient.
 
-Do not add a spinner, loading copy, game graphics, a search icon, or extra writing-page content. The current request is intentionally just one word.
+Do not add a spinner, loading copy, game graphics, a search icon, or extra writing-page content. The current request is intentionally just one word. Cloud-atlas loading is asynchronous: include generation checks on both success and failure so canceled loading cannot trigger stale navigation.
 
 ## 10. Performance rules that came from real failures
 
 An early animation repainted thousands of bristled leaves every frame. Playwright measured approximately 14fps with frequent 50–100ms tasks. Caching painted foliage clusters removed the bottleneck and the flicker.
 
-- Pixel sampling and `getImageData` belong in preparation, not the frame loop.
+- Pixel sampling and `getImageData` belong in offline authoring, not normal page startup or the frame loop.
 - Seed randomness for cached marks. Do not re-randomize a leaf on every frame.
 - Keep large static color treatments on the terrain canvas rather than re-compositing the entire foreground every frame.
 - Rotating many small raster cutouts can cost more than simple translation. Add rotation only where it visibly improves the result, and measure it.
@@ -306,7 +317,7 @@ Minimum checks:
 - The scene brief's primary movement is visible and physically anchored; water lips, banks, and shorelines stay connected to the terrain.
 - Where clouds are present, their texture stays stable while they move.
 - No JavaScript errors or missing scene assets.
-- Missing cached painting rebuilds; missing guide retains a static painting.
+- Missing optimized display falls back to cached terrain; missing live assets retain the visible static painting; no guide request occurs on a normal visit.
 - The writing slip remains readable and reachable at bottom right.
 - Transition coverage fully hides the scene before navigation, including all corners.
 - Direct writing visit, browser Back, repeat click and double-click behave correctly.
@@ -355,3 +366,11 @@ If a remote README update or another agent’s changes arrive, integrate them wi
 ## 14. Copy-and-paste implementation handoff
 
 > Read AGENTS.md, LANDSCAPE_PLAYBOOK.md, and landscapes/[SCENE].md; inspect current source and local diffs before editing. Implement only the requested scene from a verified licensed guide image as a detailed, living canvas painting in the established style. Resolve the brief's proposed viewpoint and record asset provenance first. Preserve actual landmark geometry, current navigation, and unrelated local work. Keep foreground, terrain, and atmospheric layers visually coherent. Animate the scene's meaningful physical elements; avoid arbitrary particles and pasted-on trees. Where sky birds are included, use left-to-right flight and measure at least 75% visible occupancy. Preserve the current mobile height and centered start, and check the brief's portrait priorities. Cache expensive brushwork. Use Playwright to inspect desktop/mobile/wide stills and motion, check affected navigation and browser Back, and skip reduced-motion tests while retaining support. Finish one scene before repeating the approach. Run relevant checks, commit, push, deploy to Vercel production by default, and verify live URLs unless the user explicitly requests another workflow. Report what you built, what you checked, and any real limitation.
+
+## 15. Startup profiling lesson (after the original art iterations)
+
+The user reported a 5–10 second wait. Profiling with 4× CPU slowdown, 80 ms latency, and approximately 1.6 Mbps download reproduced **9.86 seconds** before the old scene was ready. The main costs were navigation-cloud generation (3.50 seconds), foreground pixel processing (1.80 seconds), sky-cloud generation (0.67 seconds), and sequential guide/painting requests. The waterfall was the heaviest ongoing drawing layer; birds were inexpensive.
+
+Saved assets and painting-first loading reduced the same simulated startup to about **2.1 seconds for the painting** and **3.6 seconds for visible foreground animation**, with ordinary local runs around 0.15/0.27 seconds. These are controlled-browser measurements, not a promise for every device/network. Verify again after changes.
+
+Do not undo this architecture while adding parks. Expensive generation happens in the baker. Normal visitors should never pay the artist-tool computation cost. Batch adjacent waterfall bristle segments into a few tonal bands rather than issuing a separate stroke for every small segment; keep the visual flow intact.

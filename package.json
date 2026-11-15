@@ -5,6 +5,6 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "check": "node --check scene.js && node --check cloud-transition.js && node --check server.mjs && node check.mjs"
+    "check": "node --check scene.js && node --check cloud-transition.js && node --check scripts/bake-assets.cjs && node --check server.mjs && node check.mjs"
   }
 }
