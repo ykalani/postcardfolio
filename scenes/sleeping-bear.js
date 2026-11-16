@@ -4,27 +4,36 @@ const W = 1600, H = 1000;
 // Coordinates follow the supplied 800×599 source, doubled and center-cropped by 99px.
 const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
 const BOATS = [
-  {fillX:300,parts:[
-    [[94,706],[130,697],[169,698],[214,700],[264,695],[278,701],[261,714],[191,726],[137,721]],
+  {fillX:300,depth:1,parts:[
+    [[130,695],[167,700],[218,701],[264,695],[269,700],[256,712],[194,720],[151,724],[135,719]],
     [[173,697],[176,687],[182,683],[183,675],[186,669],[194,670],[199,677],[198,683],[207,688],[213,697]],
     [[217,696],[218,686],[225,680],[225,668],[231,663],[241,664],[245,669],[244,678],[249,685],[254,695]],
-    [[151,679],[156,671],[164,670],[175,681],[169,686]],[[253,695],[275,694],[279,700],[257,705]]
-  ]},
-  {fillX:780,parts:[
-    [[789,676],[836,680],[883,682],[929,683],[971,685],[957,697],[842,699],[800,689]],
+    [[100,702],[121,697],[137,698],[138,704],[121,711],[100,709]],
+    [[164,670],[177,672],[186,679],[181,686],[169,681],[162,677]],
+    [[253,695],[275,694],[279,700],[257,705]]
+  ],shafts:[[[132,702],[191,689],[262,698]],[[178,681],[204,696],[225,714]]]},
+  {fillX:780,depth:1,parts:[
+    [[789,672],[831,677],[882,681],[932,681],[972,683],[961,690],[911,694],[841,695],[799,687]],
     [[854,681],[858,676],[869,672],[870,664],[875,662],[880,666],[879,672],[885,678],[890,682]],
     [[905,683],[910,674],[916,670],[916,662],[921,659],[925,663],[924,670],[932,676],[938,683]],
+    [[847,660],[852,660],[861,674],[859,680],[855,676]],
     [[932,673],[943,671],[948,676],[942,682]]
-  ]},
-  {fillX:1430,parts:[
-    [[1155,701],[1190,693],[1230,696],[1270,695],[1327,690],[1370,681],[1398,675],[1404,681],[1395,702],[1364,714],[1227,718]],
-    [[1189,686],[1193,677],[1198,673],[1198,666],[1205,664],[1211,669],[1210,675],[1217,681],[1217,688]],
-    [[1207,695],[1205,683],[1212,679],[1214,667],[1221,661],[1227,664],[1229,674],[1238,679],[1246,687],[1242,696]],
-    [[1254,694],[1257,684],[1265,681],[1263,670],[1269,664],[1278,665],[1281,672],[1278,680],[1290,685],[1295,693]],
-    [[1167,680],[1181,677],[1188,681],[1184,686]]
-  ]}
+  ],shafts:[[[854,670],[865,678],[881,685]],[[915,682],[933,676],[943,675]]]},
+  // The small kayak behind the right-hand yellow one has its own float/depth.
+  {fillX:1120,depth:0,parts:[
+    [[1168,675],[1201,675],[1240,678],[1289,674],[1300,677],[1288,683],[1207,686],[1175,683]],
+    [[1189,677],[1192,667],[1196,660],[1203,659],[1208,665],[1208,671],[1217,675],[1220,682]],
+    [[1248,677],[1250,668],[1255,664],[1256,657],[1263,656],[1267,662],[1266,668],[1274,675],[1276,680]],
+    [[1167,674],[1180,672],[1186,676],[1181,681]]
+  ],shafts:[[[1178,676],[1200,670],[1220,678]],[[1257,675],[1273,677],[1292,678]]]},
+  {fillX:1430,depth:2,parts:[
+    [[1155,697],[1190,692],[1235,694],[1280,691],[1330,686],[1370,679],[1398,675],[1401,681],[1394,699],[1363,708],[1230,711],[1175,707]],
+    [[1207,695],[1205,683],[1212,679],[1216,671],[1223,666],[1230,669],[1231,676],[1238,680],[1246,687],[1242,696]],
+    [[1254,694],[1257,684],[1269,681],[1270,673],[1276,668],[1283,669],[1286,676],[1283,682],[1290,686],[1295,693]],
+    [[1214,653],[1220,647],[1226,649],[1233,664],[1229,672],[1222,669]]
+  ],shafts:[[[1226,664],[1232,681],[1242,704]],[[1275,684],[1287,688],[1307,696]]]}
 ];
-const PEOPLE = BOATS.map((boat,index)=>boat.parts.slice(1,index===2?4:3));
+const PEOPLE = BOATS.map(boat=>boat.parts.slice(1,3));
 function trace(c,points,ox=0,oy=0){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x-ox,y-oy):c.moveTo(x-ox,y-oy));c.closePath();}
 
 async function refinePeople({ctx,pixels,sourcePixels,random,W,H}){
@@ -55,25 +64,45 @@ function prepareBoats(painting,pixels){
   const boats=BOATS.map((boat,index)=>{
     const points=boat.parts.flat(),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
     const x=Math.min(...xs)-12,y=Math.min(...ys)-20,w=Math.max(...xs)-x+13,h=Math.max(...ys)-y+13;
-    const sprite=canvas(w,h),s=sprite.getContext('2d'),erase=canvas(w,h),e=erase.getContext('2d');
-    for(const part of boat.parts){trace(s,part,x,y);s.fill();trace(e,part,x,y);e.fill();e.lineWidth=14;e.lineJoin='round';e.stroke();}
-    if(index===2){trace(e,[[1234,660],[1239,652],[1244,650],[1248,659],[1244,668]],x,y);e.fill();e.stroke();}
-    const mask=s.getImageData(0,0,w,h),clear=e.getImageData(0,0,w,h),image=s.createImageData(w,h);
+    const sprite=canvas(w,h),s=sprite.getContext('2d'),erase=canvas(w,h),e=erase.getContext('2d'),hull=canvas(w,h),hc=hull.getContext('2d'),gear=canvas(w,h),gc=gear.getContext('2d');
+    trace(hc,boat.parts[0],x,y);hc.fill();
+    for(const part of boat.parts.slice(3)){trace(gc,part,x,y);gc.fill();}
+    for(const part of boat.parts){trace(s,part,x,y);s.fill();trace(e,part,x,y);e.fill();e.lineWidth=10;e.lineJoin='round';e.stroke();}
+    // Keep the complete thin paddle shafts, not just detached painted blades.
+    for(const points of boat.shafts){
+      for(const [g,width] of [[s,2.1],[e,9]]){
+        g.lineWidth=width;g.lineCap='round';g.beginPath();points.forEach(([px,py],i)=>i?g.lineTo(px-x,py-y):g.moveTo(px-x,py-y));g.stroke();
+      }
+    }
+
+    const mask=s.getImageData(0,0,w,h),clear=e.getImageData(0,0,w,h),hullAlpha=hc.getImageData(0,0,w,h).data,gearAlpha=gc.getImageData(0,0,w,h).data,image=s.createImageData(w,h);
     for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
       const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4;
       for(let k=0;k<3;k++)image.data[local+k]=original.data[at+k];const r=pixels[at],g=pixels[at+1],b=pixels[at+2];
       const sky=b>r*1.12&&b>g*.99&&r+g+b>350;
       image.data[local+3]=sky?0:mask.data[local+3];
+      if(hullAlpha[local+3]){
+        const shell=g>b*1.4&&r+g>b*3&&r>48;
+        image.data[local+3]=shell?mask.data[local+3]:0;
+        // Keep coarse bristles, but prevent sky-blue overshoot from becoming a raised hull corner.
+        if(shell){image.data[local]=Math.round((original.data[at]*.4+r*.6)/12)*12;image.data[local+1]=Math.round((original.data[at+1]*.4+g*.6)/12)*12;image.data[local+2]=Math.min(original.data[at+2],b+24);}
+      }
+      if(gearAlpha[local+3]&&!sky){
+        for(let k=0;k<3;k++)image.data[local+k]=Math.round((original.data[at+k]*.2+pixels[at+k]*.8)/24)*24;
+      }
       if(!clear.data[local+3])continue;
       // Clear paint overshoot separately from the tight moving silhouette; no cliff travels with a person.
       const wet=y+yy>=shoreAt(x+xx),sampleY=wet?Math.min(H-1,y+yy+74):y+yy;
-      const behindSky=index===1&&y+yy<670||index===2&&x+xx>1230&&y+yy<674;
+      const behindSky=index===1&&y+yy<670||index>=2&&x+xx>1230&&y+yy<664;
       const sampleX=wet?x+xx:behindSky?990+xx%35:Math.min(W-1,boat.fillX+xx%60),from=(sampleY*W+sampleX)*4;
       const blend=clear.data[local+3]/255;
       for(let k=0;k<3;k++)clean.data[at+k]=original.data[at+k]*(1-blend)+original.data[from+k]*blend;
     }
     s.putImageData(image,0,0);
-    return {sprite,x,y,w,h,phase:index*1.9,range:4+index};
+    for(const points of boat.shafts){
+      s.strokeStyle='rgba(37,53,47,.9)';s.lineWidth=1.1;s.lineCap='butt';s.beginPath();points.forEach(([px,py],i)=>i?s.lineTo(px-x,py-y):s.moveTo(px-x,py-y));s.stroke();
+    }
+    return {sprite,x,y,w,h,depth:boat.depth,phase:index*1.9,range:boat.depth===0?2.2:3.5+index*.3};
   });
   c.putImageData(clean,0,0);return boats;
 }
@@ -89,7 +118,7 @@ function foliageCutout(painting,pixels,region) {
     const edge=Math.min(x,y,region.w-x-1,region.h-y-1);
     image.data[local+3]*=green*clamp(edge/14);
   }
-  // Only alpha-masked, source-painted leaves receive the warm foreground lift.
+  // Preserve the painted silhouette while the leaf tips flex.
   c.putImageData(image,0,0);
   return {...region,layer};
 }
@@ -123,6 +152,16 @@ function prepare({painting,pixels,random}) {
     {x:1199,y:0,w:311,h:105,anchorX:1310,anchorY:93,strength:.45,phase:5.6}
   ].map(region=>foliageCutout(painting,pixels,region));
   const leaves=[];
+  const leafSprites=['#465c38','#647347','#394f32','#7c8050'].map(color=>{
+    const sprite=canvas(22,14),c=sprite.getContext('2d');
+    c.strokeStyle=color;c.lineCap='butt';
+    for(let i=0;i<16;i++){
+      const x=7+random()*7,y=5+random()*4;
+      c.globalAlpha=.55+random()*.35;c.lineWidth=.6+random()*1.2;
+      c.beginPath();c.moveTo(x-2-random()*3,y-1);c.lineTo(x+2+random()*3,y+random()*2-1);c.stroke();
+    }
+    return sprite;
+  });
   for(let i=0;i<42;i++){
     const region=foliage[i%foliage.length];let x,y;
     for(let attempt=0;attempt<80;attempt++){
@@ -131,9 +170,9 @@ function prepare({painting,pixels,random}) {
       if(pixels[at+1]>pixels[at]*1.02&&pixels[at+1]>pixels[at+2]*1.1)break;
     }
     leaves.push({x,y,phase:random(),duration:14+random()*12,fall:410+random()*310,
-      drift:80+random()*150,size:3+random()*3,turn:random()*6.28,tone:i%3});
+      drift:80+random()*150,size:3+random()*3,turn:random()*6.28,tone:i%leafSprites.length});
   }
-  return {water,mask,wavelets,foliage,painting,boats,leaves};
+  return {water,mask,wavelets,foliage,painting,boats,leaves,leafSprites};
 }
 
 function draw({ctx,t,state,wind}) {
@@ -159,12 +198,25 @@ function draw({ctx,t,state,wind}) {
   }
   c.globalCompositeOperation='destination-in';c.drawImage(state.mask,0,0);
   c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(state.water,0,0);ctx.restore();
-  for(const boat of state.boats){
-    const drift=Math.sin(t*.13+boat.phase)*boat.range,bob=Math.sin(t*.65+boat.phase)*.65;
-    ctx.save();ctx.translate(boat.x+boat.w*.5+drift,boat.y+boat.h*.8+bob);
-    ctx.rotate(Math.sin(t*.43+boat.phase)*.0015);ctx.drawImage(boat.sprite,-boat.w*.5,-boat.h*.8);
-    ctx.strokeStyle='rgba(204,220,190,.23)';ctx.lineWidth=.9;ctx.lineCap='butt';
-    for(let k=0;k<5;k++){const x=-boat.w*.3+k*boat.w*.12,y=boat.h*.2-7+Math.sin(k*2+boat.phase)*1.4;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+boat.w*.065,y-.5);ctx.stroke();}ctx.restore();
+  for(const boat of [...state.boats].sort((a,b)=>a.depth-b.depth)){
+    const drift=Math.sin(t*.32+boat.phase)*boat.range*4;
+    const depth=.7+boat.depth*.35;
+    const wave=(Math.sin(t*.85+boat.phase)*1.25+Math.sin(t*1.3+boat.phase*1.7)*.35)*depth;
+    const roll=Math.cos(t*.85+boat.phase)*.004*depth;
+    ctx.save();ctx.translate(boat.x+boat.w*.5+drift,boat.y+boat.h*.8+wave);
+    ctx.rotate(roll);ctx.drawImage(boat.sprite,-boat.w*.5,-boat.h*.8);ctx.restore();
+    // Small broken pressure ripples follow the hull, with independent fade rather than a dashed outline.
+    for(let ring=0;ring<3;ring++){
+      const age=(t*.12+boat.phase*.1+ring/3)%1,fade=Math.sin(age*Math.PI)**2;
+      const cx=boat.x+boat.w*.5+drift,cy=boat.y+boat.h-10+age*7;
+      ctx.save();ctx.globalAlpha=fade*.16;ctx.lineCap='butt';ctx.lineWidth=.65;
+      for(let part=0;part<4;part++){
+        const x=cx-boat.w*.3+part*boat.w*.18+Math.sin(part*2.3+boat.phase)*3;
+        ctx.strokeStyle=part%2?'#315e59':'#bbcbb0';ctx.beginPath();ctx.moveTo(x,cy);
+        ctx.quadraticCurveTo(x+boat.w*.03,cy+1.2,x+boat.w*.075,cy+.3);ctx.stroke();
+      }
+      ctx.restore();
+    }
   }
   for(const branch of state.foliage){
     const delayed=t-branch.x*.0014;
@@ -180,23 +232,22 @@ function draw({ctx,t,state,wind}) {
     const age=(t/leaf.duration+leaf.phase)%1,x=leaf.x+age*leaf.drift+Math.sin(age*13+leaf.turn)*22*age,y=leaf.y+age*leaf.fall;
     ctx.save();ctx.globalAlpha=clamp(age/.07)*clamp((1-age)/.17)*.94;ctx.translate(x,y);
     ctx.rotate(leaf.turn+age*8+Math.sin(t*1.9+leaf.turn)*.4);ctx.scale(.35+Math.abs(Math.cos(t*1.5+leaf.turn))*.65,1);
-    ctx.fillStyle=['#95a545','#c1b95c','#6d8d42'][leaf.tone];
-    ctx.beginPath();ctx.moveTo(0,-leaf.size);ctx.quadraticCurveTo(leaf.size*1.2,-leaf.size*.3,0,leaf.size);ctx.quadraticCurveTo(-leaf.size*.8,0,0,-leaf.size);ctx.fill();
-    ctx.strokeStyle='rgba(223,219,146,.7)';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(0,-leaf.size*.7);ctx.lineTo(0,leaf.size*.7);ctx.stroke();ctx.restore();
+    ctx.scale(leaf.size/7,leaf.size/7);
+    ctx.drawImage(state.leafSprites[leaf.tone],-11,-7);ctx.restore();
   }
 }
 
 startScene({
-  liveVersion:5,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v5.webp',
+  liveVersion:7,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v7.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.54,
   grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;
     const leaf=clamp((g-r*.94-2)/30)*clamp((g-b*1.02)/28)*clamp((360-y)/160);
     const nearRock=clamp((x-1050)/430)*clamp((r-b)/70)*clamp((670-y)/150);
-    return [r*(.9+leaf*.16+nearRock*.11)+light*.045+9-leaf*17+nearRock*5,
-      g*(.91+leaf*.15+nearRock*.06)+light*.035+8-leaf*8-nearRock*5,
-      b*(.89+leaf*.08)+light*.045+10-leaf*21-nearRock*15];
+    return [r*(.9+leaf*.28+nearRock*.11)+light*.045+9-leaf*49+nearRock*5,
+      g*(.91+leaf*.27+nearRock*.06)+light*.035+8-leaf*43-nearRock*5,
+      b*(.89+leaf*.18)+light*.045+10-leaf*42-nearRock*15];
   },
   angle:(x,y)=>y>665?-.025:x>1270?1.3:.045+Math.sin(x*.011+y*.005)*.19,
   prepare,draw,refine:refinePeople

@@ -10,7 +10,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    for(const t of [0,6]){await p.evaluate(t=>window.seekScene(t),t);await p.screenshot({path:path.join(out,route+'-'+width+'-t'+t+'.png')});}
    if(route==='about'&&width===1600){
     for(const t of [0,4,8,13,20]){await p.evaluate(t=>window.seekScene(t),t);await p.screenshot({path:path.join(out,'kayakers-t'+t+'.png'),clip:{x:55,y:625,width:1400,height:140}});}
-    const gaps=await p.evaluate(async()=>{const meta=await(await fetch('/assets/sleeping-bear/live-v5.json')).json(),i=new Image();i.src='/assets/sleeping-bear/live-v5.webp';await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const g=c.getContext('2d');g.drawImage(i,0,0);return [[210,680],[832,660],[1248,675]].map(([x,y],index)=>{const boat=meta.state.boats[index],r=boat.sprite.$sprite;return g.getImageData(r[0]+x-boat.x,r[1]+y-boat.y,1,1).data[3]});});assert.deepEqual(gaps,[0,0,0],'Cliff and gaps between people never move with the boats');console.log('kayak gaps',gaps);
+    const gaps=await p.evaluate(async()=>{const meta=await(await fetch('/assets/sleeping-bear/live-v7.json')).json(),i=new Image();i.src='/assets/sleeping-bear/live-v7.webp';await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const g=c.getContext('2d');g.drawImage(i,0,0);return [[210,680],[832,660],[1237,663],[1250,680]].map(([x,y],index)=>{const boat=meta.state.boats[index],r=boat.sprite.$sprite;return g.getImageData(r[0]+x-boat.x,r[1]+y-boat.y,1,1).data[3]});});assert.deepEqual(gaps,[0,0,0,0],'Cliff and gaps between people never move with the boats');console.log('kayak gaps',gaps);
    }
    assert.deepEqual(errors,[]);await p.close();
   }

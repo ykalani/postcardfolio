@@ -61,3 +61,11 @@ The active About reference is the Pictured Rocks sandstone-arch view; the legacy
 ## Precise people and kayak silhouettes
 
 The v5 edition refines only the actual people with small painted strokes, preserving hats, life vests, and arms from the supplied reference. Separate hull/person/paddle masks preserve the negative space between bodies rather than carrying cliff wedges along with them. A broader cleanup mask removes coarse paint overshoot independently of those tight moving silhouettes. Drift is limited to 4–6 logical pixels with slow, small bob/roll and broken painted wakes; the water, arch, and leaf effects retain their prior treatment. `scripts/check-tower-people.cjs` verifies person-only detail, transparent gaps, and multi-time desktop/mobile output.
+
+## Current kayak refinement (v6)
+
+Four actual kayaks are separated: the small boat behind the right-hand yellow kayak now has independent, shallower motion and draws behind it. Source-aligned hull material masks reject blue-water/sky overshoot; people, paddle blades, and thin shafts form separate silhouettes with transparent gaps. Coarse painted hull texture is preserved while its color is constrained by the actual shell. Small phase-coupled float and broken fading pressure ripples replace the rigid sliding/dashed-outline look. `scripts/check-kayaks.cjs` checks depth ordering, four transparent gaps, deterministic float and the fixed background; inspect its desktop/mobile and multi-time closeups as well.
+
+## Visible kayak motion and darker leaves (v7)
+
+The four kayaks now drift through a clearly visible 9-18px range, with depth-scaled bob and roll. The canopy uses deeper green shadows and the falling leaves use dark olive bristled sprites like Yosemite instead of smooth bright shapes. The v7 painting, fallback, and live atlas are baked together. `scripts/check-kayaks.cjs` checks each kayak transform across 0, 2, 6, and 13 seconds, dark leaf pigments, transparent gaps, deterministic animation, and fixed underlying art. Focused desktop/mobile Playwright checks cover About at 1600 and 390px.
