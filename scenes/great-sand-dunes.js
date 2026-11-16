@@ -2,6 +2,14 @@ import {startScene} from './scene-painter.js';
 const W=1600,H=1000,TOP=725,DEPTH=165;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const layer=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;};
+const skyline=[[0,205],[180,124],[330,78],[480,57],[650,124],[800,102],[1000,71],[1130,58],[1290,114],[1460,81],[1600,56]];
+const skyAt=x=>{for(let i=1;i<skyline.length;i++)if(x<=skyline[i][0]){const a=skyline[i-1],b=skyline[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 56;};
+const skyMotion=layer(W,205),skyMask=layer(W,205),sm=skyMask.getContext('2d');
+// Feather traveling pigment before the peaks so the sky has no hard polygon edge.
+for(let x=0;x<W;x++){
+  const edge=skyAt(x)-12,fade=sm.createLinearGradient(0,edge-24,0,edge);
+  fade.addColorStop(0,'white');fade.addColorStop(1,'transparent');sm.fillStyle=fade;sm.fillRect(x,0,1,205);
+}
 function prepare({painting,pixels,random}){
   const mask=layer(W,DEPTH),water=layer(W,DEPTH),m=mask.getContext('2d'),alpha=m.createImageData(W,DEPTH),ripples=[];
   for(let y=0;y<DEPTH;y++)for(let x=0;x<W;x++){
@@ -39,8 +47,6 @@ function prepare({painting,pixels,random}){
     return {sprite,x:points[0][0],y:points[0][1]-45,phase:random()};
   });
   const clouds=[];
-  const skyline=[[0,205],[180,124],[330,78],[480,57],[650,124],[800,102],[1000,71],[1130,58],[1290,114],[1460,81],[1600,56]];
-  const skyAt=x=>{for(let i=1;i<skyline.length;i++)if(x<=skyline[i][0]){const a=skyline[i-1],b=skyline[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 56;};
   for(const region of [{x:0,y:0,w:620,h:180},{x:490,y:0,w:650,h:160},{x:1000,y:0,w:600,h:160}]){
     const sprite=layer(region.w,region.h),c=sprite.getContext('2d');
     c.drawImage(painting,region.x,region.y,region.w,region.h,0,0,region.w,region.h);
@@ -63,12 +69,14 @@ function prepare({painting,pixels,random}){
 }
 function draw({ctx,t,state,wind}){
   const{water,mask}=state,c=water.getContext('2d');c.clearRect(0,0,W,DEPTH);c.lineCap='round';
-  for(let y=0;y<DEPTH;y+=5){
-    const band=Math.min(5,DEPTH-y),flow=Math.sin(y*.08-t*1.25)*8;
+  for(let y=0;y<DEPTH;y+=5)for(let i=0;i<2;i++){
+    const band=Math.min(5,DEPTH-y),age=(t*.5+i/2)%1,flow=-age*64;
+    c.globalAlpha=Math.sin(age*Math.PI)**2*.85;
     c.drawImage(state.painting,0,TOP+y,W,band,flow,y,W,band);
   }
+  c.globalAlpha=1;
   for(const r of state.ripples){
-    const pulse=.5+.5*Math.sin(t*1.7+r.phase),x=r.x+Math.sin(t*.8+r.phase)*3,y=r.y+Math.sin(t*1.3+r.phase)*.75;
+    const pulse=.5+.5*Math.sin(t*1.7+r.phase),x=(r.x+W-(t*42)%W)%W,y=r.y+Math.sin(t*1.3+r.phase)*.75;
     c.strokeStyle=`rgba(${Math.min(255,r.r+28)},${Math.min(255,r.g+27)},${Math.min(255,r.b+22)},${.16+pulse*.35})`;c.lineWidth=.55+pulse*.55;
     c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+r.length*.5,y-1,x+r.length,y);c.stroke();
   }
@@ -83,17 +91,13 @@ function draw({ctx,t,state,wind}){
   }
   c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(water,0,TOP);ctx.restore();
   ctx.save();ctx.globalAlpha=.95;ctx.drawImage(state.fog,Math.sin(t*.3)*90+wind*3,250);ctx.restore();
-  // Clip traveling sky pigment at the fixed peaks, including after it wraps.
-  ctx.save();ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
-  for(const [x,y] of [[1600,56],[1460,81],[1290,114],[1130,58],[1000,71],[800,102],[650,124],[480,57],[330,78],[180,124],[0,205]])ctx.lineTo(x,y-12);
-  ctx.closePath();ctx.clip();
+  const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,205);
   for(const cloud of state.clouds){
-    ctx.save();ctx.globalAlpha=.95;
     const x=(cloud.x+t*(22+cloud.x*.006)+cloud.w)%(W+cloud.w)-cloud.w;
-    ctx.drawImage(cloud.sprite,x,cloud.y);
-    ctx.restore();
+    sky.drawImage(cloud.sprite,x,cloud.y);
   }
-  ctx.restore();
+  sky.globalCompositeOperation='destination-in';sky.drawImage(skyMask,0,0);sky.globalCompositeOperation='source-over';
+  ctx.save();ctx.globalAlpha=.95;ctx.drawImage(skyMotion,0,0);ctx.restore();
   for(const ridge of state.sand)for(let i=0;i<2;i++){
     const age=(t/7+ridge.phase+i/2)%1,fade=Math.sin(age*Math.PI)**2;
     ctx.save();ctx.globalAlpha=fade*(.78+wind*.1);
