@@ -16,10 +16,14 @@ for (const [scene,guide,version] of scenes) for (const file of [guide,`painting$
 }
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
 await access(new URL('assets/yosemite-painting.webp',import.meta.url));
-await access(new URL('assets/yosemite-display-p2.webp',import.meta.url));
-const live = JSON.parse(await readFile(new URL('assets/yosemite-live-p2.json',import.meta.url),'utf8'));
+await access(new URL('assets/yosemite-display-p4.webp',import.meta.url));
+const live = JSON.parse(await readFile(new URL('assets/yosemite-live-p4.json',import.meta.url),'utf8'));
 assert.equal(live.version,2,'Yosemite live atlas schema');
 assert.equal(live.skyline.length,1600,'Yosemite skyline length');
+const upper=live.foreground.flatMap(group=>group.canopy).filter(patch=>patch.upper);
+assert.equal(upper.length,1,'One painted upper branch');
+assert.equal(upper[0].mask.length,upper[0].cols*26,'Upper branch visibility mask');
+assert.ok(upper[0].mask.some(Boolean),'Upper branch has visible needles');
 assert.ok(live.looseLeaves.length<=8&&live.looseLeaves.every(leaf=>leaf.x<190),'Only the pine sheds loose leaves');
 for (const name of [live.atlas,...live.foreground.map(group=>group.atlas),'cloud-curtain-p1.webp']) {
   await access(new URL('assets/'+name,import.meta.url));
