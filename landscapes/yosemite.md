@@ -53,10 +53,10 @@ Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall
 
 Home uses matching `p4` display, live manifest, and foreground atlases. A tapered pine branch enters from the upper right, with individually painted needle sprays and a subtle shared-wind sway. Its cached mask participates in the bird visibility measurement. Moving bush cutouts and the static foreground share lifted warm greens and stronger local contrast, preserving the original foliage silhouettes.
 
-The upper bough samples pigment from the existing painted pine and its foreground grade. Dense, tapered sprays use fine bristle marks, dark bark, and broken edges to match that tree rather than separate star-shaped needle clusters. Keep the foliage within the sprite bounds and regenerate its bird-occlusion mask when rebaking.
+The upper bough uses the transparent painted source `assets/yosemite-pine-bough.png`, with connected irregular forks, coarse layered pine fans, open gaps, and a muted palette referenced from the existing pine. Keep its aspect ratio, modest scale, and attachment beyond the right edge; regenerate the bird-occlusion mask when rebaking. Normal visits use the baked atlas and do not load this authoring source.
 
 Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers from the existing terrain painting without repainting the granite. The normal bake command still rebuilds the complete painting. Verify desktop, portrait, wide crops, motion, and bird occupancy after changing branch geometry.
 
 Background foliage receives a cool transparent glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the darkening. Preserve the warm foreground highlights and the granite and sky values.
 
-The upper limb uses a continuous irregular taper, shaded bark grain, small knots, and attached tapered twigs. For wood-only refinements, follow the focused desktop/mobile Playwright workflow in AGENTS.md.
+For branch refinements, follow the focused desktop/mobile Playwright workflow in AGENTS.md and inspect the complete composition as well as the branch close-up.
