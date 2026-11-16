@@ -95,8 +95,8 @@ function prepare({pixels, painting, random, W, H}) {
 function draw({ctx,t,state,wind}) {
   // Overlapping painted banks drift through the existing gray ceiling and fade at each cycle end.
   ctx.save();
-  for(let i=0;i<5;i++){
-    const age=(t/28+i/5)%1,fade=Math.sin(age*Math.PI)**2;
+  for(let i=0;i<25;i++){
+    const age=(t/28+i/25)%1,fade=Math.sin(age*Math.PI)**2;
     const width=760+age*390,height=200+age*85;
     ctx.globalAlpha=fade*.58;
     ctx.drawImage(state.ceilingSmoke,1420-age*2200,-90+Math.sin(age*6.28)*28,width,height);
@@ -104,16 +104,22 @@ function draw({ctx,t,state,wind}) {
   ctx.restore();
 
   ctx.save(); ctx.globalCompositeOperation='screen';
-  // Incandescence follows real source fractures, with spatially traveling slow heat variation.
-  ctx.globalAlpha=.13+.025*Math.sin(t*.61); ctx.drawImage(state.heat,0,0);
-  ctx.globalAlpha=1;ctx.lineCap='round';
+  // Moving incandescent strokes stay inside the source lava mask, leaving cold crust fixed.
+  ctx.globalAlpha=.24+.12*Math.sin(t*1.4); ctx.drawImage(state.heat,0,0);
+  const flow=state.lavaFlow??=layer(1600,1000),lava=flow.getContext('2d');
+  lava.clearRect(0,0,1600,1000);lava.lineCap='round';
   for (const crack of state.fractures) {
-    const pulse=(Math.sin(crack.phase-t*.84)+1)*.5;
-    ctx.strokeStyle=`rgba(${crack.red},${crack.green},${crack.blue},${.06+pulse*.3})`;
-    ctx.lineWidth=.45+pulse*.5;
-    ctx.beginPath();ctx.moveTo(crack.x,crack.y);
-    ctx.lineTo(crack.x+crack.dx*crack.length,crack.y+crack.dy*crack.length);ctx.stroke();
+    const age=(t*.38+crack.phase)%1,pulse=Math.sin(age*Math.PI)**2;
+    const travel=(age-.5)*18;
+    const x=crack.x+crack.dx*travel,y=crack.y+crack.dy*travel;
+    lava.strokeStyle=`rgba(${crack.red},${crack.green},${crack.blue},${pulse*.9})`;
+    lava.lineWidth=.8+pulse*1.2;
+    lava.beginPath();lava.moveTo(x,y);
+    lava.lineTo(x+crack.dx*crack.length*2,y+crack.dy*crack.length*2);lava.stroke();
   }
+  lava.globalCompositeOperation='destination-in';lava.drawImage(state.heat,0,0);
+  lava.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;ctx.drawImage(flow,0,0);
   ctx.restore();
   // A narrow, feathered strip of painted crust bends above the fixed hot vent.
   ctx.save();
@@ -125,16 +131,16 @@ function draw({ctx,t,state,wind}) {
   // A continuous stem fixes the source; overlapping expanding wisps carry it upward and left.
   ctx.save();ctx.globalAlpha=.3;
   ctx.drawImage(state.warmGas,VENT.x-56,VENT.y-140,100,145);
-  for(let i=0;i<6;i++){
-    const age=(t/11+i/6)%1,fade=Math.sin(age*Math.PI)**2;
+  for(let i=0;i<30;i++){
+    const age=(t/11+i/30)%1,fade=Math.sin(age*Math.PI)**2;
     const w=74+age*146,h=120+age*140;
     const x=VENT.x-8-age*138+wind*age*22;
     const y=VENT.y-age*420;
     ctx.globalAlpha=fade*.66;
     ctx.drawImage(age<.32?state.warmGas:state.gas,x-w*.5,y-h*.96,w,h);
   }
-  for(const vent of state.rimVents)for(let i=0;i<3;i++){
-    const age=(t*.045+vent.phase+i/3)%1;
+  for(const vent of state.rimVents)for(let i=0;i<15;i++){
+    const age=(t*.045+vent.phase+i/15)%1;
     const w=vent.size*(.35+age*.65),h=w*1.4;
     ctx.globalAlpha=Math.sin(age*Math.PI)*vent.strength;
     ctx.drawImage(state.gas,vent.x-age*22+wind*age*5-w*.5,vent.y-age*vent.rise-h*.92,w,h);

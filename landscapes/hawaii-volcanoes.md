@@ -24,7 +24,7 @@ Charcoal and brown-black rock with violet-blue shadows; ember orange, muted red,
 
 ## Live elements, in priority order
 
-1. A continuous painted gas stem remains attached to the photographed west vent, while nine overlapping textured wisps rise and drift left. Four smaller, lower-opacity gas sources follow the photographed crater margins. The texture is cached; it is not regenerated randomly each frame.
+1. A continuous painted gas stem remains attached to the photographed west vent, while thirty overlapping textured wisps rise and drift left. Four smaller, lower-opacity gas sources follow the photographed crater margins. The texture is cached; it is not regenerated randomly each frame.
 2. A per-pixel source-color mask confines incandescence to actual hot crust fractures. Fine segments follow the source heat gradient's tangent, with slow spatially traveling brightness variation rather than global flashing. Cold crust remains anchored.
 3. A small, feathered cutout of painted crust creates restrained thermal shimmer above the vent. Its narrow strips move less than one logical pixel, leaving the vent and crater geometry fixed. No full-screen distortion or particle emitter is used.
 
@@ -63,3 +63,5 @@ Source sampling and live-mask construction run only during local authoring (`?re
 ## Current motion pass
 
 The gray smoke ceiling now uses overlapping dry-brush banks with a 28-second drift/fade lifecycle. The banks move across the existing upper haze, while the incandescent vent and crater remain anchored. No blur or circular smoke particles are used.
+
+Smoke emission is five times denser: 30 main-vent wisps, 15 per rim vent, and 25 ceiling banks. Lava has a stronger heat pulse and traveling incandescent brush strokes clipped to the baked heat mask, so the flow remains within the existing hot fractures and leaves cold crust fixed. Desktop and mobile stills and short motion sequences are checked with Playwright.
