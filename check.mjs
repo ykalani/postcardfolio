@@ -15,6 +15,7 @@ for (const [scene,guide,version] of scenes) for (const file of [guide,`painting$
   await access(new URL(`assets/${scene}/${file}`,import.meta.url));
 }
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
+await access(new URL('assets/yosemite-pine-bough.png',import.meta.url));
 await access(new URL('assets/yosemite-terrain-brush2.webp',import.meta.url));
 await access(new URL('assets/yosemite-display-brush2.webp',import.meta.url));
 const live = JSON.parse(await readFile(new URL('assets/yosemite-live-brush2.json',import.meta.url),'utf8'));

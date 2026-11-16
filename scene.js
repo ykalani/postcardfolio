@@ -198,7 +198,7 @@
     c.restore();
   }
   const canopy=[],looseLeaves=[],leafSprites=[];
-  let foreground,forestShade;
+  let foreground,forestShade,upperBough;
   function foregroundDepth(x,y){
     const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
     const pine=(1-smooth(155,325,x))*smooth(110,285,y);
@@ -270,92 +270,13 @@
   }
   function cacheUpperBranch(foregroundContext){
     const sprite=document.createElement('canvas');sprite.width=900;sprite.height=260;
-    const c=sprite.getContext('2d');seed=8623;
-    // Lift bristled foliage from the painted pine so the new bough shares its pigment and edges.
-    const tufts=[[35,330],[75,390],[25,510],[100,560],[50,620],[80,700]].map(([sx,sy])=>{
-      const tuft=document.createElement('canvas');tuft.width=80;tuft.height=64;
-      const tc=tuft.getContext('2d'),image=p.getImageData(sx,sy,80,64),front=foregroundContext.getImageData(sx,sy,80,64);
-      for(let y=0;y<64;y++)for(let x=0;x<80;x++){
-        const at=(y*80+x)*4,source=((sy+y)*W+sx+x)*4;
-        const r=pixels[source],g=pixels[source+1],b=pixels[source+2];
-        const edge=clamp(1-((x-40)/40)**2-((y-32)/32)**2,0,1)**1.5;
-        const alpha=front.data[at+3]/255;
-        for(let k=0;k<3;k++)image.data[at+k]=image.data[at+k]*(1-alpha)+front.data[at+k]*alpha;
-        image.data[at+3]=Math.round(255*edge*(g>b*.96&&g>r*.88?1:0));
-      }
-      for(let mark=0;mark<2300;mark++){
-        const x=range(4,76),y=range(4,60),at=(Math.floor(y)*80+Math.floor(x))*4;
-        if(rand()>image.data[at+3]/255)continue;
-        const col={r:image.data[at],g:image.data[at+1],b:image.data[at+2]};
-        stroke(tc,x,y,range(2,8),range(.7,2),col,range(-1.7,-.4),.75,2);
-      }
-      return tuft;
-    });
-    const twig=(x,y,endX,endY,width)=>{
-      const angle=Math.atan2(endY-y,endX-x),nx=-Math.sin(angle),ny=Math.cos(angle);
-      const point=t=>{
-        const radius=width*.5*(.12+.88*(1-t)**.85);
-        const bend=-18*t*(1-t)+Math.sin(t*19+x)*width*.12*Math.sin(t*Math.PI);
-        return {x:x+(endX-x)*t,y:y+(endY-y)*t+bend,r:radius};
-      };
-      c.save();c.beginPath();
-      for(const side of [-1,1])for(let i=0;i<=80;i++){
-        const t=side<0?i/80:1-i/80,p=point(t);
-        const edge=p.r*(1+Math.sin(t*173+x)*.09+Math.sin(t*61)*.05);
-        const px=p.x+nx*edge*side,py=p.y+ny*edge*side;
-        if(side<0&&i===0)c.moveTo(px,py);else c.lineTo(px,py);
-      }
-      c.closePath();c.clip();
-      const tones=['#3e3027','#594331','#725039','#876044','#987450','#a68760','#92734e','#7d6041','#66503a'];
-      for(let band=0;band<tones.length;band++){
-        c.fillStyle=tones[band];c.beginPath();
-        for(const side of [-1,1])for(let i=0;i<=80;i++){
-          const p=point(side<0?i/80:1-i/80),across=-1+(band+(side<0?0:1))*2/tones.length;
-          const px=p.x+nx*p.r*across,py=p.y+ny*p.r*across;
-          if(side<0&&i===0)c.moveTo(px,py);else c.lineTo(px,py);
-        }
-        c.closePath();c.fill();
-      }
-      if(width>=3){
-        // Broken grain follows the taper, with short cross cracks between bark scales.
-        for(let i=0;i<240;i++){
-          const t=i/240,p=point(t),across=Math.sin(i*7.31+x)*.87;
-          const light=i%4===0;
-          c.strokeStyle=light?'rgba(204,176,132,.44)':'rgba(42,31,24,.54)';
-          c.lineWidth=light?.55:.45+(i%3)*.18;c.lineCap='round';
-          const length=.004+(i%7)*.0015,q=point(Math.min(1,t+length));
-          c.beginPath();c.moveTo(p.x+nx*p.r*across,p.y+ny*p.r*across);
-          c.lineTo(q.x+nx*q.r*across,q.y+ny*q.r*across);c.stroke();
-          if(i%5===0){
-            c.beginPath();c.moveTo(p.x+nx*p.r*across,p.y+ny*p.r*across);
-            c.lineTo(p.x+nx*p.r*(across+.36)+Math.cos(angle),p.y+ny*p.r*(across+.36)+Math.sin(angle));c.stroke();
-          }
-        }
-        for(const t of [.18,.47,.72]){
-          const p=point(t);c.save();c.translate(p.x,p.y);c.rotate(angle);
-          c.fillStyle='#4f3b2d';c.beginPath();c.ellipse(0,0,p.r*1.25,p.r*.42,0,0,Math.PI*2);c.fill();
-          c.strokeStyle='rgba(193,157,110,.65)';c.lineWidth=.65;
-          c.beginPath();c.ellipse(-.7,-.5,p.r*1.55,p.r*.6,0,.2,Math.PI*1.8);c.stroke();c.restore();
-        }
-      }
-      c.restore();
-    };
-    twig(920,15,40,191,15);
-    for(let i=0;i<27;i++){
-      const x=80+i*30+range(-9,9),t=(920-x)/880;
-      const y=15+176*t-18*t*(1-t)+Math.sin(t*19+920)*1.8*Math.sin(t*Math.PI)+range(-1,1);
-      const direction=i%2?1:-1,tipX=x-range(20,55),tipY=y+direction*range(18,46);
-      twig(x,y,tipX,tipY,1.1+range(0,1.4));
-      for(let spray=0;spray<5;spray++){
-        const q=.25+spray*.18,size=range(.5,.9)*(.65+x/1600);
-        c.save();c.translate(x+(tipX-x)*q+range(-10,10),Math.max(40,y+(tipY-y)*q+range(-5,12)));
-        c.rotate(direction*.2+range(-.3,.3));c.scale(size*1.2,size*.7);
-        c.drawImage(tufts[(i+spray)%tufts.length],-40,-32);c.restore();
-      }
-    }
+    const c=sprite.getContext('2d');
+    // One continuous painted bough preserves connected forks, irregular needle fans, and open gaps.
+    const width=260*upperBough.width/upperBough.height;
+    c.drawImage(upperBough,910-width,0,width,260);
     const cols=90,mask=[],data=c.getImageData(0,0,900,260).data;
     for(let y=0;y<26;y++)for(let x=0;x<cols;x++)mask.push(data[((y*10+5)*900+x*10+5)*4+3]>120?1:0);
-    const branch={sprite,x:700,y:55,near:1,pine:false,upper:true,mask,cols};
+    const branch={sprite,x:700,y:0,near:1,pine:false,upper:true,mask,cols};
     canopy.push(branch); // Keep clean sky under the live bough; never bake a second fixed copy.
   }
   function branchOccludes(x,y,t){
@@ -438,7 +359,8 @@
     performance.mark('scene-visible');
   }
   async function prepareAuthoring(rebuild=false){
-    const img=await loadImage('assets/yosemite-guide.jpg');
+    const [img,bough]=await Promise.all([loadImage('assets/yosemite-guide.jpg'),loadImage('assets/yosemite-pine-bough.png')]);
+    upperBough=bough;
     sample??=source.getContext('2d',{willReadFrequently:true});
     sample.drawImage(img,0,0,W,H);pixels=sample.getImageData(0,0,W,H).data;
     for(let x=0;x<W;x++){
