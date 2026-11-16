@@ -20,8 +20,8 @@ Keep clear rock strata, conifer groups, red/orange canoe accents, and horizontal
 
 ## Live elements
 
-1. Small traveling bands of actual painted lake pigment, with subpixel vertical changes and modest lateral drift. An inset color mask confines movement to verified turquoise water and protects the shore, people/canoes, dock, and mountain terrain.
-2. Cached short wave crests with perspective-scaled length and stable sampled water colors. The motion follows broad coherent phase fields rather than random per-frame glitter.
+1. Continuous displacement of actual painted lake pigment, with subpixel vertical changes and modest lateral drift. An inset color mask confines movement to verified turquoise water and protects the shore, people/canoes, dock, and mountain terrain.
+2. The existing water brushstrokes gently stretch and contract in a coherent pulse, increasing toward the viewer. No extra traveling lines or synthetic crests are drawn.
 3. Five actual-painted near-conifer patches, source-color masked and edge-feathered. Branch-tip sway increases away from each fixed lower attachment; trunks remain in the still painting.
 
 Do not invent a waterfall, extra glacier, floating particle lights, or moving architecture. This is a fixed artistic scene, not current weather or water conditions.
@@ -49,4 +49,4 @@ Authoring verification: the 1600 × 1000 painted crop was inspected in Playwrigh
 
 ## Current visible motion (v5)
 
-Broken groups of reflected wave crests advance toward the viewer across the masked lake, with perspective growth, teal shadow strokes and pale green highlights. Stronger water displacement and rooted pine sway make the breeze legible at normal desktop and portrait sizes. Mountains, dock and stored canoes stay fixed; no unrelated particle effect is added. Use the v5 painting/fallback/live caches.
+The lake’s existing paint strokes drift and pulse through continuous row displacement and gentle horizontal expansion/contraction. The previous traveling line overlays are removed. Rooted pine sway is preserved. Mountains, dock and stored canoes stay fixed. Use the v5 painting/fallback/live caches.
