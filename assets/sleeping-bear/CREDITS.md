@@ -1,23 +1,21 @@
-# Sleeping Bear Dunes painting guide and artwork
+# About: user-provided sandstone arch reference
 
-**Attribution:** “Sunset at Sleeping Bear Dunes” by Ddbaran67, July 11, 2019, via Wikimedia Commons, licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+## Current reference
 
-- **Exact source page:** https://commons.wikimedia.org/wiki/File:Sunset_at_Sleeping_Bear_Dunes.jpg
-- **Original download:** https://upload.wikimedia.org/wikipedia/commons/6/68/Sunset_at_Sleeping_Bear_Dunes.jpg
-- **Author:** Ddbaran67, Wikimedia Commons contributor.
-- **Source date:** July 11, 2019, 21:25:01 as recorded on the source page.
-- **Viewpoint:** An elevated Lake Michigan sunset view from the dune tops at Pierce Stocking Drive, Sleeping Bear Dunes National Lakeshore. Location stated by the photographer: 44.858453° N, 86.066650° W. The source metadata's camera-direction value is not used as a verified compass bearing.
-- **License verification:** The author identifies this as their own work and explicitly licenses it CC BY-SA 4.0 on the file page; verified November 15, 2026.
+- **Source:** photograph supplied by the user for this scene. The original creator, exposure date, and license terms were not supplied; no public-domain or photographer attribution is inferred.
+- **Preserved input:** `provided-arch-reference.webp`, an exact byte-for-byte copy of the supplied 800 × 599 WebP. SHA-256: `13a8ff4cea5b9dd23e1c3d1a90604f7c36744f45a862d33771445c0ae736ec7d`.
+- **Authoring guide:** `guide.webp`, the same exact bytes. The user explicitly directed use of this newly supplied reference.
+- **Visible subject:** a daylight sandstone arch above a Michigan lakeshore, with tree canopy, green-blue water, several kayaks, and a distant shore visible through the opening. The photograph does not establish an exact capture location or photographer. Geographic labeling is verified separately by the coordinating task.
+- **Compatibility path:** the directory and renderer ID remain `sleeping-bear` so existing About routes and asset-loading code keep working. That filename is not evidence that the new photograph depicts Sleeping Bear Dunes.
 
-## Changes and share-alike license
+## Painting and motion
 
-The 4032 × 3024 source was cropped to the rectangle `(x:900, y:400, width:3132, height:2200)` and resized to a 1600 × 1124 JPEG guide. This removes the foreground visitors and viewing-platform railing while retaining the actual sun, horizon, lake reflection, and dune vegetation. The renderer then center-cover crops 62 vertical guide pixels into a 1600 × 1000 logical canvas. No landforms are moved or assembled from other locations.
+The shared painter center-cover scales the 800 × 599 source by 2 to 1600 × 1198, then crops 99 logical pixels from the top and bottom into a 1600 × 1000 painting. The arch, negative-space opening, tree positions, horizon, kayaks, and cliff strata are not relocated or assembled from other photographs. Original directional brush marks reconstruct the visible terrain; the reference photograph is sampled offscreen, not drawn as the visible site background.
 
-The visible terrain is an original brush-mark reconstruction sampled from that guide, with a warm pigment grade and suppression of a small photographic lens ghost. Lake motion, source-color crest/trough strokes, a broken reflection path, and masked movement of actual dune vegetation are artistic animation. The sun position, horizon, landform geometry, and sunset palette remain stable. The small lens ghost is replaced with sampled neighboring sky color before pigment grading; no second celestial object is added.
+A manually traced shore boundary near logical y667–711 confines motion to actual water. The sky visible through the arch stays fixed. Small moving strips of the painted water retain the real cool and warm reflected colors, while cached source-color crest and trough strokes add low lake chop. Kayaks and people remain fixed inside mapped exclusion regions. Six alpha-masked cutouts of actual painted canopy retain the source palette and bend around fixed woody attachments. No sunset, sun, artificial reflection column, new grass, or extra birds are added.
 
-**Both the modified guide (`guide.jpg`) and the derived painted artwork (`painting.webp`, including its animated visual adaptation) are distributed under CC BY-SA 4.0**, the same license as the source. You may share and adapt them with appropriate attribution, a license link, indication of changes, and the same or a compatible license for adaptations. This artwork license does not change the license of unrelated repository code or other scenes.
+The finished painting, smaller fallback, and prebuilt motion atlas/metadata are exported during integration. Visitors load these cached painted assets; the source reference and guide are local authoring material. Animation is an artistic interpretation, not a claim about measured wind or wave speeds.
 
-No endorsement by Ddbaran67 is implied. The full-resolution original is not shipped. `guide.jpg` supplies geometry and pigment samples; `painting.webp` is the browser-baked original painted terrain cache.
+## Superseded sunset source
 
-
-Runtime assets: `painting.webp` is the finished original brush painting; `fallback.webp` is its smaller static fallback. `live-v1.webp` contains the painted motion cutouts and masks; `live-v1.json` records their source rectangles and movement parameters. The photographic guide remains local authoring material and is excluded from production. Normal visits do not download or sample it.
+The old `guide.jpg` and historical sunset artwork used “Sunset at Sleeping Bear Dunes” by Ddbaran67, July 11, 2019, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), from [the original Commons source page](https://commons.wikimedia.org/wiki/File:Sunset_at_Sleeping_Bear_Dunes.jpg). That credit and license continue to describe that older source and its derivatives only. They do not identify or license this replacement user-provided arch photograph. Preserve the old attribution if distributing the old guide or historical sunset artwork.

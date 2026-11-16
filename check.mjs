@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile, access, readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 
-const pages = ['index.html','projects.html','experience.html','writing.html','about.html'];
-const scenes = ['great-sand-dunes','hawaii-volcanoes','olympic','sleeping-bear'];
+const pages = ['index.html','projects.html','experience.html','writing.html','tech-blog.html','about.html'];
+const scenes = [['great-sand-dunes','guide.jpg',1],['hawaii-volcanoes','guide.jpg',1],['banff','guide.webp',2],['sleeping-bear','guide.webp',2],['beaumont','guide.webp',2]];
 const scripts = ['scene.js','cloud-transition.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
@@ -11,7 +11,7 @@ for (const script of scripts) {
   const result = spawnSync(process.execPath,['--check',script],{encoding:'utf8'});
   assert.equal(result.status,0,`${script}: ${result.stderr}`);
 }
-for (const scene of scenes) for (const file of ['guide.jpg','painting.webp','fallback.webp','live-v1.json','live-v1.webp','CREDITS.md']) {
+for (const [scene,guide,version] of scenes) for (const file of [guide,`painting${version===1?'':'-v'+version}.webp`,`fallback${version===1?'':'-v'+version}.webp`,`live-v${version}.json`,`live-v${version}.webp`,'CREDITS.md']) {
   await access(new URL(`assets/${scene}/${file}`,import.meta.url));
 }
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
@@ -29,15 +29,15 @@ for (const page of [...pages,'credits.html']) {
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(new Set(ids).size,ids.length,`${page}: unique IDs`);
   if (pages.includes(page)) {
-    assert.equal([...html.matchAll(/data-cloud-link/g)].length,5,`${page}: five destinations`);
+    assert.equal([...html.matchAll(/data-cloud-link/g)].length,6,`${page}: six destinations`);
     assert.equal([...html.matchAll(/aria-current="page"/g)].length,1,`${page}: one current destination`);
   }
   for (const [,reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     if (/^(?:https?:|mailto:|#)/.test(reference)) continue;
     let target = reference.split('#')[0];
     if (target==='./') target='index.html';
-    if (/^(projects|experience|writing|about)$/.test(target)) target+='.html';
+    if (/^(projects|experience|writing|tech-blog|about)$/.test(target)) target+='.html';
     await access(new URL(target,import.meta.url));
   }
 }
-console.log('Passed: script syntax, five landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');
+console.log('Passed: script syntax, six landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');

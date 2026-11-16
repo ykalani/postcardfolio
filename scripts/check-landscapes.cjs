@@ -5,9 +5,10 @@ const path = require('node:path');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
 const output = process.env.QA_OUTPUT || path.join(os.tmpdir(),'postcardfolio-scene-qa');
-const routes = ['','projects','experience','writing','about'];
+const routes = ['','projects','experience','writing','tech-blog','about'];
 const sizes = [{width:1600,height:1000},{width:390,height:844},{width:320,height:700},{width:2560,height:1080}];
-const sceneNames = {projects:'hawaii-volcanoes',experience:'great-sand-dunes',writing:'olympic',about:'sleeping-bear'};
+const versions = {projects:1,experience:1,writing:2,'tech-blog':2,about:2};
+const sceneNames = {projects:'hawaii-volcanoes',experience:'great-sand-dunes',writing:'banff','tech-blog':'beaumont',about:'sleeping-bear'};
 fs.mkdirSync(output,{recursive:true});
 
 async function ready(page,route) {
@@ -27,7 +28,7 @@ async function pixels(page) {
     for(const viewport of sizes) for(const route of routes) {
       const page=await browser.newPage({viewport}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
-      const guideRequests=[];page.on('request',request=>{if(request.url().includes('/guide.jpg')||request.url().includes('/yosemite-guide.jpg'))guideRequests.push(request.url());});
+      const guideRequests=[];page.on('request',request=>{if((/\/(?:yosemite-)?guide\.(?:jpg|webp)(?:[?#]|$)/).test(request.url()))guideRequests.push(request.url());});
       await page.goto(`${base}/${route}`);await ready(page,route);
       const layout=await page.evaluate(()=>({
         overflow:document.documentElement.scrollWidth>innerWidth,
@@ -36,7 +37,7 @@ async function pixels(page) {
         nav:document.querySelectorAll('.scene-nav a').length,current:document.querySelectorAll('[aria-current="page"]').length
       }));
       assert.equal(layout.overflow,false,`${route}: horizontal overflow`);
-      assert.equal(layout.nav,5);assert.equal(layout.current,1);
+      assert.equal(layout.nav,6);assert.equal(layout.current,1);
       for(const r of layout.links) assert.ok(r.x>=0&&r.right<=viewport.width&&r.top>=0&&r.bottom<=viewport.height,`${route}: navigation outside viewport`);
       if(viewport.width<=650) assert.ok(layout.scroll>0&&layout.stage>viewport.height,`${route}: mobile stage/initial scroll`);
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
@@ -76,7 +77,7 @@ async function pixels(page) {
           sessionStorage.setItem('qa-covered',JSON.stringify(window.coverage));
         }).observe(document.documentElement,{attributes:true,attributeFilter:['data-cloud-phase']});
       });
-      await page.getByRole('link',{name:route,exact:true}).click();
+      await page.getByRole('link',{name:route==='tech-blog'?'tech blog':route,exact:true}).click();
       await page.waitForURL(new RegExp('/'+route+'$'));await ready(page,route);
       await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
       assert.ok(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('qa-covered')).every(Boolean)),`${route}: opaque corners`);
@@ -88,12 +89,12 @@ async function pixels(page) {
     // Missing live atlas retains static art; missing primary painting uses the small baked fallback.
     for(const route of routes.slice(1)) {
       const p=await browser.newPage({viewport:sizes[0]});
-      await p.route(`**/assets/${sceneNames[route]}/live-v1.webp`,r=>r.abort());
+      await p.route(`**/assets/${sceneNames[route]}/live-v${versions[route]}.webp`,r=>r.abort());
       await p.goto(`${base}/${route}`);
       await p.waitForFunction(()=>document.documentElement.dataset.sceneReady==='true'&&document.documentElement.dataset.sceneLive==='static');
       assert.equal(await p.locator('.scene-error').count(),0);await p.close();
       const rebuild=await browser.newPage({viewport:sizes[0]});
-      await rebuild.route(`**/assets/${sceneNames[route]}/painting.webp`,r=>r.abort());
+      await rebuild.route(`**/assets/${sceneNames[route]}/painting${versions[route]===1?'':'-v'+versions[route]}.webp`,r=>r.abort());
       await rebuild.goto(`${base}/${route}`);await ready(rebuild,route);await rebuild.close();
     }
     fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));

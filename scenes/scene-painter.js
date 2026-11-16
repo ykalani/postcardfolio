@@ -10,6 +10,7 @@ function imageAt(url) {
 }
 
 export async function startScene(options) {
+  const liveVersion = options.liveVersion ?? 1;
   const terrain = document.querySelector('#landscape');
   const motion = document.querySelector('#motion');
   const context = terrain.getContext('2d', {alpha: false});
@@ -128,7 +129,7 @@ export async function startScene(options) {
     const guide = await imageAt(options.guide);
     const ratio = Math.max(W / guide.naturalWidth, H / guide.naturalHeight);
     source.getContext('2d', {willReadFrequently: true}).drawImage(guide,
-      (W - guide.naturalWidth * ratio) / 2, (H - guide.naturalHeight * ratio) / 2,
+      (W - guide.naturalWidth * ratio) / 2, (H - guide.naturalHeight * ratio) * (options.sourceY ?? .5),
       guide.naturalWidth * ratio, guide.naturalHeight * ratio);
     pixels = source.getContext('2d').getImageData(0, 0, W, H).data;
   }
@@ -183,13 +184,13 @@ export async function startScene(options) {
     if (authoring) {await loadGuide();await paint();}
     else {
       try {brush.drawImage(await imageAt(options.cache),0,0,W,H);}
-      catch {brush.drawImage(await imageAt(new URL('fallback.webp',new URL(options.cache,location.href)).href),0,0,W,H);}
+      catch {brush.drawImage(await imageAt(new URL(liveVersion === 1 ? 'fallback.webp' : `fallback-v${liveVersion}.webp`,new URL(options.cache,location.href)).href),0,0,W,H);}
       ready=true;fit();document.documentElement.dataset.sceneReady='true';
       // Show finished art before fetching its prebuilt masks and painted cutouts.
       await new Promise(requestAnimationFrame);
       try {
         const assetBase=new URL(options.cache,location.href);
-        const [response,atlas]=await Promise.all([fetch(new URL('live-v1.json',assetBase)),imageAt(new URL('live-v1.webp',assetBase).href)]);
+        const [response,atlas]=await Promise.all([fetch(new URL(`live-v${liveVersion}.json`,assetBase)),imageAt(new URL(`live-v${liveVersion}.webp`,assetBase).href)]);
         if(!response.ok)throw new Error('Live metadata unavailable');
         const metadata=await response.json();
         if(metadata.version!==1||metadata.id!==options.id)throw new Error('Invalid live metadata');

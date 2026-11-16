@@ -6,7 +6,7 @@ const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-
 const server = createServer(async (req,res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    const route = pathname === '/' ? '/index.html' : /^\/(projects|experience|writing|about)$/.test(pathname) ? pathname + '.html' : pathname;
+    const route = pathname === '/' ? '/index.html' : /^\/(projects|experience|writing|tech-blog|about)$/.test(pathname) ? pathname + '.html' : pathname;
     const file = resolve(root, '.' + route);
     if (!file.startsWith(root + sep)) {res.writeHead(403).end();return;}
     const content = await readFile(file);

@@ -11,3 +11,10 @@ assets/great-sand-dunes/guide.jpg
 assets/hawaii-volcanoes/guide.jpg
 assets/olympic/guide.jpg
 assets/sleeping-bear/guide.jpg
+
+assets/**/guide.webp
+assets/**/provided-*.webp
+assets/**/user-*.webp
+assets/sleeping-bear/beaumont tower.webp
+assets/olympic/fallback.webp
+assets/sleeping-bear/fallback.webp

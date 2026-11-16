@@ -1,24 +1,25 @@
 # National Park Landscape Playbook
 
-A shared implementation guide for the portfolio's five landscape destinations. Read this and the relevant scene brief before implementation. This records the actual implementation, the user’s feedback, the failed approaches, and the acceptance criteria—not just an aesthetic prompt.
+A shared implementation guide for the portfolio's six landscape destinations. Read this and the relevant scene brief before implementation. This records the actual implementation, the user’s feedback, the failed approaches, and the acceptance criteria—not just an aesthetic prompt.
 
 ## Portfolio plan and scene briefs
 
-The agreed portfolio has five sections. These are content destinations, not a requirement to stack five full-screen canvases on one page.
+The agreed portfolio has six sections. These are content destinations, not a requirement to stack five full-screen canvases on one page.
 
 | Section | Landscape | Scene brief |
 | --- | --- | --- |
 | Home | Yosemite | [Yosemite](landscapes/yosemite.md) |
 | Projects | Hawaiʻi Volcanoes | [Hawaiʻi Volcanoes](landscapes/hawaii-volcanoes.md) |
 | Experience | Great Sand Dunes | [Great Sand Dunes](landscapes/great-sand-dunes.md) |
-| Writing | Olympic | [Olympic](landscapes/olympic.md) |
-| About | Sleeping Bear Dunes National Lakeshore | [Sleeping Bear](landscapes/sleeping-bear.md) |
+| Writing | Banff | [Banff](landscapes/banff.md) |
+| Tech Blog | Beaumont Tower | [Beaumont](landscapes/beaumont.md) |
+| About | Pictured Rocks arch reference | [About arch scene](landscapes/sleeping-bear.md) |
 
 Keep shared rendering, accessibility, navigation, QA, and deployment instructions here. Keep viewpoint, palette, movement, mobile framing, and asset research in the linked briefs. Later explicit user instructions take precedence; otherwise use this guide for shared rules and the scene brief for art direction.
 
-All five landscapes are implemented as separate buildless pages, with shared paper navigation and a painted cloud curtain. Yosemite remains Home, with a new fine-detail coat over the existing optimized atlas runtime. The four new scenes use `scenes/scene-painter.js` for seeded multiscale bristles, local edge definition, cache/fallback loading and viewport fitting, plus a scene-specific motion module. Portfolio content is still separate from this landscape implementation; résumé/contact do not need extra landscape destinations.
+All six landscapes are implemented as separate buildless pages, with shared paper navigation and a painted cloud curtain. Yosemite remains Home, with a new fine-detail coat over the existing optimized atlas runtime. The additional scenes use `scenes/scene-painter.js` for seeded multiscale bristles, local edge definition, cache/fallback loading and viewport fitting, plus a scene-specific motion module. Portfolio content is still separate from this landscape implementation; résumé/contact do not need extra landscape destinations.
 
-Each new scene has a verified photographic guide, a baked original brush painting, and exact asset credits. Sleeping Bear's adapted artwork is CC BY-SA 4.0 and linked from the About scene to the credits page. Live animation is artistic motion of the documented scene, not live weather or eruption telemetry.
+Each active scene has a photographic guide, a baked original brush painting, and asset credits. The new Banff, About arch, and Beaumont references were supplied by the user; no outside photographer or public-domain license is invented. Historical Sleeping Bear sunset assets retain their original CC BY-SA attribution. Live animation is artistic motion of the documented scene, not live weather or eruption telemetry.
 
 ## 1. The job
 
@@ -39,7 +40,7 @@ If you have repository access, read the actual current files. This document expl
 - The park-name/coordinates slip was removed. Keep it removed.
 - The bottom park/time/breeze controls and the heading “POSTCARDS FROM THE OUTSIDE” were removed. Do not bring them back.
 - Mobile keeps the 160svh scrollable stage. Yosemite and Olympic open centered; Great Sand Dunes, Hawaiʻi Volcanoes and Sleeping Bear use documented scene-specific initial scroll fractions to keep their focal movement visible. Preserve the Home setting and verify each actual portrait crop.
-- The original writing slip evolved, with user authorization, into one small paper navigation strip for home, projects, experience, writing, and about. Keep it readable and reachable; do not restore removed park/time/breeze controls. Writing now displays the Olympic painting.
+- The original writing slip evolved, with user authorization, into one small paper navigation strip for home, projects, experience, writing, tech blog, and about. Keep it readable and reachable; do not restore removed park/time/breeze controls. Writing displays the supplied Banff scene; Tech Blog displays Beaumont Tower.
 - In Yosemite, bird flight must be **left to right only**, with at least one visible bird for **75% or more of the cycle** when viewing the scene’s sky. Apply the same contract to new scenes that include sky birds; do not force birds into an enclosed forest or volcanic crater. Quantify this rather than claiming it by eye.
 - Clouds should visibly travel; very slow, almost imperceptible cloud movement was rejected. Both cloud banks and cloud transitions need visible paint texture.
 - Preserve existing motion-preference handling. The user explicitly asked to skip/remove reduced-motion tests. Do not run those tests or add them to the acceptance checklist.
@@ -276,7 +277,7 @@ https://www.clash.ninja/images/content/what-are-the-clouds-clouding-problems-2.j
 
 The implementation uses original painted clouds, not extracted game assets. Study the big overlapping banks, pale blue-gray folds and near-opaque warm centers.
 
-Current files are `cloud-transition.js`, `cloud-transition.css`, the shared navigation styles in `style.css`, and all five HTML pages. Links use relative clean URLs so they work beneath `/postcardfolio/`. The local server and Vercel map clean section URLs to their HTML pages. Keep this prefix-safe behavior. The arrival marker records the destination pathname and is consumed once, including on pages that also contain outgoing links.
+Current files are `cloud-transition.js`, `cloud-transition.css`, the shared navigation styles in `style.css`, and all six HTML pages. Links use relative clean URLs so they work beneath `/postcardfolio/`. The local server and Vercel map clean section URLs to their HTML pages. Keep this prefix-safe behavior. The arrival marker records the destination pathname and is consumed once, including on pages that also contain outgoing links.
 
 Flow:
 
@@ -292,7 +293,7 @@ Reset an old overlay on persisted `pageshow`. Invalidate unfinished work on `pag
 
 Clouds should begin entering promptly; an early version spent half its animation traveling invisibly offscreen. Full coverage must include corners on both wide and portrait screens. Cached sprites plus `drawImage` are sufficient.
 
-Do not add spinners, game graphics, search icons, or invented portfolio copy. All five destinations currently present landscapes and navigation.
+Do not add spinners, game graphics, search icons, or invented portfolio copy. All six destinations currently present landscapes and navigation.
 
 ## 10. Performance rules that came from real failures
 
@@ -389,3 +390,13 @@ Run `npm run check` for all script syntax, five pages, unique IDs, section links
 The browser suite covers 20 landscape/viewport combinations, deterministic time-separated motion, actual mobile initial scroll, nav bounds, live-atlas/painting fallbacks, Home-to-section cloud opacity and Back, and bird direction/occupancy. Do not run the source-rebuild fallback checks against production for Yosemite, whose guide is deliberately local-only. For the four new scenes, missing live atlases preserve static art and missing primary paintings use the small baked fallback. Source-based repainting belongs only to explicit local authoring.
 
 Local baking: `npm run bake:landscapes` regenerates all four new caches; append a section name to select one. `npm run bake:yosemite` regenerates Home's fine terrain and runtime atlases. Bake once after source, grading, or painter changes; do not regrade an already graded cache. Screenshots at multiple times are essential because a detailed still does not establish correct motion.
+
+## Current six-scene revision
+
+The user replaced Writing with the supplied Banff portrait and About with the supplied sandstone-arch/kayak photo. The About source depicts Pictured Rocks rather than Sleeping Bear; its legacy asset directory and module ID remain `sleeping-bear` for compatibility. The sixth destination is `tech-blog`, using the supplied Beaumont Tower photograph. Preserve the user originals and scene-specific canonical reference copies; never overwrite them during baking.
+
+The user withdrew the proposed extra noise, brighter foreground-bush pass, and upper Yosemite branch. Keep the existing Yosemite artwork, grain strength, and foreground colors. Do not reintroduce those withdrawn changes when regenerating the three replacement/new scenes.
+
+New scenes use `liveVersion:2`, `painting-v2.webp`, `fallback-v2.webp`, and matching `live-v2.json`/`live-v2.webp`. Existing Volcanoes and Great Sand Dunes retain their original v1 packs; Home retains its p2 atlas set. `sourceY` is an optional vertical crop anchor for local authoring, used by Banff to keep mountain walls, lake, and canoe foreground in one coherent full-bleed crop. No stretching or invented side-fill is used.
+
+Rebake only the three new/replacement scenes with `node scripts/bake-landscapes.cjs writing about tech-blog`. Normal visits still do not fetch source guides. Browser checks cover all six destinations at four viewport sizes, including navigation, Back, live/static fallback, and unchanged Yosemite bird occupancy. Blog articles and publishing workflows are separate from the landscape destination.
