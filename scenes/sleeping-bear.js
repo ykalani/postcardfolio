@@ -97,8 +97,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:2,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v2.webp',
+  liveVersion:3,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v3.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.54,
   grade:(r,g,b)=>{
     const light=r*.3+g*.55+b*.15;

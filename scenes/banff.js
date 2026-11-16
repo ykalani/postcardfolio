@@ -86,8 +86,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:2,
-  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v2.webp',
+  liveVersion:3,
+  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v3.webp',
   sourceY: .78, background: '#557e83', focusX: .66, focusY: .63, initialScroll: .82,
   grade(r, g, b, x, y) {
     const light = r * .3 + g * .55 + b * .15;

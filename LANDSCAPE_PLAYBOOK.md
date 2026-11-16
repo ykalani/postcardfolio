@@ -2,6 +2,14 @@
 
 A shared implementation guide for the portfolio's six landscape destinations. Read this and the relevant scene brief before implementation. This records the actual implementation, the user’s feedback, the failed approaches, and the acceptance criteria—not just an aesthetic prompt.
 
+## Current art direction: visible brushwork
+
+The user rejected the previous photo-like appearance. All six active scenes now use `scenes/brush-painting.js`, including Yosemite's local authoring path. The reference is reduced to a coarse color study: 10-pixel cells, discrete pigment values, broad irregular flat-brush marks, and selective smaller accents. No dense per-pixel refinement pass may cover those marks. Landmarks remain recognizable, but camera microdetail and smooth photographic shading must not survive as the dominant visual language.
+
+Judge the actual finished painting at normal desktop and mobile size. Visible paint planes, broken bristle ends, and simplified colors are required; a blurred photo or subtle grain overlay does not meet this direction. The renderer receives color arrays only and reconstructs the whole painting with Canvas strokes; it never draws a reference photo onto the visible artwork. Rebuild live cutouts from that same painted surface.
+
+Active caches are `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush1.webp`, `yosemite-display-brush1.webp`, and matching `*-brush1` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
+
 ## Portfolio plan and scene briefs
 
 The agreed portfolio has six sections. These are content destinations, not a requirement to stack five full-screen canvases on one page.

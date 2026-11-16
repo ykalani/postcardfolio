@@ -76,51 +76,10 @@ export async function startScene(options) {
         [r * .83 + light * .1 + 11, g * .83 + light * .1 + 10, b * .8 + light * .12 + 10];
       graded[at] = color[0]; graded[at + 1] = color[1]; graded[at + 2] = color[2];
     }
-    brush.fillStyle = options.background || '#38483f'; brush.fillRect(0, 0, W, H);
-    brush.lineCap = 'round';
-    // Sample real geometry, then lay original directional pigment from broad coats to fine bristles.
-    for (const [step, length, thickness] of [[12, 20, 13], [5.5, 11, 6.5], [2.8, 5.5, 3], [1.55, 2.6, 1.4]]) {
-      for (let gy = 0; gy < H; gy += step) for (let gx = 0; gx < W; gx += step) {
-        const x = Math.min(W - 1, Math.max(0, gx + (random() - .5) * step)) | 0;
-        const y = Math.min(H - 1, Math.max(0, gy + (random() - .5) * step)) | 0;
-        const at = (y * W + x) * 4;
-        const angle = (options.angle?.(x, y) ?? (pixels[at + 1] > pixels[at] * 1.12 ? -1.2 : -.035)) + (random() - .5) * .35;
-        const dx = Math.cos(angle), dy = Math.sin(angle);
-        const size = length * (.6 + random() * .7);
-        for (let filament = 0; filament < 3; filament++) {
-          const offset = (filament - 1) * thickness / 3;
-          const jitter = (random() - .5) * 10;
-          brush.strokeStyle = `rgba(${Math.max(0, graded[at] + jitter) | 0},${Math.max(0, graded[at + 1] + jitter) | 0},${Math.max(0, graded[at + 2] + jitter) | 0},${.52 + random() * .35})`;
-          brush.lineWidth = thickness / 3 * (.7 + random() * .5);
-          brush.beginPath(); brush.moveTo(x - dy * offset, y + dx * offset);
-          brush.quadraticCurveTo(x + dx * size * .5 - dy * offset, y + dy * size * .5 + dx * offset - .35,
-            x + dx * size - dy * offset, y + dy * size + dx * offset); brush.stroke();
-        }
-      }
-      ready = true; fit();
-      await new Promise(requestAnimationFrame);
-    }
-    // Fine bristles follow real luminance edges: bark fissures, dune ripples, and lava fractures.
-    for (let y = 2; y < H - 2; y += 2) {
-      for (let x = 2; x < W - 2; x += 2) {
-        const at = (y * W + x) * 4;
-        const luminance = index => pixels[index] * .3 + pixels[index + 1] * .55 + pixels[index + 2] * .15;
-        const gx = luminance(at + 4) - luminance(at - 4);
-        const gy = luminance(at + W * 4) - luminance(at - W * 4);
-        const edge = Math.hypot(gx, gy);
-        if (edge < 9 || random() > Math.min(.9, edge / 60)) continue;
-        const a = Math.atan2(gy, gx) + Math.PI / 2;
-        const length = .8 + random() * 1.9;
-        const detail = Math.max(-10, Math.min(12, (luminance(at) - (luminance(at - 4) + luminance(at + 4)) / 2) * .3));
-        brush.strokeStyle = `rgba(${Math.max(0, graded[at] + detail) | 0},${Math.max(0, graded[at + 1] + detail) | 0},${Math.max(0, graded[at + 2] + detail) | 0},.64)`;
-        brush.lineWidth = .45 + random() * .55;
-        brush.beginPath(); brush.moveTo(x, y); brush.lineTo(x + Math.cos(a) * length, y + Math.sin(a) * length); brush.stroke();
-      }
-    }
-    for (let i = 0; i < 60000; i++) {
-      brush.fillStyle = i % 2 ? 'rgba(255,247,224,.055)' : 'rgba(29,35,37,.04)';
-      brush.fillRect(random() * W, random() * H, .4 + random(), .4 + random());
-    }
+    const {paintBrushwork} = await import('./brush-painting.js');
+    await paintBrushwork({ctx:brush,pixels:graded,width:W,height:H,random,
+      angle:options.angle,background:options.background||'#c6c1ad'});
+    ready=true;
     fit(); prepare();
     return painting;
   }

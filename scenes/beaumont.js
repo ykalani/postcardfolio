@@ -56,8 +56,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:2,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v2.webp',
+  liveVersion:3,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v3.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;

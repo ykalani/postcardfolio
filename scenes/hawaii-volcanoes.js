@@ -111,10 +111,10 @@ function draw({ctx,t,state,wind}) {
   ctx.restore();
 }
 
-startScene({
+startScene({liveVersion:3,
   id:'hawaii-volcanoes',
   guide:'assets/hawaii-volcanoes/guide.jpg',
-  cache:'assets/hawaii-volcanoes/painting.webp',
+  cache:'assets/hawaii-volcanoes/painting-v3.webp',
   background:'#252532',focusX:.61,focusY:.57,initialScroll:.86,
   grade:(r,g,b,x,y)=>{
     sourceLight ??= new Float32Array(1600 * 1000);

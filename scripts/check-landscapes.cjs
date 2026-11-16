@@ -7,7 +7,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
 const output = process.env.QA_OUTPUT || path.join(os.tmpdir(),'postcardfolio-scene-qa');
 const routes = ['','projects','experience','writing','tech-blog','about'];
 const sizes = [{width:1600,height:1000},{width:390,height:844},{width:320,height:700},{width:2560,height:1080}];
-const versions = {projects:1,experience:1,writing:2,'tech-blog':2,about:2};
+const versions = {projects:3,experience:3,writing:3,'tech-blog':3,about:3};
 const sceneNames = {projects:'hawaii-volcanoes',experience:'great-sand-dunes',writing:'banff','tech-blog':'beaumont',about:'sleeping-bear'};
 fs.mkdirSync(output,{recursive:true});
 
@@ -51,7 +51,7 @@ async function pixels(page) {
         values.sort((a,b)=>a-b);return{median:values[20],p95:values[38]};
       });
       if(!route){
-        assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/yosemite-display-p4.webp','Home preloads the upper-branch painting');
+        assert.equal((await page.locator('link[as="image"]').getAttribute('href')).split('?')[0],'assets/yosemite-display-brush1.webp','Home preloads the expressive painting');
         const birds=await page.evaluate(()=>{
           let occupied=0,total=0,backwards=0;const last=new Map();
           for(let t=0;t<128;t+=.1){const visible=window.sceneBirdsAt(t);if(visible.length)occupied++;total++;

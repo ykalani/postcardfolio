@@ -1,6 +1,6 @@
 # Postcardfolio
 
-Six living brush paintings for Yash Kalani’s portfolio:
+Six expressive brush paintings for Yash Kalani’s portfolio, with visible flat-brush marks and simplified colors:
 
 - Home: Yosemite.
 - Projects: Hawaiʻi Volcanoes.

@@ -29,57 +29,18 @@
       c.quadraticCurveTo(x+dx*length*.5+nx*(off+bend),y+dy*length*.5+ny*(off+bend),x+dx*length*range(.8,1.2)+nx*off,y+dy*length*range(.8,1.2)+ny*off);c.stroke();
     }
   }
-  function paintMark(x,y,size=1,c=p){
-    const col=pigment(x,y);
-    if(col.sky)return;
-    const angle=col.leaf?range(-2.1,-.8):Math.PI*.5+range(-.18,.18);
-    stroke(c,x,y,range(col.leaf?2:4,col.leaf?7:18)*size,range(1.5,5)*size,col,angle,.85,size>2?4:3);
-  }
-  function sky(c,t){
-    const g=c.createLinearGradient(0,0,0,650);g.addColorStop(0,'#7aaac3');g.addColorStop(.6,'#b6cbd0');g.addColorStop(1,'#e3deca');c.fillStyle=g;c.fillRect(0,0,W,H);
-    for(let i=0;i<1900;i++){
-      const x=range(-100,W),y=range(0,640),col={r:214,g:225,b:221};
-      stroke(c,x,y,range(30,140),range(2,9),col,-.035,.08,3);
-    }
-  }
-  function refineCliffs(){
-    // Follow the guide's actual light planes and joints; keep distant rock softer.
-    const luminance=(x,y)=>{
-      const at=(clamp(y,0,H-1)*W+clamp(x,0,W-1))*4;
-      return pixels[at]*.3+pixels[at+1]*.55+pixels[at+2]*.15;
-    };
-    for(let y=130;y<650;y+=2)for(let x=2;x<W-2;x+=2){
-      const col=pigment(x,y);
-      if(col.sky||col.leaf||y<skyline[x]+2)continue;
-      const depth=x>820&&x<1020?.45:1;
-      const local=(luminance(x-4,y)+luminance(x+4,y))*.5;
-      const definition=clamp(((col.l-142)*.16+(col.l-local)*.32)*depth,-15,17);
-      col.r+=definition;col.g+=definition;col.b+=definition*.9;
-      stroke(p,x,y,range(2.5,7),range(.65,1.7),col,1.53+range(-.1,.1),.5,2);
-      const gx=luminance(x+1,y)-luminance(x-1,y),gy=luminance(x,y+1)-luminance(x,y-1);
-      if(Math.hypot(gx,gy)>12){
-        const fine={...col,r:col.r+definition*.15,g:col.g+definition*.15,b:col.b+definition*.12};
-        stroke(p,x,y,range(1,3.2),range(.45,.95),fine,Math.atan2(gy,gx)+Math.PI*.5,.68,2);
-      }
-    }
-  }
   async function buildPainting(){
-    seed=4176;sky(p,0);
-    // Successive coats follow the real landforms. No source photograph is drawn onto the visible canvas.
-    for(const [step,size] of [[13,3.5],[6,1.8],[3.6,1],[1.9,.58]]){
-      for(let y=100;y<H;y+=step){
-        for(let x=0;x<W;x+=step)paintMark(x+range(-step*.5,step*.5),y+range(-step*.5,step*.5),size);
-      }
-      await new Promise(requestAnimationFrame);
+    seed=4176;
+    const graded=new Uint8ClampedArray(W*H*4);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const col=pigment(x,y),at=(y*W+x)*4;
+      graded[at]=col.r;graded[at+1]=col.g;graded[at+2]=col.b;graded[at+3]=255;
     }
-    for(let i=0;i<85000;i++){
-      const x=range(0,W),y=range(0,H);p.fillStyle=i%2?'rgba(255,248,222,.075)':'rgba(38,51,43,.045)';p.fillRect(x,y,range(.3,1),range(.3,1));
-    }
-    for(let i=0;i<2300;i++){
-      const x=range(852,925),y=range(425,485),col=pigment(x,y);
-      if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
-    }
-    refineCliffs();cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    const {paintBrushwork}=await import('./scenes/brush-painting.js');
+    await paintBrushwork({ctx:p,pixels:graded,width:W,height:H,random:rand,
+      background:'#bdc8bd',
+      angle:(x,y)=>{const material=pigment(x,y);return material.sky?-.04:material.leaf?-1.05+Math.sin(x*.02+y*.017)*.5:1.45;}});
+    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function drawSprite(c,sprite,x,y,w=sprite.width,h=sprite.height){
     if(sprite.image)c.drawImage(sprite.image,...sprite.rect,x,y,w,h);
@@ -430,7 +391,7 @@
     }
     cloudSprites.length=0;fallMist.length=0;cacheClouds();cacheWaterfall();liveReady=true;
     if(rebuild)await buildPainting();
-    else{try{const cached=await loadImage('assets/yosemite-painting.webp?v=cliffs-2');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
+    else{try{const cached=await loadImage('assets/yosemite-terrain-brush1.webp');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
     document.documentElement.dataset.sceneLive='true';
   }
   let foregroundGroups=[],foregroundManifest;
@@ -440,7 +401,7 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','forest-1');
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','brush-1');
         const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
@@ -452,7 +413,7 @@
   }
   async function loadLiveAssets(){
     try{
-      const url=new URL('assets/yosemite-live-p4.json',location.href);
+      const url=new URL('assets/yosemite-live-brush1.json',location.href);
       const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
       const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
       const atlas=await loadImage(new URL(data.atlas,url).href);
@@ -468,8 +429,8 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-p4.webp?v=forest-1','high'));}
-    catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
+    try{showPainting(await loadImage('assets/yosemite-display-brush1.webp?v=brush-1','high'));}
+    catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush1.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
   }
@@ -477,12 +438,12 @@
   window.exportSceneAssets=()=>{
     const display=document.createElement('canvas');display.width=W;display.height=H;
     const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(forestShade)dc.drawImage(forestShade,0,0);if(foreground)dc.drawImage(foreground,0,0);
-    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-p4.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
+    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-brush1.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
     const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
     cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
     fallMist.forEach(sprite=>add(sprite,{},metadata.mist,common));
     leafSprites.forEach(sprite=>add(sprite,{},metadata.leaves,common));
-    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-p4.webp','yosemite-near-center-p4.webp','yosemite-near-right-p4.webp'][i],canopy:[]});
+    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-brush1.webp','yosemite-near-center-brush1.webp','yosemite-near-right-brush1.webp'][i],canopy:[]});
     canopy.forEach(({sprite,...props})=>{
       const group=Math.min(2,Math.floor((props.x+sprite.width/2)/(W/3)));
       add(sprite,props,metadata.foreground[group].canopy,groups[group]);

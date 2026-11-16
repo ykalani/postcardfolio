@@ -17,3 +17,6 @@ The detailed animation derives its hot-pixel masks and fracture tangents from th
 
 
 Runtime assets: `painting.webp` is the finished original brush painting; `fallback.webp` is its smaller static fallback. `live-v1.webp` contains the painted motion cutouts and masks; `live-v1.json` records their source rectangles and movement parameters. The photographic guide remains local authoring material and is excluded from production. Normal visits do not download or sample it.
+
+
+Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` use a coarse color study and broad, discrete-pigment flat-brush marks. These replace the earlier dense photo-like reconstruction. Original source provenance and any applicable source license above remain unchanged; see the shared playbook for the current rendering direction.

@@ -58,6 +58,6 @@ function draw({ctx,t,state,wind}){
   for(const ridge of state.sand){const gust=clamp(.25+wind*.25+Math.sin(t*.5+ridge.phase)*.1,.02,.65);ctx.save();ctx.globalAlpha=gust;ctx.drawImage(ridge.sprite,ridge.x+gust*9,ridge.y-gust*3);ctx.restore();}
   for(const patch of state.foliage){const sway=wind+Math.sin(t*2.4+patch.phase)*.2;ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,patch.y+patch.sprite.height);ctx.transform(1,0,sway*.009,1,0,0);ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-patch.sprite.height);ctx.restore();}
 }
-startScene({id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.62,
+startScene({liveVersion:3,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v3.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.62,
   grade(r,g,b,x,y){const l=r*.3+g*.55+b*.15,near=clamp((y-820)/180,0,1);return[r*.84+l*.1+10-near*4,g*.84+l*.1+10-near*5,b*.8+l*.12+11-near*3];},
   angle(x,y){if(y>730&&y<850)return-.04;if(y>330&&y<745)return.12+Math.sin(x*.007+y*.008)*.24;return y<330?1.2:-1.1;},prepare,draw});

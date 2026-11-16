@@ -10,3 +10,6 @@
 - Motion: fine lake bands and short wave crests are constrained to color-verified turquoise water, with insets around the actual shoreline, boats, and dock. Near conifer cutouts are made from the painting and masked by source foliage colors. Canoes, dock, mountain walls, snowfields, and trunks remain fixed.
 
 `painting-v2.webp`, `fallback-v2.webp`, and `live-v2.*` are generated painting/runtime exports, not substitutes for the preserved user input. Regenerating these assets must never overwrite `provided-reference.webp` or `guide.webp`.
+
+
+Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` use a coarse color study and broad, discrete-pigment flat-brush marks. These replace the earlier dense photo-like reconstruction. Original source provenance and any applicable source license above remain unchanged; see the shared playbook for the current rendering direction.

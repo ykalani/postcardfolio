@@ -19,3 +19,6 @@ The finished painting, smaller fallback, and prebuilt motion atlas/metadata are 
 ## Superseded sunset source
 
 The old `guide.jpg` and historical sunset artwork used “Sunset at Sleeping Bear Dunes” by Ddbaran67, July 11, 2019, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), from [the original Commons source page](https://commons.wikimedia.org/wiki/File:Sunset_at_Sleeping_Bear_Dunes.jpg). That credit and license continue to describe that older source and its derivatives only. They do not identify or license this replacement user-provided arch photograph. Preserve the old attribution if distributing the old guide or historical sunset artwork.
+
+
+Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` use a coarse color study and broad, discrete-pigment flat-brush marks. These replace the earlier dense photo-like reconstruction. Original source provenance and any applicable source license above remain unchanged; see the shared playbook for the current rendering direction.

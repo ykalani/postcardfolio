@@ -11,3 +11,6 @@
 The guide supplies only offscreen geometry, color, and material samples. The displayed scene is reconstructed from seeded painterly bristles and cached as `painting-v2.webp`; `fallback-v2.webp` is its small static fallback. The actual painted magnolia petals and evergreen needles are lifted into masked cutouts for wind movement. Tower masonry, clock, windows, woody supports, and sky are excluded from those cutouts. No foliage from other photographs or invented falling blossoms are added.
 
 The live atlas and metadata (`live-v2.webp`, `live-v2.json`) are exported during authoring so the source photograph and pixel-mask preparation do not need to run during normal viewing. Magnolia petals and needles retain their source-derived colors; no additional foreground saturation pass is applied.
+
+
+Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` use a coarse color study and broad, discrete-pigment flat-brush marks. These replace the earlier dense photo-like reconstruction. Original source provenance and any applicable source license above remain unchanged; see the shared playbook for the current rendering direction.
