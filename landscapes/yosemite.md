@@ -47,3 +47,10 @@ Retain these existing paths. Do not migrate Yosemite into a new asset directory 
 The finished display painting and common/foreground atlases are prebuilt; normal visits do not load the Yosemite reference guide. Local authoring still uses the CC0 guide and `?bake=1`. `scripts/bake-assets.cjs` regenerates the detailed terrain, display cache,90 painted canopy patches, pine-only loose leaves, common live atlas, three foreground atlases, and transition-cloud atlas. Keep the source image authoring-only in Vercel exclusions.
 
 Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall clears the right edge; the160svh height and centered initial scroll remain. The deterministic QA hook measures actual visible birds against skyline and viewport clipping. Recheck occupancy after framing changes; never inherit a previous100% result as a guarantee for new crops.
+
+
+## Upper branch and foreground highlights
+
+Home uses matching `p3` display, live manifest, and foreground atlases. A tapered pine branch enters from the upper right, with individually painted needle sprays and a subtle shared-wind sway. Its cached mask participates in the bird visibility measurement. Moving bush cutouts and the static foreground share lifted warm greens and stronger local contrast, preserving the original foliage silhouettes.
+
+Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers from the existing terrain painting without repainting the granite. The normal bake command still rebuilds the complete painting. Verify desktop, portrait, wide crops, motion, and bird occupancy after changing branch geometry.
