@@ -271,9 +271,29 @@
   function cacheUpperBranch(foregroundContext){
     const sprite=document.createElement('canvas');sprite.width=900;sprite.height=260;
     const c=sprite.getContext('2d');seed=8623;
+    // Lift bristled foliage from the painted pine so the new bough shares its pigment and edges.
+    const tufts=[[35,330],[75,390],[25,510],[100,560],[50,620],[80,700]].map(([sx,sy])=>{
+      const tuft=document.createElement('canvas');tuft.width=80;tuft.height=64;
+      const tc=tuft.getContext('2d'),image=p.getImageData(sx,sy,80,64),front=foregroundContext.getImageData(sx,sy,80,64);
+      for(let y=0;y<64;y++)for(let x=0;x<80;x++){
+        const at=(y*80+x)*4,source=((sy+y)*W+sx+x)*4;
+        const r=pixels[source],g=pixels[source+1],b=pixels[source+2];
+        const edge=clamp(1-((x-40)/40)**2-((y-32)/32)**2,0,1)**1.5;
+        const alpha=front.data[at+3]/255;
+        for(let k=0;k<3;k++)image.data[at+k]=image.data[at+k]*(1-alpha)+front.data[at+k]*alpha;
+        image.data[at+3]=Math.round(255*edge*(g>b*.96&&g>r*.88?1:0));
+      }
+      for(let mark=0;mark<2300;mark++){
+        const x=range(4,76),y=range(4,60),at=(Math.floor(y)*80+Math.floor(x))*4;
+        if(rand()>image.data[at+3]/255)continue;
+        const col={r:image.data[at],g:image.data[at+1],b:image.data[at+2]};
+        stroke(tc,x,y,range(2,8),range(.7,2),col,range(-1.7,-.4),.75,2);
+      }
+      return tuft;
+    });
     const twig=(x,y,endX,endY,width)=>{
       for(let bristle=0;bristle<5;bristle++){
-        c.strokeStyle=bristle%2?'rgba(77,72,48,.9)':'rgba(135,126,85,.72)';
+        c.strokeStyle=bristle%2?'rgba(47,57,49,.94)':'rgba(94,101,79,.7)';
         c.lineWidth=width*(1-bristle*.13);c.lineCap='round';
         c.beginPath();c.moveTo(x,y+bristle*.55);c.quadraticCurveTo((x+endX)*.5,(y+endY)*.5-9,endX,endY);c.stroke();
       }
@@ -283,17 +303,11 @@
       const x=80+i*30+range(-9,9),y=185-x*.19+range(-7,7);
       const direction=i%2?1:-1,tipX=x-range(20,55),tipY=y+direction*range(18,46);
       twig(x,y,tipX,tipY,1.1+range(0,1.4));
-      // Individual needle sprays keep an organic edge against the open sky.
-      for(let spray=0;spray<6;spray++){
-        const angle=range(-Math.PI,Math.PI),length=range(16,38);
-        const endX=tipX+Math.cos(angle)*length,endY=tipY+Math.sin(angle)*length*.65;
-        twig(tipX,tipY,endX,endY,.65);
-        for(let needle=0;needle<22;needle++){
-          const q=range(.1,1),side=needle%2?1:-1;
-          const nx=tipX+(endX-tipX)*q,ny=tipY+(endY-tipY)*q;
-          const light=range(-15,25),col={r:99+light,g:116+light,b:66+light*.65};
-          stroke(c,nx,ny,range(7,18),range(.6,1.5),col,angle+side*range(.35,.9),.8,2);
-        }
+      for(let spray=0;spray<5;spray++){
+        const q=.25+spray*.18,size=range(.5,.9)*(.65+x/1600);
+        c.save();c.translate(x+(tipX-x)*q+range(-10,10),Math.max(40,y+(tipY-y)*q+range(-5,12)));
+        c.rotate(direction*.2+range(-.3,.3));c.scale(size*1.2,size*.7);
+        c.drawImage(tufts[(i+spray)%tufts.length],-40,-32);c.restore();
       }
     }
     const cols=90,mask=[],data=c.getImageData(0,0,900,260).data;
