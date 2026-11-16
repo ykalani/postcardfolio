@@ -331,15 +331,58 @@
       return tuft;
     });
     const twig=(x,y,endX,endY,width)=>{
-      for(let bristle=0;bristle<5;bristle++){
-        c.strokeStyle=bristle%2?'rgba(47,57,49,.94)':'rgba(94,101,79,.7)';
-        c.lineWidth=width*(1-bristle*.13);c.lineCap='round';
-        c.beginPath();c.moveTo(x,y+bristle*.55);c.quadraticCurveTo((x+endX)*.5,(y+endY)*.5-9,endX,endY);c.stroke();
+      const angle=Math.atan2(endY-y,endX-x),nx=-Math.sin(angle),ny=Math.cos(angle);
+      const point=t=>{
+        const radius=width*.5*(.12+.88*(1-t)**.85);
+        const bend=-18*t*(1-t)+Math.sin(t*19+x)*width*.12*Math.sin(t*Math.PI);
+        return {x:x+(endX-x)*t,y:y+(endY-y)*t+bend,r:radius};
+      };
+      c.save();c.beginPath();
+      for(const side of [-1,1])for(let i=0;i<=80;i++){
+        const t=side<0?i/80:1-i/80,p=point(t);
+        const edge=p.r*(1+Math.sin(t*173+x)*.09+Math.sin(t*61)*.05);
+        const px=p.x+nx*edge*side,py=p.y+ny*edge*side;
+        if(side<0&&i===0)c.moveTo(px,py);else c.lineTo(px,py);
       }
+      c.closePath();c.clip();
+      const tones=['#3e3027','#594331','#725039','#876044','#987450','#a68760','#92734e','#7d6041','#66503a'];
+      for(let band=0;band<tones.length;band++){
+        c.fillStyle=tones[band];c.beginPath();
+        for(const side of [-1,1])for(let i=0;i<=80;i++){
+          const p=point(side<0?i/80:1-i/80),across=-1+(band+(side<0?0:1))*2/tones.length;
+          const px=p.x+nx*p.r*across,py=p.y+ny*p.r*across;
+          if(side<0&&i===0)c.moveTo(px,py);else c.lineTo(px,py);
+        }
+        c.closePath();c.fill();
+      }
+      if(width>=3){
+        // Broken grain follows the taper, with short cross cracks between bark scales.
+        for(let i=0;i<240;i++){
+          const t=i/240,p=point(t),across=Math.sin(i*7.31+x)*.87;
+          const light=i%4===0;
+          c.strokeStyle=light?'rgba(204,176,132,.44)':'rgba(42,31,24,.54)';
+          c.lineWidth=light?.55:.45+(i%3)*.18;c.lineCap='round';
+          const length=.004+(i%7)*.0015,q=point(Math.min(1,t+length));
+          c.beginPath();c.moveTo(p.x+nx*p.r*across,p.y+ny*p.r*across);
+          c.lineTo(q.x+nx*q.r*across,q.y+ny*q.r*across);c.stroke();
+          if(i%5===0){
+            c.beginPath();c.moveTo(p.x+nx*p.r*across,p.y+ny*p.r*across);
+            c.lineTo(p.x+nx*p.r*(across+.36)+Math.cos(angle),p.y+ny*p.r*(across+.36)+Math.sin(angle));c.stroke();
+          }
+        }
+        for(const t of [.18,.47,.72]){
+          const p=point(t);c.save();c.translate(p.x,p.y);c.rotate(angle);
+          c.fillStyle='#4f3b2d';c.beginPath();c.ellipse(0,0,p.r*1.25,p.r*.42,0,0,Math.PI*2);c.fill();
+          c.strokeStyle='rgba(193,157,110,.65)';c.lineWidth=.65;
+          c.beginPath();c.ellipse(-.7,-.5,p.r*1.55,p.r*.6,0,.2,Math.PI*1.8);c.stroke();c.restore();
+        }
+      }
+      c.restore();
     };
-    twig(920,15,650,72,13);twig(650,72,370,116,8);twig(370,116,40,191,4);
+    twig(920,15,40,191,15);
     for(let i=0;i<27;i++){
-      const x=80+i*30+range(-9,9),y=185-x*.19+range(-7,7);
+      const x=80+i*30+range(-9,9),t=(920-x)/880;
+      const y=15+176*t-18*t*(1-t)+Math.sin(t*19+920)*1.8*Math.sin(t*Math.PI)+range(-1,1);
       const direction=i%2?1:-1,tipX=x-range(20,55),tipY=y+direction*range(18,46);
       twig(x,y,tipX,tipY,1.1+range(0,1.4));
       for(let spray=0;spray<5;spray++){
@@ -454,7 +497,7 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','pine-1');
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','bark-1');
         const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
@@ -466,7 +509,7 @@
   }
   async function loadLiveAssets(){
     try{
-      const url=new URL('assets/yosemite-live-p4.json?v=pine-1',location.href);
+      const url=new URL('assets/yosemite-live-p4.json?v=bark-1',location.href);
       const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
       const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
       const atlas=await loadImage(new URL(data.atlas,url).href);
@@ -482,7 +525,7 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-p4.webp?v=pine-1','high'));}
+    try{showPainting(await loadImage('assets/yosemite-display-p4.webp?v=bark-1','high'));}
     catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
