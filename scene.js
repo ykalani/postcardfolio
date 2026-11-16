@@ -99,7 +99,7 @@
       ctx.drawImage(painting,ox,oy,W*scale,H*scale);
       if(foreground)ctx.drawImage(foreground,ox,oy,W*scale,H*scale);
       if(liveReady){air.save();air.translate(ox,oy);air.scale(scale,scale);
-      driftingClouds(air,clock);waterfall(air,clock);birds(air,clock);rustlingTrees(air,clock);air.restore();}
+      driftingClouds(air,clock);waterfall(air,clock);rustlingTrees(air,clock);birds(air,clock);air.restore();}
     }
   }
   const cloudSprites=[];
@@ -250,19 +250,18 @@
     const paint=p.getImageData(0,0,W,H).data;
     foreground=document.createElement('canvas');foreground.width=W;foreground.height=H;
     const fc=foreground.getContext('2d'),front=fc.createImageData(W,H);
-    // Lift warm highlights while preserving dark gaps between the moving leaves.
+    // The near trees use the existing pigment, with deeper shadows and warmer needle tips.
     for(let y=140;y<H;y++)for(let x=0;x<W;x++){
       const at=(y*W+x)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2],depth=foregroundDepth(x,y);
       const foliage=g>b*.94&&g>r*.87,wood=r+g+b<225;
       if(depth<.01||(!foliage&&!wood)||y<skyline[x]+4)continue;
       const brightness=paint[at]*.3+paint[at+1]*.55+paint[at+2]*.15;
       const highlight=clamp((brightness-145)/65,0,1);
+      front.data[at]=clamp((paint[at]-115)*1.25+99+highlight*5,0,255);
+      front.data[at+1]=clamp((paint[at+1]-115)*1.24+103+highlight*7,0,255);
+      front.data[at+2]=clamp((paint[at+2]-115)*1.2+91,0,255);
       const green=clamp((g-b+3)/18,0,1)*clamp((g-r+12)/20,0,1);
-      const defined=(brightness-105)*1.2+106;
-      front.data[at]=clamp(defined+(paint[at]-brightness)*1.4+green*(2+highlight*4),0,255);
-      front.data[at+1]=clamp(defined+(paint[at+1]-brightness)*1.4+green*(6+highlight*9),0,255);
-      front.data[at+2]=clamp(defined+(paint[at+2]-brightness)*1.4-green*6,0,255);
-      front.data[at+3]=Math.round(235*depth*Math.max(green,wood?.65:0));
+      front.data[at+3]=Math.round(225*depth*Math.max(green,wood?.65:0));
     }
     fc.putImageData(front,0,0);
     // Feathered, overlapping cutouts preserve the painted silhouette as branches flex.
@@ -292,50 +291,7 @@
       for(let i=0;i<16;i++)stroke(c,range(7,14),range(5,9),range(2,6),range(.6,1.8),col,range(-.5,.5),.55,2);
       leafSprites.push(sprite);
     }
-    cacheUpperBranch(fc);
     seed=savedSeed;
-  }
-  function cacheUpperBranch(foregroundContext){
-    const sprite=document.createElement('canvas');sprite.width=900;sprite.height=260;
-    const c=sprite.getContext('2d');seed=8623;
-    const twig=(x,y,endX,endY,width)=>{
-      for(let bristle=0;bristle<5;bristle++){
-        c.strokeStyle=bristle%2?'rgba(77,72,48,.9)':'rgba(135,126,85,.72)';
-        c.lineWidth=width*(1-bristle*.13);c.lineCap='round';
-        c.beginPath();c.moveTo(x,y+bristle*.55);c.quadraticCurveTo((x+endX)*.5,(y+endY)*.5-9,endX,endY);c.stroke();
-      }
-    };
-    twig(920,15,650,72,13);twig(650,72,370,116,8);twig(370,116,40,191,4);
-    for(let i=0;i<27;i++){
-      const x=80+i*30+range(-9,9),y=185-x*.19+range(-7,7);
-      const direction=i%2?1:-1,tipX=x-range(20,55),tipY=y+direction*range(18,46);
-      twig(x,y,tipX,tipY,1.1+range(0,1.4));
-      // Individual needle sprays keep an organic edge against the open sky.
-      for(let spray=0;spray<6;spray++){
-        const angle=range(-Math.PI,Math.PI),length=range(16,38);
-        const endX=tipX+Math.cos(angle)*length,endY=tipY+Math.sin(angle)*length*.65;
-        twig(tipX,tipY,endX,endY,.65);
-        for(let needle=0;needle<22;needle++){
-          const q=range(.1,1),side=needle%2?1:-1;
-          const nx=tipX+(endX-tipX)*q,ny=tipY+(endY-tipY)*q;
-          const light=range(-15,25),col={r:99+light,g:116+light,b:66+light*.65};
-          stroke(c,nx,ny,range(7,18),range(.6,1.5),col,angle+side*range(.35,.9),.8,2);
-        }
-      }
-    }
-    const cols=90,mask=[],data=c.getImageData(0,0,900,260).data;
-    for(let y=0;y<26;y++)for(let x=0;x<cols;x++)mask.push(data[((y*10+5)*900+x*10+5)*4+3]>120?1:0);
-    const branch={sprite,x:700,y:15,near:1,pine:false,upper:true,mask,cols};
-    canopy.push(branch);foregroundContext.drawImage(sprite,branch.x,branch.y);
-  }
-  function branchOccludes(x,y,t){
-    const branch=canopy.find(patch=>patch.upper);
-    if(!branch)return false;
-    const windTime=t-branch.x*.0016,gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
-    const angle=-gust*.0018,dx=x-(branch.x+branch.sprite.width),dy=y-(branch.y+15);
-    const bx=dx*Math.cos(angle)-dy*Math.sin(angle)+branch.sprite.width,by=dx*Math.sin(angle)+dy*Math.cos(angle)+15;
-    if(bx<0||by<0||bx>=branch.sprite.width||by>=branch.sprite.height)return false;
-    return !!branch.mask[Math.floor(by/10)*branch.cols+Math.floor(bx/10)];
   }
   function rustlingTrees(c,t){
     const viewLeft=-ox/scale,viewRight=(innerWidth-ox)/scale;
@@ -347,10 +303,6 @@
       const flutter=Math.sin(t*3.1+patch.x*.014+patch.y*.009)*.16+Math.sin(t*4.7-patch.x*.021)*patch.near*.1;
       const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*7;
       const sway=(gust+flutter)*flex;
-      if(patch.upper){
-        c.save();c.translate(patch.x+patch.sprite.width,patch.y+15);c.rotate(gust*.0018);
-        drawSprite(c,patch.sprite,-patch.sprite.width,-15);c.restore();continue;
-      }
       const anchor=patch.sprite.height;
       c.save();c.translate(patch.x+patch.sprite.width*.5,patch.y+anchor);
       c.rotate(-sway*.0025);drawSprite(c,patch.sprite,-patch.sprite.width*.5+sway,-anchor+Math.sin(windTime*1.2)*flex*.18);c.restore();
@@ -393,7 +345,7 @@
     air.clearRect(0,0,innerWidth,motion.height/(Math.min(devicePixelRatio||1,2)));air.save();air.translate(ox,oy);air.scale(scale,scale);
     driftingClouds(air,clock);
     waterfall(air,clock);
-    birds(air,clock);rustlingTrees(air,clock);
+    rustlingTrees(air,clock);birds(air,clock);
     air.restore();
   }
   function loadImage(url,priority='low'){
@@ -439,7 +391,7 @@
   }
   async function loadLiveAssets(){
     try{
-      const url=new URL('assets/yosemite-live-p3.json',location.href);
+      const url=new URL('assets/yosemite-live-p2.json',location.href);
       const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
       const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
       const atlas=await loadImage(new URL(data.atlas,url).href);
@@ -455,7 +407,7 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-p3.webp','high'));}
+    try{showPainting(await loadImage('assets/yosemite-display-p2.webp','high'));}
     catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
@@ -464,12 +416,12 @@
   window.exportSceneAssets=()=>{
     const display=document.createElement('canvas');display.width=W;display.height=H;
     const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(foreground)dc.drawImage(foreground,0,0);
-    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-p3.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
+    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-p2.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
     const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
     cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
     fallMist.forEach(sprite=>add(sprite,{},metadata.mist,common));
     leafSprites.forEach(sprite=>add(sprite,{},metadata.leaves,common));
-    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-p3.webp','yosemite-near-center-p3.webp','yosemite-near-right-p3.webp'][i],canopy:[]});
+    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-p2.webp','yosemite-near-center-p2.webp','yosemite-near-right-p2.webp'][i],canopy:[]});
     canopy.forEach(({sprite,...props})=>{
       const group=Math.min(2,Math.floor((props.x+sprite.width/2)/(W/3)));
       add(sprite,props,metadata.foreground[group].canopy,groups[group]);
@@ -500,7 +452,7 @@
     for(let flock=0;flock<2;flock++)for(let i=0;i<3;i++){
       const x=left-60+((t/32+flock*.5+.19)%1)*span-i*spacing;
       const y=224+flock*26+i*10+Math.sin(t*.3+flock)*4;
-      if(x>=left-8&&x<=right+8&&x>=0&&x<W&&y<skyline[Math.floor(x)]-12&&y>=top&&y<=bottom&&!branchOccludes(x,y,t))visible.push({flock,i,x,y});
+      if(x>=left-8&&x<=right+8&&x>=0&&x<W&&y<skyline[Math.floor(x)]-12&&y>=top&&y<=bottom)visible.push({flock,i,x,y});
     }
     return visible;
   };
