@@ -201,9 +201,9 @@
   let foreground,forestShade;
   function foregroundDepth(x,y){
     const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
-    const pine=(1-smooth(125,285,x))*smooth(110,300,y);
+    const pine=(1-smooth(155,325,x))*smooth(110,285,y);
     const right=smooth(1180,1530,x)*smooth(410,790,y);
-    const bottom=smooth(650+Math.sin(x*.006)*35,925,y);
+    const bottom=smooth(645+Math.sin(x*.006)*35,850,y);
     return Math.max(pine,right,bottom);
   }
   function cacheCanopy(){
@@ -212,13 +212,13 @@
     const paint=p.getImageData(0,0,W,H).data;
     forestShade=document.createElement('canvas');forestShade.width=W;forestShade.height=H;
     const sc=forestShade.getContext('2d'),shade=sc.createImageData(W,H);
-    // A cool transparent glaze deepens distant foliage without repainting rock or near trees.
+    // Cooler, quieter valley pigment leaves the near pine and warm brush in a separate plane.
     for(let y=140;y<H;y++)for(let x=0;x<W;x++){
       if(y<skyline[x]+6)continue;
       const at=(y*W+x)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2];
       const foliage=clamp((g-b-4)/20,0,1)*clamp((g-r+8)/22,0,1);
-      const alpha=.32*foliage*(1-foregroundDepth(x,y))**2;
-      shade.data[at]=18;shade.data[at+1]=36;shade.data[at+2]=34;shade.data[at+3]=Math.round(alpha*255);
+      const alpha=.48*foliage*(1-foregroundDepth(x,y))**2;
+      shade.data[at]=78;shade.data[at+1]=105;shade.data[at+2]=114;shade.data[at+3]=Math.round(alpha*255);
       for(let k=0;k<3;k++)paint[at+k]=paint[at+k]*(1-alpha)+shade.data[at+k]*alpha;
     }
     sc.putImageData(shade,0,0);
@@ -231,9 +231,9 @@
       if(depth<.01||(!foliage&&!wood)||y<skyline[x]+4)continue;
       const brightness=paint[at]*.3+paint[at+1]*.55+paint[at+2]*.15;
       const highlight=clamp((brightness-135)/75,0,1);
-      front.data[at]=clamp((paint[at]-125)*1.42+108+highlight*17,0,255);
-      front.data[at+1]=clamp((paint[at+1]-125)*1.4+117+highlight*13,0,255);
-      front.data[at+2]=clamp((paint[at+2]-125)*1.28+96+highlight*2,0,255);
+      front.data[at]=clamp((paint[at]-125)*1.5+102+highlight*29,0,255);
+      front.data[at+1]=clamp((paint[at+1]-125)*1.48+119+highlight*22,0,255);
+      front.data[at+2]=clamp((paint[at+2]-125)*1.35+80+highlight*3,0,255);
       const green=clamp((g-b+3)/18,0,1)*clamp((g-r+12)/20,0,1);
       front.data[at+3]=Math.round(240*depth*Math.max(green,wood?.65:0));
     }
@@ -356,13 +356,13 @@
     const cols=90,mask=[],data=c.getImageData(0,0,900,260).data;
     for(let y=0;y<26;y++)for(let x=0;x<cols;x++)mask.push(data[((y*10+5)*900+x*10+5)*4+3]>120?1:0);
     const branch={sprite,x:700,y:55,near:1,pine:false,upper:true,mask,cols};
-    canopy.push(branch);foregroundContext.drawImage(sprite,branch.x,branch.y);
+    canopy.push(branch); // Keep clean sky under the live bough; never bake a second fixed copy.
   }
   function branchOccludes(x,y,t){
     const branch=canopy.find(patch=>patch.upper);
     if(!branch)return false;
     const windTime=t-branch.x*.0016,gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
-    const angle=-gust*.0018,dx=x-(branch.x+branch.sprite.width),dy=y-(branch.y+15);
+    const angle=-gust*.012,dx=x-(branch.x+branch.sprite.width),dy=y-(branch.y+15);
     const bx=dx*Math.cos(angle)-dy*Math.sin(angle)+branch.sprite.width,by=dx*Math.sin(angle)+dy*Math.cos(angle)+15;
     if(bx<0||by<0||bx>=branch.sprite.width||by>=branch.sprite.height)return false;
     return !!branch.mask[Math.floor(by/10)*branch.cols+Math.floor(bx/10)];
@@ -378,7 +378,7 @@
       const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*7;
       const sway=(gust+flutter)*flex;
       if(patch.upper){
-        c.save();c.translate(patch.x+patch.sprite.width,patch.y+15);c.rotate(gust*.0018);
+        c.save();c.translate(patch.x+patch.sprite.width,patch.y+15);c.rotate(gust*.012);
         drawSprite(c,patch.sprite,-patch.sprite.width,-15);c.restore();continue;
       }
       const anchor=patch.sprite.height;
@@ -448,7 +448,7 @@
     }
     cloudSprites.length=0;fallMist.length=0;cacheClouds();cacheWaterfall();liveReady=true;
     if(rebuild)await buildPainting();
-    else{try{const cached=await loadImage('assets/yosemite-terrain-brush1.webp');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
+    else{try{const cached=await loadImage('assets/yosemite-terrain-brush2.webp');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
     document.documentElement.dataset.sceneLive='true';
   }
   let foregroundGroups=[],foregroundManifest;
@@ -458,7 +458,7 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','brush-1');
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','brush-2');
         const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
@@ -470,7 +470,7 @@
   }
   async function loadLiveAssets(){
     try{
-      const url=new URL('assets/yosemite-live-brush1.json',location.href);
+      const url=new URL('assets/yosemite-live-brush2.json',location.href);
       const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
       const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
       const atlas=await loadImage(new URL(data.atlas,url).href);
@@ -486,8 +486,8 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-brush1.webp?v=brush-1','high'));}
-    catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush1.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
+    try{showPainting(await loadImage('assets/yosemite-display-brush2.webp?v=brush-2','high'));}
+    catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush2.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
   }
@@ -495,12 +495,12 @@
   window.exportSceneAssets=()=>{
     const display=document.createElement('canvas');display.width=W;display.height=H;
     const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(forestShade)dc.drawImage(forestShade,0,0);if(foreground)dc.drawImage(foreground,0,0);
-    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-brush1.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
+    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-brush2.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
     const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
     cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
     fallMist.forEach(sprite=>add(sprite,{},metadata.mist,common));
     leafSprites.forEach(sprite=>add(sprite,{},metadata.leaves,common));
-    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-brush1.webp','yosemite-near-center-brush1.webp','yosemite-near-right-brush1.webp'][i],canopy:[]});
+    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-brush2.webp','yosemite-near-center-brush2.webp','yosemite-near-right-brush2.webp'][i],canopy:[]});
     canopy.forEach(({sprite,...props})=>{
       const group=Math.min(2,Math.floor((props.x+sprite.width/2)/(W/3)));
       add(sprite,props,metadata.foreground[group].canopy,groups[group]);

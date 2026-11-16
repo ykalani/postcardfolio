@@ -39,3 +39,8 @@ Playwright inspected desktop1600x1000, mobile390x844 and320x700, and wide2560x10
 ### Runtime loading
 
 Source sampling and live-mask construction run only during local authoring (`?repaint=1`). Visitors see the cached painting first, then load the prebuilt `live-v1.json`/`live-v1.webp` pair. A missing live pack retains the static painting; a missing primary painting uses `fallback.webp`. The guide is excluded from production. These optimized fallbacks supersede earlier brief descriptions of visitor-side source rebuilding.
+
+
+## Current motion pass
+
+Foreground brush coverage begins at the near riverbank and extends across the full bottom edge, with visibly stronger anchored sway. Painted river pigment flows within a source-colored water mask; sand grains lift and drift over mapped dune ridges. Separate sky-only cloud cutouts drift without moving the mountain silhouette; mountain-foot mist remains a separate slow layer.

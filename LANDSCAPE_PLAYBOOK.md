@@ -4,11 +4,13 @@ A shared implementation guide for the portfolio's six landscape destinations. Re
 
 ## Current art direction: visible brushwork
 
-The user rejected the previous photo-like appearance. All six active scenes now use `scenes/brush-painting.js`, including Yosemite's local authoring path. The reference is reduced to a coarse color study: 10-pixel cells, discrete pigment values, broad irregular flat-brush marks, and selective smaller accents. No dense per-pixel refinement pass may cover those marks. Landmarks remain recognizable, but camera microdetail and smooth photographic shading must not survive as the dominant visual language.
+The user rejected the previous photo-like appearance. All six active scenes now use `scenes/brush-painting.js`, including Yosemite's local authoring path. The reference is reduced to a coarse color study: 5-pixel cells, discrete pigment values, broad irregular flat-brush marks, and selective smaller accents. No dense per-pixel refinement pass may cover those marks. Landmarks remain recognizable, but camera microdetail and smooth photographic shading must not survive as the dominant visual language.
 
 Judge the actual finished painting at normal desktop and mobile size. Visible paint planes, broken bristle ends, and simplified colors are required; a blurred photo or subtle grain overlay does not meet this direction. The renderer receives color arrays only and reconstructs the whole painting with Canvas strokes; it never draws a reference photo onto the visible artwork. Rebuild live cutouts from that same painted surface.
 
-Active caches are `painting-v3.webp`, `fallback-v3.webp`, and `live-v3.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush1.webp`, `yosemite-display-brush1.webp`, and matching `*-brush1` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
+Brush mark length, breadth, spacing, and sampling cells are now half of the first expressive edition; the same discrete pigment palette preserves the painted character.
+
+Active caches are `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush2.webp`, `yosemite-display-brush2.webp`, and matching `*-brush2` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
 
 ## Portfolio plan and scene briefs
 
@@ -408,3 +410,7 @@ The upper Yosemite branch was restored and is part of Home. Preserve the existin
 New scenes use `liveVersion:2`, `painting-v2.webp`, `fallback-v2.webp`, and matching `live-v2.json`/`live-v2.webp`. Existing Volcanoes and Great Sand Dunes retain their original v1 packs; Home retains its p2 atlas set. `sourceY` is an optional vertical crop anchor for local authoring, used by Banff to keep mountain walls, lake, and canoe foreground in one coherent full-bleed crop. No stretching or invented side-fill is used.
 
 Rebake only the three new/replacement scenes with `node scripts/bake-landscapes.cjs writing about tech-blog`. Normal visits still do not fetch source guides. Browser checks cover all six destinations at four viewport sizes, including navigation, Back, live/static fallback, and unchanged Yosemite bird occupancy. Blog articles and publishing workflows are separate from the landscape destination.
+
+## Foreground and distance
+
+All six paintings distinguish near framing from distance with material-aware pigment grades, without photographic blur. Yosemite uses a cool, quieter valley behind its richer left pine and bottom brush. The upper bough is a separate live sprite over clean sky, never duplicated in the static painting; its stronger anchored sway shares its transform with bird occlusion. Banff's right-hand pines sway over fixed mountain and dock geometry, while source-masked lake pigment and brighter ripples travel within the lake only.

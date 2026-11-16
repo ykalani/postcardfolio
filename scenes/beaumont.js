@@ -56,13 +56,17 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:3,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v3.webp',
+  liveVersion:4,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v4.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;
-    let color = [r * .87 + light * .06 + 12, g * .87 + light * .06 + 12, b * .84 + light * .08 + 12];
-    return color;
+    const flower=blossom(r,g,b),pine=needle(r,g,b);
+    const front=Math.max(flower,pine);
+    const architecture=x>545&&x<850?clamp((r-g+16)/42)*clamp((r-b+20)/50):0;
+    return [r*(.87+front*.15-architecture*.08)+light*.06+12-front*8+architecture*10,
+      g*(.87+front*.13-architecture*.08)+light*.06+12-front*9+architecture*13,
+      b*(.84+front*.1-architecture*.08)+light*.08+12-front*11+architecture*19];
   },
   angle:(x, y) => x > 545 && x < 850 && y > 70 && y < 920 ? 1.56 : -.7 + Math.sin(x * .015 + y * .008) * .55,
   prepare, draw,

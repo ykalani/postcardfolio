@@ -30,6 +30,22 @@ function gasSprite(random, warm = false) {
   return sprite;
 }
 
+function smokeBank(random) {
+  const sprite=layer(600,220),c=sprite.getContext('2d');
+  c.lineCap='butt';
+  for(let i=0;i<6500;i++){
+    const x=random()*600,y=random()*220;
+    const center=110+Math.sin(x*.013)*28+Math.sin(x*.031)*9;
+    const envelope=Math.max(0,1-Math.abs(y-center)/75)*Math.sin(x/600*Math.PI);
+    if(!envelope)continue;
+    const tone=76+random()*30;
+    c.strokeStyle=`rgba(${tone|0},${(tone+3)|0},${(tone+14)|0},${envelope*(.055+random()*.12)})`;
+    c.lineWidth=1+random()*3.5;c.beginPath();c.moveTo(x,y);
+    c.quadraticCurveTo(x+8,y-3,x+14+random()*17,y-2+random()*4);c.stroke();
+  }
+  return sprite;
+}
+
 function prepare({pixels, painting, random, W, H}) {
   const heat=layer(W,H), heatContext=heat.getContext('2d');
   const heatPixels=heatContext.createImageData(W,H);
@@ -68,10 +84,20 @@ function prepare({pixels, painting, random, W, H}) {
     shimmerData.data[(y*112+x)*4+3]*=edge*.28;
   }
   shimmerContext.putImageData(shimmerData,0,0);
-  return {heat,fractures,rimVents,gas:gasSprite(random),warmGas:gasSprite(random,true),shimmer};
+  return {ceilingSmoke:smokeBank(random),heat,fractures,rimVents,gas:gasSprite(random),warmGas:gasSprite(random,true),shimmer};
 }
 
 function draw({ctx,t,state,wind}) {
+  // Overlapping painted banks drift through the existing gray ceiling and fade at each cycle end.
+  ctx.save();
+  for(let i=0;i<5;i++){
+    const age=(t/28+i/5)%1,fade=Math.sin(age*Math.PI)**2;
+    const width=760+age*390,height=200+age*85;
+    ctx.globalAlpha=fade*.58;
+    ctx.drawImage(state.ceilingSmoke,1420-age*2200,-90+Math.sin(age*6.28)*28,width,height);
+  }
+  ctx.restore();
+
   ctx.save(); ctx.globalCompositeOperation='screen';
   // Incandescence follows real source fractures, with spatially traveling slow heat variation.
   ctx.globalAlpha=.13+.025*Math.sin(t*.61); ctx.drawImage(state.heat,0,0);
@@ -111,10 +137,10 @@ function draw({ctx,t,state,wind}) {
   ctx.restore();
 }
 
-startScene({liveVersion:3,
+startScene({liveVersion:4,
   id:'hawaii-volcanoes',
   guide:'assets/hawaii-volcanoes/guide.jpg',
-  cache:'assets/hawaii-volcanoes/painting-v3.webp',
+  cache:'assets/hawaii-volcanoes/painting-v4.webp',
   background:'#252532',focusX:.61,focusY:.57,initialScroll:.86,
   grade:(r,g,b,x,y)=>{
     sourceLight ??= new Float32Array(1600 * 1000);
@@ -123,7 +149,10 @@ startScene({liveVersion:3,
     if(hot)return [Math.min(255,r*1.025+4),Math.min(255,g*1.075+4),b*.92+8];
     // Lift real terraces out of darkness without turning the night scene gray.
     const dusk=y<145?1:.92;
-    return [r*.98+13*dusk,g*.98+14*dusk,b*.99+19*dusk];
+    const near=clamp((y-660)/230,0,1),far=clamp((450-y)/350,0,1);
+    return [r*(.98+near*.13-far*.09)+13*dusk-near*10+far*4,
+      g*(.98+near*.1-far*.09)+14*dusk-near*9+far*7,
+      b*(.99+near*.04-far*.09)+19*dusk-near*16+far*16];
   },
   angle:(x,y)=>{
     if(y<145)return -.035;

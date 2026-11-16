@@ -3,7 +3,7 @@ import {readFile, access, readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 
 const pages = ['index.html','projects.html','experience.html','writing.html','tech-blog.html','about.html'];
-const scenes = [['great-sand-dunes','guide.jpg',3],['hawaii-volcanoes','guide.jpg',3],['banff','guide.webp',3],['sleeping-bear','guide.webp',3],['beaumont','guide.webp',3]];
+const scenes = [['great-sand-dunes','guide.jpg',4],['hawaii-volcanoes','guide.jpg',4],['banff','guide.webp',4],['sleeping-bear','guide.webp',4],['beaumont','guide.webp',4]];
 const scripts = ['scene.js','cloud-transition.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
@@ -15,9 +15,9 @@ for (const [scene,guide,version] of scenes) for (const file of [guide,`painting$
   await access(new URL(`assets/${scene}/${file}`,import.meta.url));
 }
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
-await access(new URL('assets/yosemite-terrain-brush1.webp',import.meta.url));
-await access(new URL('assets/yosemite-display-brush1.webp',import.meta.url));
-const live = JSON.parse(await readFile(new URL('assets/yosemite-live-brush1.json',import.meta.url),'utf8'));
+await access(new URL('assets/yosemite-terrain-brush2.webp',import.meta.url));
+await access(new URL('assets/yosemite-display-brush2.webp',import.meta.url));
+const live = JSON.parse(await readFile(new URL('assets/yosemite-live-brush2.json',import.meta.url),'utf8'));
 assert.equal(live.version,2,'Yosemite live atlas schema');
 assert.equal(live.skyline.length,1600,'Yosemite skyline length');
 const upper=live.foreground.flatMap(group=>group.canopy).filter(patch=>patch.upper);

@@ -4,7 +4,7 @@ export async function paintBrushwork({ctx, pixels, width, height, random, angle,
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || pixels.length !== width * height * 4) {
     throw new TypeError('Brush painting requires positive dimensions and matching RGBA samples');
   }
-  const cell = 10, columns = Math.ceil(width / cell), rows = Math.ceil(height / cell);
+  const cell = 5, columns = Math.ceil(width / cell), rows = Math.ceil(height / cell);
   const field = new Float32Array(columns * rows * 3);
   for (let row = 0; row < rows; row++) for (let col = 0; col < columns; col++) {
     let r = 0, g = 0, b = 0, count = 0;
@@ -44,7 +44,7 @@ export async function paintBrushwork({ctx, pixels, width, height, random, angle,
     }
     // A dry edge catches light; it is baked pigment, not a moving noise/filter overlay.
     if (random() > .45) {
-      ctx.strokeStyle = color(rgb, 17, .32); ctx.lineWidth = .7 + random() * .8;
+      ctx.strokeStyle = color(rgb, 17, .32); ctx.lineWidth = .35 + random() * .4;
       const off = breadth * .38;
       ctx.beginPath(); ctx.moveTo(x - dx * length * .3 + nx * off, y - dy * length * .3 + ny * off);
       ctx.lineTo(x + dx * length * .28 + nx * off, y + dy * length * .28 + ny * off); ctx.stroke();
@@ -52,7 +52,7 @@ export async function paintBrushwork({ctx, pixels, width, height, random, angle,
   }
   if (background) {ctx.fillStyle = background; ctx.fillRect(0, 0, width, height);}
   // The smaller pass is selective: broad marks stay visible instead of being buried in pixels.
-  for (const [step, length, breadth] of [[24, 49, 29], [13, 30, 15], [8, 16, 7]]) {
+  for (const [step, length, breadth] of [[12, 24.5, 14.5], [6.5, 15, 7.5], [4, 8, 3.5]]) {
     const points = [];
     for (let y = 0; y < height; y += step) for (let x = 0; x < width; x += step) points.push([x, y]);
     for (let i = points.length - 1; i > 0; i--) {
@@ -64,7 +64,7 @@ export async function paintBrushwork({ctx, pixels, width, height, random, angle,
       if (skip?.(x | 0, y | 0)) continue;
       const rgb = sample(x, y), neighbor = sample(x + cell, y + cell);
       const difference = Math.abs(rgb[0] - neighbor[0]) + Math.abs(rgb[1] - neighbor[1]) + Math.abs(rgb[2] - neighbor[2]);
-      if (step === 8 && (difference < 35 || random() > .48)) continue;
+      if (step === 4 && (difference < 35 || random() > .48)) continue;
       const direction = (angle?.(x | 0, y | 0) ?? -.12) + (random() - .5) * .38;
       let extent = length * (.7 + random() * .7);
       const ahead = sample(x + Math.cos(direction) * extent * .4, y + Math.sin(direction) * extent * .4);

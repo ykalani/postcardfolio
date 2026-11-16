@@ -11,3 +11,5 @@ The reference guide is now used only for local authoring and is excluded from de
 
 
 Current expressive-paint edition: `yosemite-terrain-brush1.webp` and `yosemite-display-brush1.webp`, with the matching `*-brush1` atlases, reconstruct the reference as broad visible brush marks and simplified pigment planes. The CC0 source and its geography remain unchanged. The older dense pixel-detail coats are superseded by the shared `scenes/brush-painting.js` renderer.
+
+Current Yosemite half-size brush edition uses `yosemite-*-brush2.*`, with the same reference provenance and smaller expressive paint marks.

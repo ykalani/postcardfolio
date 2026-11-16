@@ -20,7 +20,7 @@ function prepare({painting, pixels, random}) {
     const k = ((y - WATER_TOP) * W + x) * 4;
     alpha.data[k] = alpha.data[k + 1] = alpha.data[k + 2] = 255;
     alpha.data[k + 3] = inset ? Math.min(245, (y - WATER_TOP) * 28) : 0;
-    if (!inset || x % 11 || y % 4 || random() > .07) continue;
+    if (!inset || x % 11 || y % 4 || random() > .19) continue;
     const at = (y * W + x) * 4, depth = (y - WATER_TOP) / WATER_DEPTH;
     const length = 2 + random() * (4 + depth * 20);
     if (!isWater(Math.min(W - 1, x + Math.ceil(length) + 4), y)) continue;
@@ -59,40 +59,45 @@ function draw({ctx, t, state, wind}) {
   // Only source-masked lake pigment moves; the dock, stored canoes, mountains, and shore stay fixed.
   for (let y = 0; y < WATER_DEPTH; y += 10) {
     const depth = y / WATER_DEPTH, band = Math.min(10, WATER_DEPTH - y);
-    const sx = Math.sin(t * .65 + y * .045) * depth * 1.6;
-    const sy = clamp(WATER_TOP + y + Math.sin(t * .72 - y * .035) * depth * .6, WATER_TOP, H - band);
+    const sx = Math.sin(t * .65 + y * .045) * depth * 4.8;
+    const sy = clamp(WATER_TOP + y + Math.sin(t * .72 - y * .035) * depth * 1.35, WATER_TOP, H - band);
     c.drawImage(state.painting, 0, sy, W, band, sx, y, W, band);
   }
   c.lineCap = 'round';
   for (const wave of state.ripples) {
     const crest = .5 + Math.sin(t * (1.05 + wave.depth * .2) - wave.y * .055 + wave.phase) * .5;
-    const x = wave.x + Math.sin(t * .7 + wave.phase) * wave.depth * 1.5;
+    const x = wave.x + Math.sin(t * .7 + wave.phase) * wave.depth * 4;
     const y = wave.y + Math.sin(t * .8 + wave.phase) * wave.depth * .5;
     const lift = wave.light ? 25 : -18;
-    c.strokeStyle = `rgba(${clamp(wave.r + lift, 0, 255)},${clamp(wave.g + lift, 0, 255)},${clamp(wave.b + lift, 0, 255)},${(.035 + wave.depth * .11) * crest})`;
+    c.strokeStyle = `rgba(${clamp(wave.r + lift, 0, 255)},${clamp(wave.g + lift, 0, 255)},${clamp(wave.b + lift, 0, 255)},${(.06 + wave.depth * .2) * crest})`;
     c.lineWidth = .4 + wave.depth * .7;
     c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + wave.length * .5, y - .5, x + wave.length, y); c.stroke();
   }
   c.globalCompositeOperation = 'destination-in'; c.drawImage(state.mask, 0, 0);
-  c.globalCompositeOperation = 'source-over'; ctx.save(); ctx.globalAlpha = .72;
+  c.globalCompositeOperation = 'source-over'; ctx.save(); ctx.globalAlpha = .9;
   ctx.drawImage(state.water, 0, WATER_TOP); ctx.restore();
 
   for (const plant of state.foliage) {
     const sway = wind + Math.sin(t * 2 + plant.phase) * .14;
     ctx.save(); ctx.translate(plant.x + plant.w * .5, plant.y + plant.h);
-    ctx.transform(1, 0, sway * .0075, 1, 0, 0);
+    ctx.transform(1, 0, sway * .022, 1, 0, 0);
     ctx.drawImage(plant.sprite, -plant.w * .5, -plant.h); ctx.restore();
   }
 }
 
 startScene({
-  liveVersion:3,
-  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v3.webp',
+  liveVersion:4,
+  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v4.webp',
   sourceY: .78, background: '#557e83', focusX: .66, focusY: .63, initialScroll: .82,
   grade(r, g, b, x, y) {
     const light = r * .3 + g * .55 + b * .15;
     // Keep the supplied turquoise water and warm red canoes; separate shadowed rock without a gray wash.
-    return [r * .87 + light * .07 + 12, g * .88 + light * .065 + 12, b * .85 + light * .08 + 14];
+    const near = clamp((x - 1100) / 290, 0, 1) * clamp((y - 220) / 180, 0, 1);
+    const pine = near * clamp((g - r * .93) / 28, 0, 1) * clamp((g - b * 1.04) / 28, 0, 1);
+    const distant = clamp((620 - y) / 260, 0, 1) * (1 - near);
+    return [r * (.87 + pine * .18 - distant * .08) + light * .07 + 12 - pine * 17 + distant * 10,
+      g * (.88 + pine * .19 - distant * .08) + light * .065 + 12 - pine * 10 + distant * 14,
+      b * (.85 + pine * .08 - distant * .08) + light * .08 + 14 - pine * 24 + distant * 24];
   },
   angle(x, y) {return y > WATER_TOP ? -.035 : y < 610 ? 1.46 + Math.sin(x * .009) * .12 : -.9;},
   prepare, draw

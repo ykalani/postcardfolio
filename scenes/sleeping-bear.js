@@ -97,12 +97,16 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:3,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v3.webp',
+  liveVersion:4,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v4.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.54,
-  grade:(r,g,b)=>{
+  grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;
-    return [r*.9+light*.045+9,g*.91+light*.035+8,b*.89+light*.045+10];
+    const leaf=clamp((g-r*.94-2)/30)*clamp((g-b*1.02)/28)*clamp((360-y)/160);
+    const nearRock=clamp((x-1050)/430)*clamp((r-b)/70)*clamp((670-y)/150);
+    return [r*(.9+leaf*.16+nearRock*.11)+light*.045+9-leaf*17+nearRock*5,
+      g*(.91+leaf*.15+nearRock*.06)+light*.035+8-leaf*8-nearRock*5,
+      b*(.89+leaf*.08)+light*.045+10-leaf*21-nearRock*15];
   },
   angle:(x,y)=>y>665?-.025:x>1270?1.3:.045+Math.sin(x*.011+y*.005)*.19,
   prepare,draw

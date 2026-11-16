@@ -58,3 +58,8 @@ Webcams remain research references, not guide assets or runtime dependencies. Th
 ### Runtime loading
 
 Source sampling and live-mask construction run only during local authoring (`?repaint=1`). Visitors see the cached painting first, then load the prebuilt `live-v1.json`/`live-v1.webp` pair. A missing live pack retains the static painting; a missing primary painting uses `fallback.webp`. The guide is excluded from production. These optimized fallbacks supersede earlier brief descriptions of visitor-side source rebuilding.
+
+
+## Current motion pass
+
+The gray smoke ceiling now uses overlapping dry-brush banks with a 28-second drift/fade lifecycle. The banks move across the existing upper haze, while the incandescent vent and crater remain anchored. No blur or circular smoke particles are used.
