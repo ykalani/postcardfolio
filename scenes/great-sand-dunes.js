@@ -82,12 +82,18 @@ function draw({ctx,t,state,wind}){
     }
   }
   c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(water,0,TOP);ctx.restore();
-  ctx.save();ctx.globalAlpha=.95;ctx.drawImage(state.fog,Math.sin(t*.065)*34+wind*3,250);ctx.restore();
+  ctx.save();ctx.globalAlpha=.95;ctx.drawImage(state.fog,Math.sin(t*.3)*90+wind*3,250);ctx.restore();
+  // Clip traveling sky pigment at the fixed peaks, including after it wraps.
+  ctx.save();ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
+  for(const [x,y] of [[1600,56],[1460,81],[1290,114],[1130,58],[1000,71],[800,102],[650,124],[480,57],[330,78],[180,124],[0,205]])ctx.lineTo(x,y-12);
+  ctx.closePath();ctx.clip();
   for(const cloud of state.clouds){
-    ctx.save();ctx.globalAlpha=.88;
-    ctx.drawImage(cloud.sprite,cloud.x+Math.sin(t*.1+cloud.x*.002)*60,cloud.y+Math.sin(t*.06)*3);
+    ctx.save();ctx.globalAlpha=.95;
+    const x=(cloud.x+t*(22+cloud.x*.006)+cloud.w)%(W+cloud.w)-cloud.w;
+    ctx.drawImage(cloud.sprite,x,cloud.y);
     ctx.restore();
   }
+  ctx.restore();
   for(const ridge of state.sand)for(let i=0;i<2;i++){
     const age=(t/7+ridge.phase+i/2)%1,fade=Math.sin(age*Math.PI)**2;
     ctx.save();ctx.globalAlpha=fade*(.78+wind*.1);
