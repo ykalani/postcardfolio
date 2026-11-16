@@ -4,7 +4,7 @@ Read [the shared playbook](../LANDSCAPE_PLAYBOOK.md) and repository instructions
 
 ## Status and scope
 
-Existing implemented scene and visual baseline for the portfolio. Preserve it while building the four new scenes. Home remains a landscape-led arrival; do not restore the archived postcard, removed labels, or controls. Future biography and navigation changes are separate work.
+Implemented Home scene, retained and refined alongside the four new destinations. Added a fourth fine foliage/rock coat and source-gradient-aligned granite fissure bristles beyond the earlier baseline. Home remains a landscape-led arrival; do not restore the archived postcard, removed labels, or controls. All five destinations now share the paper navigation and cloud curtain; biography copy remains separate work.
 
 ## Viewpoint and composition
 
@@ -41,3 +41,9 @@ Use the shared Playwright checks for stills, a motion sequence, performance, and
 - [Asset credits](../assets/CREDITS.md): EF5's CC0 Tunnel View photograph and its exact source/license links.
 
 Retain these existing paths. Do not migrate Yosemite into a new asset directory merely to match new scenes, and do not overwrite uncommitted scene or painting edits.
+
+## Current runtime and verification
+
+The finished display painting and common/foreground atlases are prebuilt; normal visits do not load the Yosemite reference guide. Local authoring still uses the CC0 guide and `?bake=1`. `scripts/bake-assets.cjs` regenerates the detailed terrain, display cache,90 painted canopy patches, pine-only loose leaves, common live atlas, three foreground atlases, and transition-cloud atlas. Keep the source image authoring-only in Vercel exclusions.
+
+Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall clears the right edge; the160svh height and centered initial scroll remain. The deterministic QA hook measures actual visible birds against skyline and viewport clipping. Recheck occupancy after framing changes; never inherit a previous100% result as a guarantee for new crops.

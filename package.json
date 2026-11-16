@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "check": "node --check scene.js && node --check cloud-transition.js && node --check server.mjs && node check.mjs"
+    "check": "node check.mjs",
+    "check:browser": "node scripts/check-landscapes.cjs",
+    "bake:landscapes": "node scripts/bake-landscapes.cjs",
+    "bake:yosemite": "node scripts/bake-assets.cjs"
   }
 }

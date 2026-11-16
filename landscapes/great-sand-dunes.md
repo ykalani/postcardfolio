@@ -1,44 +1,41 @@
 # Great Sand Dunes — Experience
 
-Read [the shared playbook](../LANDSCAPE_PLAYBOOK.md) and repository instructions first. Shared rendering, navigation, QA, and deployment requirements are not duplicated here.
+Read [the shared playbook](../LANDSCAPE_PLAYBOOK.md) and repository instructions first. This brief records the implemented scene; shared renderer, navigation, QA and deployment rules remain in the playbook.
 
-## Status and intent
+## Implemented viewpoint
 
-Art brief only; no guide image has been selected or licensed yet. The Experience destination will eventually hold the professional/research timeline. This brief does not authorize writing that content or changing navigation.
+NPS/Patrick Myers's October view just north of the visitor center: Medano Creek and cottonwoods in front, layered dune ridges filling the middle ground, and snowy Cleveland Peak in the Sangre de Cristo Mountains behind. Source filename identifies2022; see [exact provenance](../assets/great-sand-dunes/CREDITS.md). One photograph supplies the geography; landmarks are not composited from different angles.
 
-The user's requested composition is dune ridges, a mountain backdrop, and foreground water. Use the Sangre de Cristo Mountains for the near backdrop and seasonal Medano Creek for the water. Keep this scene distinct from Sleeping Bear's water sunset.
+This source supersedes the first creek-dominant parking-lot reference. Sand ridges carry this composition, while Sleeping Bear is the water-led sunset. Experience remains landscape-only until timeline content is requested.
 
-## Proposed viewpoint and composition
+## Composition and material
 
-Research a view from the Medano Creek day-use area toward the dunefield and Sangre de Cristo range. Verify that the selected photograph contains all three features from a coherent angle before committing to coordinates. Do not assemble unrelated dune and mountain views.
+- Foreground: scrub and autumn cottonwoods, with a narrow shallow creek behind them.
+- Middle ground: overlapping dune contours and distinct light/shadow planes.
+- Distance: a low cloud band, golden mountain foliage, and snow-dusted rock.
 
-- Foreground: a shallow band of Medano Creek crossing wet sand; a small amount of bank vegetation only if present in the guide.
-- Middle ground: overlapping dune ridges with legible light and shadow planes; the dunes are the primary subject.
-- Distance: cooler, restrained mountain forms and a modest band of sky.
+Use warm taupe and ochre sand, violet-blue distant rock, soft cloud white, muted gold leaves, and cool creek reflections. Fine brush strokes wrap dune contours; locally tangent bristles retain source ridgelines, mountain joints and foliage detail. No geometry slides or morphs with animation.
 
-Use a spring or early-summer reference with documented creek flow. Match mountain snow to that reference. The creek is shallow and seasonal, not a permanent broad river. Leave a quiet region for eventual timeline placement without adding a UI panel now.
+## Live layers
 
-## Palette and material
+1. Source-color-masked shallow creek ripples and short downstream wave bands, confined to the actual photographed channel.
+2. Cached restrained sand veils on specific dune crests, responding to one shared gust.
+3. Low cloud pigment extracted from the painting's own cloud band, moving gently within that depth range.
+4. Source-masked cottonwood/scrub patches sheared around their stem bases, with smaller tip flutter.
 
-Clear daylight; ochre and pale gold sand, cool dune shadows, blue-gray mountains, and silver-blue creek reflections. Brush marks wrap dune contours; small directional marks suggest surface ripples. Keep ridge geometry fixed during animation. Avoid turning the dunes into shifting liquid or a sandstorm.
+The creek is seasonal. The artwork depicts this documented October view, not current flow or a permanent river. Do not add generic birds, a waterfall, arbitrary glitter, or a sandstorm.
 
-## Live elements, in priority order
+## Mobile framing
 
-1. Small creek surges and broken reflections moving across shallow wet sand. Water must remain inside a fixed creek mask; keep wet sand and dry sand distinct.
-2. Thin, intermittent windblown sand attached to exposed ridge crests, following one coherent wind.
-3. Restrained traveling cloud shadows; foreground grasses may respond to the same wind if the reference contains them.
+Keep the160svh stage. Scene-specific62% initial scroll emphasizes dune contours and the creek together; mountain slopes remain in the upper crop, and scrolling up reveals the snowy summits. Home retains its centered start. The selected focus is54% across the logical painting. Do not move real mountains merely to force every summit into the narrow crop.
 
-Birds are optional. If included, apply the shared sky-bird contract. Water and ridge motion cues must carry the scene without decorative particles.
+## Files and validation
 
-## Mobile framing and completion
+`scenes/great-sand-dunes.js` uses the shared sampled-bristle painter. Assets are `assets/great-sand-dunes/guide.jpg`, `painting.webp`, and `CREDITS.md`. The guide supplies offscreen samples, not visible photo wallpaper. The cached painting is generated by `node scripts/bake-landscapes.cjs experience` against the local server.
 
-The portrait crop must retain creek, a recognizable dune ridge, and some mountain backdrop together. Keep the creek visible at the initial centered scroll position. A giant dune close-up that removes the water and mountains fails this brief.
+Playwright inspected desktop1600x1000, mobile390x844 and320x700, and wide2560x1080 stills and temporal samples. Scene navigation and motion changed correctly with no page errors or horizontal overflow. Missing guide retains the static cache; missing cache rebuilds from the guide. Refer to the shared QA script for reproducible checks rather than inheriting old scene measurements.
 
-Use the shared Playwright checks. Inspect a short sequence for readable creek surges, sand originating at crests, and stable terrain. Ensure shadow movement changes light rather than exposing a flat overlay. Scope work to this scene; preserve Yosemite and the current writing transition.
 
-## Research references and asset record
+### Runtime loading
 
-- [NPS geology](https://www.nps.gov/grsa/learn/nature/geology.htm): mountain backdrop, dune formation, and seasonal streams.
-- [NPS Medano Creek](https://www.nps.gov/grsa/planyourvisit/medano-creek.htm): seasonal flow and surge behavior.
-
-These are research references, not cleared download assets. Before implementation, record the exact source page, author, license, download URL, viewpoint, season, and crop in `assets/great-sand-dunes/CREDITS.md`. Planned runtime assets: `assets/great-sand-dunes/guide.jpg` and `assets/great-sand-dunes/painting.webp`. Do not create placeholder images or claim these files already exist.
+Source sampling and live-mask construction run only during local authoring (`?repaint=1`). Visitors see the cached painting first, then load the prebuilt `live-v1.json`/`live-v1.webp` pair. A missing live pack retains the static painting; a missing primary painting uses `fallback.webp`. The guide is excluded from production. These optimized fallbacks supersede earlier brief descriptions of visitor-side source rebuilding.

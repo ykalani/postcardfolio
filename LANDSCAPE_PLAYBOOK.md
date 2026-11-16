@@ -16,7 +16,9 @@ The agreed portfolio has five sections. These are content destinations, not a re
 
 Keep shared rendering, accessibility, navigation, QA, and deployment instructions here. Keep viewpoint, palette, movement, mobile framing, and asset research in the linked briefs. Later explicit user instructions take precedence; otherwise use this guide for shared rules and the scene brief for art direction.
 
-The five-section plan is agreed. New scenes are briefs, not completed implementations or approved source assets. The current Yosemite landing and plain writing destination remain the implementation baseline until a scene or navigation change is requested. This documentation update does not authorize adding portfolio copy, a park selector, or all five pages immediately. Résumé and contact can be links rather than additional landscape destinations.
+All five landscapes are implemented as separate buildless pages, with shared paper navigation and a painted cloud curtain. Yosemite remains Home, with a new fine-detail coat over the existing optimized atlas runtime. The four new scenes use `scenes/scene-painter.js` for seeded multiscale bristles, local edge definition, cache/fallback loading and viewport fitting, plus a scene-specific motion module. Portfolio content is still separate from this landscape implementation; résumé/contact do not need extra landscape destinations.
+
+Each new scene has a verified photographic guide, a baked original brush painting, and exact asset credits. Sleeping Bear's adapted artwork is CC BY-SA 4.0 and linked from the About scene to the credits page. Live animation is artistic motion of the documented scene, not live weather or eruption telemetry.
 
 ## 1. The job
 
@@ -36,8 +38,8 @@ If you have repository access, read the actual current files. This document expl
 - The browser tab says **Yash Kalani**.
 - The park-name/coordinates slip was removed. Keep it removed.
 - The bottom park/time/breeze controls and the heading “POSTCARDS FROM THE OUTSIDE” were removed. Do not bring them back.
-- Mobile has a taller, scrollable composition and opens halfway through its scrollable range. Read the current CSS for the height; it has been adjusted locally after the initial 125svh version. Do not reset the user’s current value.
-- A paper slip at bottom right says **writing**. It opens a plain page containing only **writing**, through a painted cloud curtain.
+- Mobile keeps the 160svh scrollable stage. Yosemite and Olympic open centered; Great Sand Dunes, Hawaiʻi Volcanoes and Sleeping Bear use documented scene-specific initial scroll fractions to keep their focal movement visible. Preserve the Home setting and verify each actual portrait crop.
+- The original writing slip evolved, with user authorization, into one small paper navigation strip for home, projects, experience, writing, and about. Keep it readable and reachable; do not restore removed park/time/breeze controls. Writing now displays the Olympic painting.
 - In Yosemite, bird flight must be **left to right only**, with at least one visible bird for **75% or more of the cycle** when viewing the scene’s sky. Apply the same contract to new scenes that include sky birds; do not force birds into an enclosed forest or volcanic crater. Quantify this rather than claiming it by eye.
 - Clouds should visibly travel; very slow, almost imperceptible cloud movement was rejected. Both cloud banks and cloud transitions need visible paint texture.
 - Preserve existing motion-preference handling. The user explicitly asked to skip/remove reduced-motion tests. Do not run those tests or add them to the acceptance checklist.
@@ -172,13 +174,31 @@ Direct the marks by material:
 
 A grain overlay is only a finishing layer. It cannot replace shape, lighting, or material structure. Preserve enough contrast to separate foreground, middle distance and far distance; do not wash the whole image into equal-value texture.
 
-### Initial coat and runtime assets
+### Initial coat and runtime assets — current optimized loader
 
-Each scene should have a small guide and a cached painted WebP. Load the cached painting quickly; use the guide to prepare live masks and cutouts. If the cached painting is missing, rebuild it. If the guide fails, keep the cached painting visible as a static fallback.
+Do not download a reference photo on a normal page visit. It is an **authoring asset**, not runtime content. The initial loader did this and caused a 5–10 second wait. `assets/yosemite-guide.jpg` now stays in the repository for local asset preparation and is explicitly excluded from deployment.
 
-The existing `window.paintLandscape()` rebuilds the terrain. `window.exportPainting()` returns a WebP data URL for saving the cached coat. It exports the terrain canvas, not a screenshot containing UI or the transition curtain.
+Normal loading is now:
 
-Do not repeatedly apply foreground color grading to an already graded cached image. Keep the cached base and live foreground treatment separate, or record which stage the cache represents.
+1. Preload `assets/yosemite-display-p2.webp`, the finished painting with its foreground color treatment. Show it immediately, without waiting for animation setup.
+2. Load `assets/yosemite-live-p2.json` and the small common atlas for sky clouds, mist and pine-needle sprites. Set live readiness separately from visible readiness.
+3. Load only the foreground atlases intersecting the actual horizontal crop: left, center or right. Portrait normally needs only the center atlas. Fetch additional groups after a resize only if needed.
+4. Load `assets/cloud-curtain-p1.webp` only on section-link intent (hover, focus, pointer down), click, or flagged arrival. Do not generate or download navigation clouds at startup.
+
+All brushwork and masks are prepared offline. During ordinary visits there is no `getImageData`, terrain classification, cloud sprite painting, or foreground pixel processing. The renderer reads saved coordinates and draws source rectangles from decoded image atlases. Loose falling leaves come only from the left pine and are capped at eight; other vegetation can rustle without shedding particles.
+
+If a live atlas fails, retain the static painting. If the optimized display image fails, try the older cached terrain as a static fallback. Do **not** download the guide and attempt to repaint the scene on a visitor’s device.
+
+For authoring, run the local dev server and use `?bake=1`. The guide is allowed only in this explicit local authoring path. `window.paintLandscape()` can rebuild the terrain; `window.exportPainting()` exports its cache. After changing art or animation masks, run `scripts/bake-assets.cjs` against the local server. Set `PLAYWRIGHT_MODULE` to an installed Playwright module if it is not installed in the project. The baker exports the display, common atlas, three foreground atlases, manifest and cloud curtain. No Playwright dependency is shipped to visitors.
+
+Version the display, manifest and matching atlas filenames together before shipping a new set; current Yosemite assets use `p2`. HTML preload URLs and runtime URLs must match. Asset caching is one hour, so stale metadata must never be paired with new atlas coordinates.
+
+
+### New scene live packs
+
+The four new scenes follow the same authoring/runtime boundary. Normal visits load `painting.webp` immediately, then `live-v1.json` and `live-v1.webp`. The metadata records the actual painted cutout rectangles, fixed motion origins, source-derived masks, and seeded movement parameters. The loader restores cached canvas layers from the atlas without downloading a guide, reading pixel data, classifying terrain, or painting new sprites. If live assets fail, retain static art. If the primary painting fails, use the smaller `fallback.webp`; do not generate terrain on a visitor's device.
+
+`?repaint=1` is the explicit local authoring path. `scripts/bake-landscapes.cjs` creates the original terrain painting, small fallback, live atlas, and matching metadata. Reference guides stay in Git and are excluded from Vercel deployment. Use new paired live-pack filenames after structural changes so cached metadata cannot reference an incompatible atlas. A guide failure during authoring is an error; a guide is never a normal visitor dependency.
 
 ## 7. Layering and art direction
 
@@ -256,7 +276,7 @@ https://www.clash.ninja/images/content/what-are-the-clouds-clouding-problems-2.j
 
 The implementation uses original painted clouds, not extracted game assets. Study the big overlapping banks, pale blue-gray folds and near-opaque warm centers.
 
-Current files are `cloud-transition.js`, `cloud-transition.css`, and `writing.html`. The writing anchor uses the relative clean URL `writing`, so it also works beneath `/postcardfolio/`. The local server maps `/writing` to `writing.html`. Keep this prefix-safe behavior.
+Current files are `cloud-transition.js`, `cloud-transition.css`, the shared navigation styles in `style.css`, and all five HTML pages. Links use relative clean URLs so they work beneath `/postcardfolio/`. The local server and Vercel map clean section URLs to their HTML pages. Keep this prefix-safe behavior. The arrival marker records the destination pathname and is consumed once, including on pages that also contain outgoing links.
 
 Flow:
 
@@ -264,15 +284,15 @@ Flow:
 2. They completely cover the viewport.
 3. Hold full coverage for about 130 ms.
 4. Set a one-shot sessionStorage arrival marker and perform normal page navigation.
-5. The writing page starts covered and parts the clouds to reveal only its heading.
+5. The destination starts covered and parts the clouds to reveal its own landscape.
 
-Use a head-time arrival cover so slow script preparation does not flash the destination before the clouds are ready. Consume the arrival flag once. Direct visits should simply show the writing page. Respect modified clicks and native browser Back.
+Use a head-time arrival cover so slow script preparation does not flash the destination before the clouds are ready. Consume the arrival flag once. Direct visits show the requested scene without an arrival curtain. Respect modified clicks and native browser Back.
 
 Reset an old overlay on persisted `pageshow`. Invalidate unfinished work on `pagehide`, and recheck the generation ticket after any asynchronous hold. We found and fixed a race where an interrupted covered hold could still navigate later.
 
 Clouds should begin entering promptly; an early version spent half its animation traveling invisibly offscreen. Full coverage must include corners on both wide and portrait screens. Cached sprites plus `drawImage` are sufficient.
 
-Do not add a spinner, loading copy, game graphics, a search icon, or extra writing-page content. The current request is intentionally just one word.
+Do not add spinners, game graphics, search icons, or invented portfolio copy. All five destinations currently present landscapes and navigation.
 
 ## 10. Performance rules that came from real failures
 
@@ -307,7 +327,7 @@ Minimum checks:
 - Where clouds are present, their texture stays stable while they move.
 - No JavaScript errors or missing scene assets.
 - Missing cached painting rebuilds; missing guide retains a static painting.
-- The writing slip remains readable and reachable at bottom right.
+- Every section link remains readable and reachable in the paper navigation strip.
 - Transition coverage fully hides the scene before navigation, including all corners.
 - Direct writing visit, browser Back, repeat click and double-click behave correctly.
 - Other modified clicks are not intercepted.
@@ -352,6 +372,20 @@ If a remote README update or another agent’s changes arrive, integrate them wi
 9. Validate the actual browser output, commit, push, deploy to Vercel production by default under AGENTS.md, and verify the live URLs. Respect an explicit user request for a different workflow.
 10. Repeat for the remaining parks, keeping their art direction distinct. Reuse implementation patterns, not the same landscape with new colors.
 
-## 14. Copy-and-paste implementation handoff
+## 14. Implementation model guidance
 
-> Read AGENTS.md, LANDSCAPE_PLAYBOOK.md, and landscapes/[SCENE].md; inspect current source and local diffs before editing. Implement only the requested scene from a verified licensed guide image as a detailed, living canvas painting in the established style. Resolve the brief's proposed viewpoint and record asset provenance first. Preserve actual landmark geometry, current navigation, and unrelated local work. Keep foreground, terrain, and atmospheric layers visually coherent. Animate the scene's meaningful physical elements; avoid arbitrary particles and pasted-on trees. Where sky birds are included, use left-to-right flight and measure at least 75% visible occupancy. Preserve the current mobile height and centered start, and check the brief's portrait priorities. Cache expensive brushwork. Use Playwright to inspect desktop/mobile/wide stills and motion, check affected navigation and browser Back, and skip reduced-motion tests while retaining support. Finish one scene before repeating the approach. Run relevant checks, commit, push, deploy to Vercel production by default, and verify live URLs unless the user explicitly requests another workflow. Report what you built, what you checked, and any real limitation.
+Use Sol as the default scene implementer, one bounded scene per task. Use Terra for difficult renderer, masking, or performance problems; use Luna for small follow-up tasks once the reference assets and rendering approach are proven. This is workflow guidance, not a measured model benchmark. Do not switch models or spawn additional agents without applicable user authorization.
+
+For an explicitly requested parallel implementation, give each agent one scene's module, asset directory, credits, and brief. Keep shared renderer, HTML, navigation, integration checks, commits, and production publication with the coordinating agent. Preserve Yosemite as the baseline. Validate each scene in Playwright before integrating; parallel work is not a reason to skip visual review.
+
+## 15. Copy-and-paste implementation handoff
+
+> Read AGENTS.md, LANDSCAPE_PLAYBOOK.md, and landscapes/[SCENE].md; inspect current source and local diffs before editing. Implement only the requested scene from a verified licensed guide image as a detailed, living canvas painting in the established style. Resolve the brief's proposed viewpoint and record asset provenance first. Preserve actual landmark geometry, current navigation, and unrelated local work. Keep foreground, terrain, and atmospheric layers visually coherent. Animate the scene's meaningful physical elements; avoid arbitrary particles and pasted-on trees. Where sky birds are included, use left-to-right flight and measure at least 75% visible occupancy. Preserve the current mobile height and Home centered start; use the brief's documented portrait framing for other scenes. Cache expensive brushwork. Use Playwright to inspect desktop/mobile/wide stills and motion, check affected navigation and browser Back, and skip reduced-motion tests while retaining support. Finish one scene before repeating the approach. Run relevant checks, commit, push, deploy to Vercel production by default, and verify live URLs unless the user explicitly requests another workflow. Report what you built, what you checked, and any real limitation.
+
+## 16. Current implementation checks
+
+Run `npm run check` for all script syntax, five pages, unique IDs, section links, credits, guide/cache files, and Yosemite atlas metadata. Run `npm run check:browser` with `PLAYWRIGHT_MODULE` pointing to an existing Playwright installation when not locally installed; `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can select an existing browser binary. `SCENE_URL` selects the local or production origin. The default QA origin is port 5178; `PORT=5178 npm run dev` serves there. Tests write screenshots/reports outside the repository by default.
+
+The browser suite covers 20 landscape/viewport combinations, deterministic time-separated motion, actual mobile initial scroll, nav bounds, live-atlas/painting fallbacks, Home-to-section cloud opacity and Back, and bird direction/occupancy. Do not run the source-rebuild fallback checks against production for Yosemite, whose guide is deliberately local-only. For the four new scenes, missing live atlases preserve static art and missing primary paintings use the small baked fallback. Source-based repainting belongs only to explicit local authoring.
+
+Local baking: `npm run bake:landscapes` regenerates all four new caches; append a section name to select one. `npm run bake:yosemite` regenerates Home's fine terrain and runtime atlases. Bake once after source, grading, or painter changes; do not regrade an already graded cache. Screenshots at multiple times are essential because a detailed still does not establish correct motion.
