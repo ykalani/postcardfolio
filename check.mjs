@@ -38,7 +38,7 @@ for (const page of [...pages,'credits.html']) {
   }
   for (const [,reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     if (/^(?:https?:|mailto:|#)/.test(reference)) continue;
-    let target = reference.split('#')[0];
+    let target = reference.split(/[?#]/)[0];
     if (target==='./') target='index.html';
     if (/^(projects|experience|writing|tech-blog|about)$/.test(target)) target+='.html';
     await access(new URL(target,import.meta.url));

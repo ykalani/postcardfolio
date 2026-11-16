@@ -54,3 +54,5 @@ Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall
 Home uses matching `p4` display, live manifest, and foreground atlases. A tapered pine branch enters from the upper right, with individually painted needle sprays and a subtle shared-wind sway. Its cached mask participates in the bird visibility measurement. Moving bush cutouts and the static foreground share lifted warm greens and stronger local contrast, preserving the original foliage silhouettes.
 
 Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers from the existing terrain painting without repainting the granite. The normal bake command still rebuilds the complete painting. Verify desktop, portrait, wide crops, motion, and bird occupancy after changing branch geometry.
+
+Background foliage receives a cool transparent glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the darkening. Preserve the warm foreground highlights and the granite and sky values.

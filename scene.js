@@ -65,21 +65,16 @@
   }
   async function buildPainting(){
     seed=4176;sky(p,0);
-    // Successive coats follow the real landforms. No source photograph is drawn onto the visible canvas.
-    for(const [step,size] of [[13,3.5],[6,1.8],[3.6,1],[1.9,.58]]){
-      for(let y=100;y<H;y+=step){
-        for(let x=0;x<W;x+=step)paintMark(x+range(-step*.5,step*.5),y+range(-step*.5,step*.5),size);
-      }
-      await new Promise(requestAnimationFrame);
+    const graded=new Uint8ClampedArray(W*H*4);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      const col=pigment(x,y),at=(y*W+x)*4;
+      graded[at]=col.r;graded[at+1]=col.g;graded[at+2]=col.b;graded[at+3]=255;
     }
-    for(let i=0;i<85000;i++){
-      const x=range(0,W),y=range(0,H);p.fillStyle=i%2?'rgba(255,248,222,.075)':'rgba(38,51,43,.045)';p.fillRect(x,y,range(.3,1),range(.3,1));
-    }
-    for(let i=0;i<2300;i++){
-      const x=range(852,925),y=range(425,485),col=pigment(x,y);
-      if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
-    }
-    refineCliffs();cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    const {paintBrushwork}=await import('./scenes/brush-painting.js');
+    await paintBrushwork({ctx:p,pixels:graded,width:W,height:H,random:rand,
+      skip:(x,y)=>y<skyline[x],
+      angle:(x,y)=>pigment(x,y).leaf?-1.05+Math.sin(x*.02+y*.017)*.5:1.45});
+    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function drawSprite(c,sprite,x,y,w=sprite.width,h=sprite.height){
     if(sprite.image)c.drawImage(sprite.image,...sprite.rect,x,y,w,h);
@@ -97,6 +92,7 @@
     ctx.fillStyle='#b0c7ca';ctx.fillRect(0,0,w,h);
     if(ready){
       ctx.drawImage(painting,ox,oy,W*scale,H*scale);
+      if(forestShade)ctx.drawImage(forestShade,ox,oy,W*scale,H*scale);
       if(foreground)ctx.drawImage(foreground,ox,oy,W*scale,H*scale);
       if(liveReady){air.save();air.translate(ox,oy);air.scale(scale,scale);
       driftingClouds(air,clock);waterfall(air,clock);birds(air,clock);rustlingTrees(air,clock);air.restore();}
@@ -236,7 +232,7 @@
     c.restore();
   }
   const canopy=[],looseLeaves=[],leafSprites=[];
-  let foreground;
+  let foreground,forestShade;
   function foregroundDepth(x,y){
     const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
     const pine=(1-smooth(125,285,x))*smooth(110,300,y);
@@ -248,6 +244,18 @@
     canopy.length=0;looseLeaves.length=0;leafSprites.length=0;
     if(!pixels)return;
     const paint=p.getImageData(0,0,W,H).data;
+    forestShade=document.createElement('canvas');forestShade.width=W;forestShade.height=H;
+    const sc=forestShade.getContext('2d'),shade=sc.createImageData(W,H);
+    // A cool transparent glaze deepens distant foliage without repainting rock or near trees.
+    for(let y=140;y<H;y++)for(let x=0;x<W;x++){
+      if(y<skyline[x]+6)continue;
+      const at=(y*W+x)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2];
+      const foliage=clamp((g-b-4)/20,0,1)*clamp((g-r+8)/22,0,1);
+      const alpha=.32*foliage*(1-foregroundDepth(x,y))**2;
+      shade.data[at]=18;shade.data[at+1]=36;shade.data[at+2]=34;shade.data[at+3]=Math.round(alpha*255);
+      for(let k=0;k<3;k++)paint[at+k]=paint[at+k]*(1-alpha)+shade.data[at+k]*alpha;
+    }
+    sc.putImageData(shade,0,0);
     foreground=document.createElement('canvas');foreground.width=W;foreground.height=H;
     const fc=foreground.getContext('2d'),front=fc.createImageData(W,H);
     // Open warm, sunlit tips against cool green shadows; depth feathers the grade into the valley.
@@ -427,7 +435,7 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','foreground-3');
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','forest-1');
         const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
@@ -455,7 +463,7 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-p4.webp','high'));}
+    try{showPainting(await loadImage('assets/yosemite-display-p4.webp?v=forest-1','high'));}
     catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
@@ -463,7 +471,7 @@
   startScene().catch(()=>{document.documentElement.dataset.sceneReady='error';});
   window.exportSceneAssets=()=>{
     const display=document.createElement('canvas');display.width=W;display.height=H;
-    const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(foreground)dc.drawImage(foreground,0,0);
+    const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(forestShade)dc.drawImage(forestShade,0,0);if(foreground)dc.drawImage(foreground,0,0);
     const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-p4.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
     const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
     cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
