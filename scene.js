@@ -65,16 +65,21 @@
   }
   async function buildPainting(){
     seed=4176;sky(p,0);
-    const graded=new Uint8ClampedArray(W*H*4);
-    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-      const col=pigment(x,y),at=(y*W+x)*4;
-      graded[at]=col.r;graded[at+1]=col.g;graded[at+2]=col.b;graded[at+3]=255;
+    // Successive coats follow the real landforms. No source photograph is drawn onto the visible canvas.
+    for(const [step,size] of [[13,3.5],[6,1.8],[3.6,1],[1.9,.58]]){
+      for(let y=100;y<H;y+=step){
+        for(let x=0;x<W;x+=step)paintMark(x+range(-step*.5,step*.5),y+range(-step*.5,step*.5),size);
+      }
+      await new Promise(requestAnimationFrame);
     }
-    const {paintBrushwork}=await import('./scenes/brush-painting.js');
-    await paintBrushwork({ctx:p,pixels:graded,width:W,height:H,random:rand,
-      skip:(x,y)=>y<skyline[x],
-      angle:(x,y)=>pigment(x,y).leaf?-1.05+Math.sin(x*.02+y*.017)*.5:1.45});
-    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    for(let i=0;i<85000;i++){
+      const x=range(0,W),y=range(0,H);p.fillStyle=i%2?'rgba(255,248,222,.075)':'rgba(38,51,43,.045)';p.fillRect(x,y,range(.3,1),range(.3,1));
+    }
+    for(let i=0;i<2300;i++){
+      const x=range(852,925),y=range(425,485),col=pigment(x,y);
+      if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
+    }
+    refineCliffs();cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
   }
   function drawSprite(c,sprite,x,y,w=sprite.width,h=sprite.height){
     if(sprite.image)c.drawImage(sprite.image,...sprite.rect,x,y,w,h);
