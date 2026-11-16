@@ -29,6 +29,7 @@ function prepare({painting, pixels, random}) {
   }
   m.putImageData(alpha, 0, 0);
 
+  const fronts=Array.from({length:44},()=>({x:random()*W,phase:random(),length:18+random()*26}));
   const foliage = [];
   for (const region of [
     {x: 1180, y: 270, w: 145, h: 190, phase: .3},
@@ -51,7 +52,7 @@ function prepare({painting, pixels, random}) {
     c.putImageData(image, 0, 0);
     if (count > 120) foliage.push({...region, sprite});
   }
-  return {water, mask, ripples, foliage, painting};
+  return {water, mask, ripples, fronts, foliage, painting};
 }
 
 function draw({ctx, t, state, wind}) {
@@ -59,8 +60,8 @@ function draw({ctx, t, state, wind}) {
   // Only source-masked lake pigment moves; the dock, stored canoes, mountains, and shore stay fixed.
   for (let y = 0; y < WATER_DEPTH; y += 10) {
     const depth = y / WATER_DEPTH, band = Math.min(10, WATER_DEPTH - y);
-    const sx = Math.sin(t * .65 + y * .045) * depth * 4.8;
-    const sy = clamp(WATER_TOP + y + Math.sin(t * .72 - y * .035) * depth * 1.35, WATER_TOP, H - band);
+    const sx = Math.sin(t * .65 + y * .045) * depth * 8.5;
+    const sy = clamp(WATER_TOP + y + Math.sin(t * .72 - y * .035) * depth * 2.1, WATER_TOP, H - band);
     c.drawImage(state.painting, 0, sy, W, band, sx, y, W, band);
   }
   c.lineCap = 'round';
@@ -73,6 +74,19 @@ function draw({ctx, t, state, wind}) {
     c.lineWidth = .4 + wave.depth * .7;
     c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + wave.length * .5, y - .5, x + wave.length, y); c.stroke();
   }
+  // Broken reflected crests advance toward the viewer; the source water mask holds every bank.
+  for(const front of state.fronts){
+    const age=(t*.055+front.phase)%1,depth=age*age,y=15+depth*(WATER_DEPTH-25);
+    const x=front.x+Math.sin(t*.45+front.phase*6.28)*9,length=front.length*(.5+depth*1.8);
+    const fade=Math.sin(age*Math.PI)**2;
+    c.lineCap='butt';
+    for(let bristle=0;bristle<3;bristle++){
+      c.strokeStyle=bristle===0?`rgba(31,103,116,${fade*.48})`:`rgba(179,222,199,${fade*(.34+depth*.35)})`;
+      c.lineWidth=bristle===0?2.1:1.1+depth*.8;
+      c.beginPath();c.moveTo(x-length*.5,y+bristle*2.1);
+      c.quadraticCurveTo(x,y-2+bristle*2.1,x+length*.5,y+bristle*2.1);c.stroke();
+    }
+  }
   c.globalCompositeOperation = 'destination-in'; c.drawImage(state.mask, 0, 0);
   c.globalCompositeOperation = 'source-over'; ctx.save(); ctx.globalAlpha = .9;
   ctx.drawImage(state.water, 0, WATER_TOP); ctx.restore();
@@ -80,14 +94,14 @@ function draw({ctx, t, state, wind}) {
   for (const plant of state.foliage) {
     const sway = wind + Math.sin(t * 2 + plant.phase) * .14;
     ctx.save(); ctx.translate(plant.x + plant.w * .5, plant.y + plant.h);
-    ctx.transform(1, 0, sway * .022, 1, 0, 0);
+    ctx.transform(1, 0, sway * .038, 1, 0, 0);
     ctx.drawImage(plant.sprite, -plant.w * .5, -plant.h); ctx.restore();
   }
 }
 
 startScene({
-  liveVersion:4,
-  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v4.webp',
+  liveVersion:5,
+  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v5.webp',
   sourceY: .78, background: '#557e83', focusX: .66, focusY: .63, initialScroll: .82,
   grade(r, g, b, x, y) {
     const light = r * .3 + g * .55 + b * .15;

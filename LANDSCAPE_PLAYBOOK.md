@@ -12,7 +12,9 @@ Brush mark length, breadth, spacing, and sampling cells are now half of the firs
 
 Give every composition deliberate depth: richer, higher-contrast near foliage or rock framing against cooler, quieter distant terrain. Keep material masks tied to the scene rather than adding rectangular color bands. Build motion from the same painted surfaces, anchor attachments and shorelines, and check the requested moving regions separately from the whole canvas. Preserve reduced-motion behavior and static artwork fallbacks.
 
-Active caches are `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush2.webp`, `yosemite-display-brush2.webp`, and matching `*-brush2` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
+Active caches are `painting-v5.webp`, `fallback-v5.webp`, and `live-v5.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush3.webp`, `yosemite-display-brush3.webp`, and matching `*-brush3` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
+
+Visible motion must be assessed at normal viewing scale and over short time sequences. Nonzero changed-pixel counts alone do not establish that an effect is readable. Keep moving paint marks comparable in size and palette to the terrain, avoid smooth smoke laid over bristled paint, and exclude cliff/sky pixels from kayak cutouts. Local detail belongs only inside the tower and human silhouettes; keep surrounding foliage, rock, and water at their established stroke scale.
 
 ## Portfolio plan and scene briefs
 
@@ -29,7 +31,7 @@ The agreed portfolio has six sections. These are content destinations, not a req
 
 Keep shared rendering, accessibility, navigation, QA, and deployment instructions here. Keep viewpoint, palette, movement, mobile framing, and asset research in the linked briefs. Later explicit user instructions take precedence; otherwise use this guide for shared rules and the scene brief for art direction.
 
-All six landscapes are implemented as separate buildless pages, with shared paper navigation and a painted cloud curtain. Yosemite remains Home, with a new fine-detail coat over the existing optimized atlas runtime. The additional scenes use `scenes/scene-painter.js` for seeded multiscale bristles, local edge definition, cache/fallback loading and viewport fitting, plus a scene-specific motion module. Portfolio content is still separate from this landscape implementation; résumé/contact do not need extra landscape destinations.
+All six landscapes are implemented as separate buildless pages, with shared paper navigation and a painted cloud curtain. Yosemite remains Home, with the expressive painting and optimized live atlas runtime. The additional scenes use `scenes/scene-painter.js` for seeded multiscale bristles, local edge definition, cache/fallback loading and viewport fitting, plus a scene-specific motion module. Portfolio content is still separate from this landscape implementation; résumé/contact do not need extra landscape destinations.
 
 Each active scene has a photographic guide, a baked original brush painting, and asset credits. The new Banff, About arch, and Beaumont references were supplied by the user; no outside photographer or public-domain license is invented. Historical Sleeping Bear sunset assets retain their original CC BY-SA attribution. Live animation is artistic motion of the documented scene, not live weather or eruption telemetry.
 

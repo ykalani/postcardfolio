@@ -268,12 +268,47 @@
     cacheUpperBranch(fc);
     seed=savedSeed;
   }
+  async function paintUpperBough(image,terrain){
+    const sprite=document.createElement('canvas');sprite.width=900;sprite.height=260;
+    const c=sprite.getContext('2d'),width=260*image.width/image.height;
+    c.drawImage(image,910-width,0,width,260);
+    const silhouette=document.createElement('canvas');silhouette.width=900;silhouette.height=260;
+    silhouette.getContext('2d').drawImage(sprite,0,0);
+    const samples=c.getImageData(0,0,900,260).data;
+    const pine=document.createElement('canvas');pine.width=160;pine.height=500;
+    pine.getContext('2d').drawImage(terrain,0,300,160,500,0,0,160,500);
+    const needles=pine.getContext('2d').getImageData(0,0,160,500).data;
+    for(let at=0;at<samples.length;at+=4){
+      if(!samples[at+3]){samples[at]=64;samples[at+1]=96;samples[at+2]=64;continue;}
+      const green=samples[at+1]>samples[at]*.98;
+      if(green){
+        const x=(at/4)%900,y=Math.floor(at/3600),needle=((Math.floor(y*2+x*.18)%500)*160+(Math.floor(x*.8)%160))*4;
+        const texture=[needles[needle],needles[needle+1],needles[needle+2]];
+        samples[at]=samples[at]*.3+texture[0]*.7;
+        samples[at+1]=samples[at+1]*.3+texture[1]*.7;
+        samples[at+2]=samples[at+2]*.3+texture[2]*.7;
+      }
+    }
+    c.clearRect(0,0,900,260);
+    const savedSeed=seed;seed=8623;
+    const {paintBrushwork}=await import('./scenes/brush-painting.js');
+    await paintBrushwork({ctx:c,pixels:samples,width:900,height:260,random:rand,scale:.55,
+      angle:(x,y)=>-.55+Math.sin(x*.025+y*.021)*.7});
+    c.globalCompositeOperation='destination-in';c.drawImage(silhouette,0,0);c.globalCompositeOperation='source-over';
+    const alpha=silhouette.getContext('2d').getImageData(0,0,900,260).data;
+    for(let y=3;y<257;y+=3)for(let x=3;x<897;x+=3){
+      const at=(y*900+x)*4;
+      if(alpha[at+3]<150||samples[at+1]<samples[at]*.98)continue;
+      const edge=alpha[(y*900+x-3)*4+3]<30||alpha[(y*900+x+3)*4+3]<30||alpha[((y-3)*900+x)*4+3]<30||alpha[((y+3)*900+x)*4+3]<30;
+      if(edge&&rand()>.35)stroke(c,x,y,range(3,8),range(.7,1.6),{r:samples[at],g:samples[at+1],b:samples[at+2]},range(-1.5,.1),.72,3);
+    }
+    seed=savedSeed;return sprite;
+  }
   function cacheUpperBranch(foregroundContext){
     const sprite=document.createElement('canvas');sprite.width=900;sprite.height=260;
     const c=sprite.getContext('2d');
     // One continuous painted bough preserves connected forks, irregular needle fans, and open gaps.
-    const width=260*upperBough.width/upperBough.height;
-    c.drawImage(upperBough,910-width,0,width,260);
+    c.drawImage(upperBough,0,0);
     const cols=90,mask=[],data=c.getImageData(0,0,900,260).data;
     for(let y=0;y<26;y++)for(let x=0;x<cols;x++)mask.push(data[((y*10+5)*900+x*10+5)*4+3]>120?1:0);
     const branch={sprite,x:700,y:0,near:1,pine:false,upper:true,mask,cols};
@@ -296,14 +331,15 @@
       const windTime=t-patch.x*.0016;
       const gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
       const flutter=Math.sin(t*3.1+patch.x*.014+patch.y*.009)*.16+Math.sin(t*4.7-patch.x*.021)*patch.near*.1;
-      const flex=patch.pine?2.2+(1-patch.y/H)*2.4:.55+patch.near*7;
+      const flex=patch.pine?3.5+(1-patch.y/H)*10:.55+patch.near*7;
       const sway=(gust+flutter)*flex;
       if(patch.upper){
         c.save();c.translate(patch.x+patch.sprite.width,patch.y+15);c.rotate(gust*.012);
         drawSprite(c,patch.sprite,-patch.sprite.width,-15);c.restore();continue;
       }
       const anchor=patch.sprite.height;
-      c.save();c.translate(patch.x+patch.sprite.width*.5,patch.y+anchor);
+      const treeBend=patch.pine?gust*15*Math.max(0,1-patch.y/H)**1.4:0;
+      c.save();c.translate(patch.x+patch.sprite.width*.5+treeBend,patch.y+anchor);
       c.rotate(-sway*.0025);drawSprite(c,patch.sprite,-patch.sprite.width*.5+sway,-anchor+Math.sin(windTime*1.2)*flex*.18);c.restore();
     }
     // Pigment flecks lift from the canopy, turn in the gust, then settle out of sight.
@@ -359,8 +395,8 @@
     performance.mark('scene-visible');
   }
   async function prepareAuthoring(rebuild=false){
-    const [img,bough]=await Promise.all([loadImage('assets/yosemite-guide.jpg'),loadImage('assets/yosemite-pine-bough.png')]);
-    upperBough=bough;
+    const [img,bough,terrain]=await Promise.all([loadImage('assets/yosemite-guide.jpg'),loadImage('assets/yosemite-pine-bough.png'),loadImage('assets/yosemite-terrain-brush3.webp')]);
+    upperBough=await paintUpperBough(bough,terrain);
     sample??=source.getContext('2d',{willReadFrequently:true});
     sample.drawImage(img,0,0,W,H);pixels=sample.getImageData(0,0,W,H).data;
     for(let x=0;x<W;x++){
@@ -370,7 +406,7 @@
     }
     cloudSprites.length=0;fallMist.length=0;cacheClouds();cacheWaterfall();liveReady=true;
     if(rebuild)await buildPainting();
-    else{try{const cached=await loadImage('assets/yosemite-terrain-brush2.webp');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
+    else{try{const cached=await loadImage('assets/yosemite-terrain-brush3.webp');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
     document.documentElement.dataset.sceneLive='true';
   }
   let foregroundGroups=[],foregroundManifest;
@@ -380,7 +416,7 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','brush-2');
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','brush-3');
         const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
@@ -392,7 +428,7 @@
   }
   async function loadLiveAssets(){
     try{
-      const url=new URL('assets/yosemite-live-brush2.json',location.href);
+      const url=new URL('assets/yosemite-live-brush3.json',location.href);
       const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
       const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
       const atlas=await loadImage(new URL(data.atlas,url).href);
@@ -408,8 +444,8 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-brush2.webp?v=brush-2','high'));}
-    catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush2.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
+    try{showPainting(await loadImage('assets/yosemite-display-brush3.webp?v=brush-2','high'));}
+    catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush3.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
   }
@@ -417,12 +453,12 @@
   window.exportSceneAssets=()=>{
     const display=document.createElement('canvas');display.width=W;display.height=H;
     const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(forestShade)dc.drawImage(forestShade,0,0);if(foreground)dc.drawImage(foreground,0,0);
-    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-brush2.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
+    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-brush3.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
     const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
     cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
     fallMist.forEach(sprite=>add(sprite,{},metadata.mist,common));
     leafSprites.forEach(sprite=>add(sprite,{},metadata.leaves,common));
-    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-brush2.webp','yosemite-near-center-brush2.webp','yosemite-near-right-brush2.webp'][i],canopy:[]});
+    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-brush3.webp','yosemite-near-center-brush3.webp','yosemite-near-right-brush3.webp'][i],canopy:[]});
     canopy.forEach(({sprite,...props})=>{
       const group=Math.min(2,Math.floor((props.x+sprite.width/2)/(W/3)));
       add(sprite,props,metadata.foreground[group].canopy,groups[group]);

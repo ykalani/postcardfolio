@@ -4,10 +4,43 @@ const W = 1600, H = 1000;
 // Coordinates follow the supplied 800×599 source, doubled and center-cropped by 99px.
 const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
 const BOATS = [
-  {outline:[[94,706],[139,693],[160,690],[165,680],[169,670],[181,669],[190,680],[197,695],[218,693],[221,678],[226,667],[238,667],[245,680],[252,694],[278,701],[261,718],[191,727],[137,722]],fillX:300},
-  {outline:[[788,677],[836,679],[851,676],[857,665],[868,663],[875,670],[880,681],[907,681],[915,670],[918,660],[927,659],[934,671],[938,682],[970,686],[954,698],[842,699]],fillX:780},
-  {outline:[[1155,701],[1185,687],[1200,683],[1204,674],[1206,665],[1218,662],[1229,670],[1236,683],[1258,683],[1263,671],[1265,661],[1277,660],[1287,671],[1292,683],[1348,683],[1365,678],[1396,675],[1403,684],[1393,703],[1363,714],[1228,718]],fillX:1430}
+  {fillX:300,parts:[
+    [[94,706],[130,697],[169,698],[214,700],[264,695],[278,701],[261,714],[191,726],[137,721]],
+    [[173,697],[176,687],[182,683],[183,675],[186,669],[194,670],[199,677],[198,683],[207,688],[213,697]],
+    [[217,696],[218,686],[225,680],[225,668],[231,663],[241,664],[245,669],[244,678],[249,685],[254,695]],
+    [[151,679],[156,671],[164,670],[175,681],[169,686]],[[253,695],[275,694],[279,700],[257,705]]
+  ]},
+  {fillX:780,parts:[
+    [[789,676],[836,680],[883,682],[929,683],[971,685],[957,697],[842,699],[800,689]],
+    [[854,681],[858,676],[869,672],[870,664],[875,662],[880,666],[879,672],[885,678],[890,682]],
+    [[905,683],[910,674],[916,670],[916,662],[921,659],[925,663],[924,670],[932,676],[938,683]],
+    [[932,673],[943,671],[948,676],[942,682]]
+  ]},
+  {fillX:1430,parts:[
+    [[1155,701],[1190,693],[1230,696],[1270,695],[1327,690],[1370,681],[1398,675],[1404,681],[1395,702],[1364,714],[1227,718]],
+    [[1189,686],[1193,677],[1198,673],[1198,666],[1205,664],[1211,669],[1210,675],[1217,681],[1217,688]],
+    [[1207,695],[1205,683],[1212,679],[1214,667],[1221,661],[1227,664],[1229,674],[1238,679],[1246,687],[1242,696]],
+    [[1254,694],[1257,684],[1265,681],[1263,670],[1269,664],[1278,665],[1281,672],[1278,680],[1290,685],[1295,693]],
+    [[1167,680],[1181,677],[1188,681],[1184,686]]
+  ]}
 ];
+const PEOPLE = BOATS.map((boat,index)=>boat.parts.slice(1,index===2?4:3));
+function trace(c,points,ox=0,oy=0){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x-ox,y-oy):c.moveTo(x-ox,y-oy));c.closePath();}
+
+async function refinePeople({ctx,pixels,sourcePixels,random,W,H}){
+  const mask=canvas(W,H),m=mask.getContext('2d');
+  for(const people of PEOPLE)for(const points of people){trace(m,points);m.fill();}
+  const {paintBrushwork}=await import('./brush-painting.js');
+  for(const [x,y,w,h] of [[170,659,86,43],[850,654,93,32],[1187,650,112,48]]){
+    const samples=new Uint8ClampedArray(w*h*4),alpha=m.getImageData(x,y,w,h).data;
+    for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)samples.set(pixels.subarray(((y+yy)*W+x+xx)*4,((y+yy)*W+x+xx)*4+4),(yy*w+xx)*4);
+    const detail=canvas(w,h),d=detail.getContext('2d');
+    await paintBrushwork({ctx:d,pixels:samples,width:w,height:h,random,scale:.12,pigmentStep:12,angle:()=>1.4});
+    d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);ctx.drawImage(detail,x,y);
+  }
+  return mask;
+}
+
 function canvas(width, height) {
   const layer=document.createElement('canvas'); layer.width=width; layer.height=height; return layer;
 }
@@ -17,26 +50,30 @@ function shoreAt(x) {
   }
   return SHORE.at(-1)[1];
 }
-function prepareBoats(painting){
+function prepareBoats(painting,pixels){
   const c=painting.getContext('2d'),original=c.getImageData(0,0,W,H),clean=c.getImageData(0,0,W,H);
   const boats=BOATS.map((boat,index)=>{
-    const xs=boat.outline.map(p=>p[0]),ys=boat.outline.map(p=>p[1]);
-    const x=Math.min(...xs)-3,y=Math.min(...ys)-3,w=Math.max(...xs)-x+4,h=Math.max(...ys)-y+4;
-    const sprite=canvas(w,h),s=sprite.getContext('2d');
-    s.beginPath();boat.outline.forEach(([px,py],i)=>i?s.lineTo(px-x,py-y):s.moveTo(px-x,py-y));s.closePath();
-    s.fill();const mask=s.getImageData(0,0,w,h),image=s.createImageData(w,h);
+    const points=boat.parts.flat(),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+    const x=Math.min(...xs)-12,y=Math.min(...ys)-20,w=Math.max(...xs)-x+13,h=Math.max(...ys)-y+13;
+    const sprite=canvas(w,h),s=sprite.getContext('2d'),erase=canvas(w,h),e=erase.getContext('2d');
+    for(const part of boat.parts){trace(s,part,x,y);s.fill();trace(e,part,x,y);e.fill();e.lineWidth=14;e.lineJoin='round';e.stroke();}
+    if(index===2){trace(e,[[1234,660],[1239,652],[1244,650],[1248,659],[1244,668]],x,y);e.fill();e.stroke();}
+    const mask=s.getImageData(0,0,w,h),clear=e.getImageData(0,0,w,h),image=s.createImageData(w,h);
     for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
-      const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4,alpha=mask.data[local+3];
-      for(let k=0;k<3;k++)image.data[local+k]=original.data[at+k];image.data[local+3]=alpha;
-      if(!alpha)continue;
-      // Continue neighboring painted cliff above the shoreline and open water below the hull.
+      const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4;
+      for(let k=0;k<3;k++)image.data[local+k]=original.data[at+k];const r=pixels[at],g=pixels[at+1],b=pixels[at+2];
+      const sky=b>r*1.12&&b>g*.99&&r+g+b>350;
+      image.data[local+3]=sky?0:mask.data[local+3];
+      if(!clear.data[local+3])continue;
+      // Clear paint overshoot separately from the tight moving silhouette; no cliff travels with a person.
       const wet=y+yy>=shoreAt(x+xx),sampleY=wet?Math.min(H-1,y+yy+74):y+yy;
-      const sampleX=wet?x+xx:Math.min(W-1,boat.fillX+xx%60);
-      const from=(sampleY*W+sampleX)*4;
-      for(let k=0;k<3;k++)clean.data[at+k]=original.data[from+k];
+      const behindSky=index===1&&y+yy<670||index===2&&x+xx>1230&&y+yy<674;
+      const sampleX=wet?x+xx:behindSky?990+xx%35:Math.min(W-1,boat.fillX+xx%60),from=(sampleY*W+sampleX)*4;
+      const blend=clear.data[local+3]/255;
+      for(let k=0;k<3;k++)clean.data[at+k]=original.data[at+k]*(1-blend)+original.data[from+k]*blend;
     }
     s.putImageData(image,0,0);
-    return {sprite,x,y,w,h,phase:index*1.9,range:14+index*5};
+    return {sprite,x,y,w,h,phase:index*1.9,range:4+index};
   });
   c.putImageData(clean,0,0);return boats;
 }
@@ -58,7 +95,7 @@ function foliageCutout(painting,pixels,region) {
 }
 
 function prepare({painting,pixels,random}) {
-  const boats=prepareBoats(painting);
+  const boats=prepareBoats(painting,pixels);
   const waterColors=painting.getContext('2d').getImageData(0,0,W,H).data;
   const water=canvas(W,H),mask=canvas(W,H),m=mask.getContext('2d');
   const alpha=m.createImageData(W,H);
@@ -123,11 +160,11 @@ function draw({ctx,t,state,wind}) {
   c.globalCompositeOperation='destination-in';c.drawImage(state.mask,0,0);
   c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(state.water,0,0);ctx.restore();
   for(const boat of state.boats){
-    const drift=Math.sin(t*.24+boat.phase)*boat.range,bob=Math.sin(t*1.25+boat.phase)*1.7;
+    const drift=Math.sin(t*.13+boat.phase)*boat.range,bob=Math.sin(t*.65+boat.phase)*.65;
     ctx.save();ctx.translate(boat.x+boat.w*.5+drift,boat.y+boat.h*.8+bob);
-    ctx.rotate(Math.sin(t*.78+boat.phase)*.007);ctx.drawImage(boat.sprite,-boat.w*.5,-boat.h*.8);
-    ctx.strokeStyle='rgba(219,232,202,.36)';ctx.lineWidth=1.2;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(-boat.w*.4,boat.h*.2+3);ctx.quadraticCurveTo(0,boat.h*.2+7,boat.w*.4,boat.h*.2+2);ctx.stroke();ctx.restore();
+    ctx.rotate(Math.sin(t*.43+boat.phase)*.0015);ctx.drawImage(boat.sprite,-boat.w*.5,-boat.h*.8);
+    ctx.strokeStyle='rgba(204,220,190,.23)';ctx.lineWidth=.9;ctx.lineCap='butt';
+    for(let k=0;k<5;k++){const x=-boat.w*.3+k*boat.w*.12,y=boat.h*.2-7+Math.sin(k*2+boat.phase)*1.4;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+boat.w*.065,y-.5);ctx.stroke();}ctx.restore();
   }
   for(const branch of state.foliage){
     const delayed=t-branch.x*.0014;
@@ -150,8 +187,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:4,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v4.webp',
+  liveVersion:5,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v5.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.54,
   grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;
@@ -162,5 +199,5 @@ startScene({
       b*(.89+leaf*.08)+light*.045+10-leaf*21-nearRock*15];
   },
   angle:(x,y)=>y>665?-.025:x>1270?1.3:.045+Math.sin(x*.011+y*.005)*.19,
-  prepare,draw
+  prepare,draw,refine:refinePeople
 });

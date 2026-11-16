@@ -11,21 +11,26 @@ function layer(width, height) {
 }
 
 function gasSprite(random, warm = false) {
-  const sprite = layer(260, 380), c = sprite.getContext('2d');
-  // Dry, overlapping wisps retain a coherent tapered volume without blurred smoke circles.
-  for (let i=0; i<5200; i++) {
-    const y=random()*380, vertical=y/380;
-    const center=130+Math.sin(vertical*7)*15;
-    const spread=20+(1-vertical)*94;
-    const x=center+(random()-.5)*spread*2;
-    const envelope=Math.max(0,1-Math.abs(x-center)/spread)*Math.sin(vertical*Math.PI);
-    const glow=warm?vertical:0;
-    const r=134+glow*70, g=141+glow*22, b=160-glow*59;
-    c.strokeStyle=`rgba(${r|0},${g|0},${b|0},${envelope*(.035+random()*.075)})`;
-    c.lineWidth=.5+random()*3.2; c.lineCap='round';
-    const length=3+random()*18;
-    c.beginPath(); c.moveTo(x,y);
-    c.quadraticCurveTo(x+length*.3,y-length*.5,x+length*.7,y-length); c.stroke();
+  const sprite=layer(260,380),c=sprite.getContext('2d');
+  c.lineCap='butt';
+  // Separated loaded-brush dabs retain broken edges instead of accumulating into smooth haze.
+  for(let i=0;i<530;i++){
+    const y=15+random()*350,v=y/380,center=130+Math.sin(v*7)*15;
+    const spread=24+(1-v)*84,x=center+(random()-.5)*spread*2;
+    const envelope=Math.max(0,1-Math.abs(x-center)/spread)*Math.sin(v*Math.PI);
+    if(random()>envelope)continue;
+    const glow=warm?v:0,variation=(random()-.5)*30;
+    const rgb=[120+glow*58+variation,132+glow*17+variation,150-glow*42+variation].map(value=>Math.round(value/24)*24);
+    const length=7+random()*11,breadth=5+random()*5,angle=-1.1+Math.sin(v*9)*.6+(random()-.5)*.5;
+    const dx=Math.cos(angle),dy=Math.sin(angle),nx=-dy,ny=dx;
+    c.strokeStyle=`rgba(${rgb.join(',')},${envelope*.38})`;c.lineWidth=breadth*.7;
+    c.beginPath();c.moveTo(x,y);c.lineTo(x+dx*length*.9,y+dy*length*.9);c.stroke();
+    for(let bristle=0;bristle<5;bristle++){
+      const off=(bristle/4-.5)*breadth,cut=random()*length*.18;
+      c.strokeStyle=`rgba(${rgb.join(',')},${envelope*(.35+random()*.4)})`;c.lineWidth=breadth/5*(.7+random()*.4);
+      c.beginPath();c.moveTo(x+nx*off+dx*cut,y+ny*off+dy*cut);
+      c.quadraticCurveTo(x+dx*length*.5+nx*(off+1),y+dy*length*.5+ny*(off+1),x+dx*length+nx*off,y+dy*length+ny*off);c.stroke();
+    }
   }
   return sprite;
 }
@@ -118,14 +123,14 @@ function draw({ctx,t,state,wind}) {
   }
   ctx.restore();
   // A continuous stem fixes the source; overlapping expanding wisps carry it upward and left.
-  ctx.save();ctx.globalAlpha=.18;
+  ctx.save();ctx.globalAlpha=.3;
   ctx.drawImage(state.warmGas,VENT.x-56,VENT.y-140,100,145);
-  for(let i=0;i<9;i++){
-    const age=(t*.07+i/9)%1,fade=Math.sin(age*Math.PI);
-    const w=66+age*220,h=100+age*235;
-    const x=VENT.x-8-age*139+wind*age*16;
-    const y=VENT.y-age*345;
-    ctx.globalAlpha=fade*.36;
+  for(let i=0;i<6;i++){
+    const age=(t/11+i/6)%1,fade=Math.sin(age*Math.PI)**2;
+    const w=74+age*146,h=120+age*140;
+    const x=VENT.x-8-age*138+wind*age*22;
+    const y=VENT.y-age*420;
+    ctx.globalAlpha=fade*.66;
     ctx.drawImage(age<.32?state.warmGas:state.gas,x-w*.5,y-h*.96,w,h);
   }
   for(const vent of state.rimVents)for(let i=0;i<3;i++){
@@ -137,10 +142,10 @@ function draw({ctx,t,state,wind}) {
   ctx.restore();
 }
 
-startScene({liveVersion:4,
+startScene({liveVersion:5,
   id:'hawaii-volcanoes',
   guide:'assets/hawaii-volcanoes/guide.jpg',
-  cache:'assets/hawaii-volcanoes/painting-v4.webp',
+  cache:'assets/hawaii-volcanoes/painting-v5.webp',
   background:'#252532',focusX:.61,focusY:.57,initialScroll:.86,
   grade:(r,g,b,x,y)=>{
     sourceLight ??= new Float32Array(1600 * 1000);

@@ -8,7 +8,7 @@ const output = process.env.QA_OUTPUT || path.join(os.tmpdir(),'postcardfolio-sce
 const routes = ['','projects','experience','writing','tech-blog','about'].filter(route=>!process.env.SCENE_ROUTES||process.env.SCENE_ROUTES.split(',').includes(route||'home'));
 const sizes = [{width:1600,height:1000},{width:390,height:844},{width:320,height:700},{width:2560,height:1080}].filter(size=>!process.env.SCENE_WIDTHS||process.env.SCENE_WIDTHS.split(',').includes(String(size.width)));
 assert.ok(routes.length&&sizes.length,'Select at least one valid scene and viewport');
-const versions = {projects:4,experience:4,writing:4,'tech-blog':4,about:4};
+const versions = {projects:5,experience:5,writing:5,'tech-blog':5,about:5};
 const sceneNames = {projects:'hawaii-volcanoes',experience:'great-sand-dunes',writing:'banff','tech-blog':'beaumont',about:'sleeping-bear'};
 fs.mkdirSync(output,{recursive:true});
 
@@ -52,7 +52,7 @@ async function pixels(page) {
         values.sort((a,b)=>a-b);return{median:values[20],p95:values[38]};
       });
       if(!route){
-        assert.equal((await page.locator('link[as="image"]').getAttribute('href')).split('?')[0],'assets/yosemite-display-brush2.webp','Home preloads the expressive painting');
+        assert.equal((await page.locator('link[as="image"]').getAttribute('href')).split('?')[0],'assets/yosemite-display-brush3.webp','Home preloads the expressive painting');
         const birds=await page.evaluate(()=>{
           let occupied=0,total=0,backwards=0;const last=new Map();
           for(let t=0;t<128;t+=.1){const visible=window.sceneBirdsAt(t);if(visible.length)occupied++;total++;

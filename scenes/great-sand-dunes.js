@@ -24,9 +24,20 @@ function prepare({painting,pixels,random}){
     c.putImageData(data,0,0);if(count>150)foliage.push({sprite,x,y,phase:random()*6.28});
   }
   const ridges=[[[30,365],[175,357],[316,364]],[[326,373],[468,371],[600,406]],[[780,449],[920,409],[1047,423]],[[1070,424],[1213,389],[1355,413]],[[355,527],[433,520],[515,545]],[[926,586],[1040,568],[1151,585]]];
-  const sand=ridges.map(points=>({points,grains:Array.from({length:75},()=>({
-    phase:random(),u:random(),lift:random(),length:3+random()*8,speed:.07+random()*.06
-  }))}));
+  const sand=ridges.map(points=>{
+    const width=points[2][0]-points[0][0]+110,sprite=layer(width,90),c=sprite.getContext('2d');
+    // A connected wind-combed veil reads as spindrift rather than isolated floating grains.
+    for(let i=0;i<210;i++){
+      const u=random(),lift=random(),x=u*(width-95),y=(1-u)**2*points[0][1]+2*(1-u)*u*points[1][1]+u*u*points[2][1]-points[0][1]+45-lift*25;
+      const length=12+random()*30,alpha=(1-lift)*(.09+random()*.27);
+      for(let bristle=0;bristle<3;bristle++){
+        c.strokeStyle=`rgba(${234+bristle*4},${204+bristle*4},${160+bristle*6},${alpha})`;
+        c.lineWidth=.7+random()*1.1;c.lineCap='butt';c.beginPath();c.moveTo(x,y+bristle*1.2);
+        c.quadraticCurveTo(x+length*.5,y-2-bristle,x+length,y-3-bristle);c.stroke();
+      }
+    }
+    return {sprite,x:points[0][0],y:points[0][1]-45,phase:random()};
+  });
   const clouds=[];
   const skyline=[[0,205],[180,124],[330,78],[480,57],[650,124],[800,102],[1000,71],[1130,58],[1290,114],[1460,81],[1600,56]];
   const skyAt=x=>{for(let i=1;i<skyline.length;i++)if(x<=skyline[i][0]){const a=skyline[i-1],b=skyline[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 56;};
@@ -53,7 +64,7 @@ function prepare({painting,pixels,random}){
 function draw({ctx,t,state,wind}){
   const{water,mask}=state,c=water.getContext('2d');c.clearRect(0,0,W,DEPTH);c.lineCap='round';
   for(let y=0;y<DEPTH;y+=5){
-    const band=Math.min(5,DEPTH-y),flow=Math.sin(y*.08-t*1.25)*4.8;
+    const band=Math.min(5,DEPTH-y),flow=Math.sin(y*.08-t*1.25)*8;
     c.drawImage(state.painting,0,TOP+y,W,band,flow,y,W,band);
   }
   for(const r of state.ripples){
@@ -61,32 +72,30 @@ function draw({ctx,t,state,wind}){
     c.strokeStyle=`rgba(${Math.min(255,r.r+28)},${Math.min(255,r.g+27)},${Math.min(255,r.b+22)},${.16+pulse*.35})`;c.lineWidth=.55+pulse*.55;
     c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+r.length*.5,y-1,x+r.length,y);c.stroke();
   }
-  for(let i=0;i<9;i++){
-    const phase=(t*.045+i/9)%1,x=1600-phase*1800,y=100-x*.055;
-    c.strokeStyle=`rgba(225,229,221,${Math.sin(phase*Math.PI)*.22})`;c.lineWidth=1.2;
-    c.beginPath();c.moveTo(x-110,y+5);c.quadraticCurveTo(x,y-2,x+100,y-6);c.stroke();
+  for(let i=0;i<22;i++){
+    const age=(t*.11+i/22)%1,x=1650-age*1850,y=91-x*.055+Math.sin(i*2.9)*14;
+    const fade=Math.sin(age*Math.PI)**2;
+    for(let bristle=0;bristle<3;bristle++){
+      c.strokeStyle=bristle===0?`rgba(62,94,107,${fade*.48})`:`rgba(237,237,216,${fade*.74})`;
+      c.lineWidth=bristle===0?2.3:1.25;c.beginPath();c.moveTo(x-34,y+bristle*2);
+      c.quadraticCurveTo(x,y-3+bristle*2,x+27,y-4+bristle*2);c.stroke();
+    }
   }
   c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(water,0,TOP);ctx.restore();
-  ctx.save();ctx.globalAlpha=.8;ctx.drawImage(state.fog,Math.sin(t*.045)*13+wind*1.2,250);ctx.restore();
+  ctx.save();ctx.globalAlpha=.95;ctx.drawImage(state.fog,Math.sin(t*.065)*34+wind*3,250);ctx.restore();
   for(const cloud of state.clouds){
-    ctx.save();ctx.globalAlpha=.64;
-    ctx.drawImage(cloud.sprite,cloud.x+Math.sin(t*.08+cloud.x*.002)*32,cloud.y+Math.sin(t*.06)*3);
+    ctx.save();ctx.globalAlpha=.88;
+    ctx.drawImage(cloud.sprite,cloud.x+Math.sin(t*.1+cloud.x*.002)*60,cloud.y+Math.sin(t*.06)*3);
     ctx.restore();
   }
-  ctx.save();ctx.lineCap='butt';
-  for(const ridge of state.sand)for(const grain of ridge.grains){
-    const age=(t*grain.speed+grain.phase)%1,u=grain.u;
-    const [a,b,d]=ridge.points;
-    const x=(1-u)**2*a[0]+2*(1-u)*u*b[0]+u*u*d[0]+age*(30+grain.lift*25);
-    const y=(1-u)**2*a[1]+2*(1-u)*u*b[1]+u*u*d[1]-Math.sin(age*Math.PI)*(4+grain.lift*13);
-    ctx.strokeStyle=`rgba(242,218,174,${Math.sin(age*Math.PI)**2*(.18+grain.lift*.34)})`;
-    ctx.lineWidth=.65+grain.lift*.7;ctx.beginPath();ctx.moveTo(x,y);
-    ctx.lineTo(x+grain.length,y-1-grain.lift*2);ctx.stroke();
+  for(const ridge of state.sand)for(let i=0;i<2;i++){
+    const age=(t/7+ridge.phase+i/2)%1,fade=Math.sin(age*Math.PI)**2;
+    ctx.save();ctx.globalAlpha=fade*(.78+wind*.1);
+    ctx.drawImage(ridge.sprite,ridge.x+age*72,ridge.y-Math.sin(age*Math.PI)*9);ctx.restore();
   }
-  ctx.restore();
-  for(const patch of state.foliage){const sway=wind+Math.sin(t*2.4+patch.phase)*.2;ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,patch.y+patch.sprite.height);ctx.transform(1,0,sway*.021,1,0,0);ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-patch.sprite.height);ctx.restore();}
+  for(const patch of state.foliage){const sway=wind+Math.sin(t*2.4+patch.phase)*.2;ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,patch.y+patch.sprite.height);ctx.transform(1,0,sway*.045,1,0,0);ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-patch.sprite.height);ctx.restore();}
 }
-startScene({liveVersion:4,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v4.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.62,
+startScene({liveVersion:5,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v5.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.82,
   grade(r,g,b,x,y){
     const l=r*.3+g*.55+b*.15,near=clamp((y-805)/100,0,1);
     const brush=near*clamp((Math.max(r,g)-b*1.15)/35,0,1);

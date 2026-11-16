@@ -35,3 +35,8 @@ The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline
 Check source/copy byte equality, scene syntax, exact center-cover crop, and that the motion cutout alpha stays zero over the clock and masonry. Root owns integrated Playwright desktop, portrait, wide, temporal, fallback, and navigation checks, and the final commit/deployment.
 
 Current runtime caches are the half-size-brush `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` edition. `scripts/check-petals-kayaks.cjs` checks petal-flight and wind-curl regions on desktop plus portrait screenshots.
+
+
+## Local tower detail edition
+
+The current v5 edition uses an authoring-only masked fine-bristle pass on the tower: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; `scripts/check-tower-people.cjs` verifies zero changed pixels outside it before packing. Runtime visitors load prebuilt v5 assets.

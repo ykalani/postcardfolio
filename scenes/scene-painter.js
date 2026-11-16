@@ -79,8 +79,17 @@ export async function startScene(options) {
     const {paintBrushwork} = await import('./brush-painting.js');
     await paintBrushwork({ctx:brush,pixels:graded,width:W,height:H,random,
       angle:options.angle,background:options.background||'#c6c1ad'});
+    const verifyDetail = new URLSearchParams(location.search).has('check-detail');
+    const beforeDetail = verifyDetail && options.refine ? brush.getImageData(0,0,W,H).data : null;
+    const detailMask = await options.refine?.({ctx:brush,pixels:graded,sourcePixels:pixels,random,W,H});
+    if(beforeDetail && detailMask){
+      const after=brush.getImageData(0,0,W,H).data,mask=detailMask.getContext('2d').getImageData(0,0,W,H).data;
+      let changed=0,leaked=0;
+      for(let at=0;at<after.length;at+=4)if(after[at]!==beforeDetail[at]||after[at+1]!==beforeDetail[at+1]||after[at+2]!==beforeDetail[at+2]){changed++;if(!mask[at+3])leaked++;}
+      window.sceneDetailReport={changed,leaked};
+    }
     ready=true;
-    fit(); prepare();
+    prepare(); fit();
     return painting;
   }
 

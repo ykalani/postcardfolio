@@ -44,14 +44,14 @@ Retain these existing paths. Do not migrate Yosemite into a new asset directory 
 
 ## Current runtime and verification
 
-The finished display painting and common/foreground atlases are prebuilt; normal visits do not load the Yosemite reference guide. Local authoring still uses the CC0 guide and `?bake=1`. `scripts/bake-assets.cjs` regenerates the detailed terrain, display cache,90 painted canopy patches, pine-only loose leaves, common live atlas, three foreground atlases, and transition-cloud atlas. Keep the source image authoring-only in Vercel exclusions.
+The finished display painting and common/foreground atlases are prebuilt; normal visits do not load the Yosemite reference guide. Local authoring still uses the CC0 guide and `?bake=1`. `scripts/bake-assets.cjs` regenerates the detailed terrain, display cache,96 painted canopy patches, pine-only loose leaves, common live atlas, three foreground atlases, and transition-cloud atlas. Keep the source image authoring-only in Vercel exclusions.
 
 Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall clears the right edge; the160svh height and centered initial scroll remain. The deterministic QA hook measures actual visible birds against skyline and viewport clipping. Recheck occupancy after framing changes; never inherit a previous100% result as a guarantee for new crops.
 
 
 ## Upper branch and foreground highlights
 
-Home uses matching `brush2` display, live manifest, and foreground atlases. The upper pine bough, left pine, and bottom bushes form the foreground with richer green shadows, warm tips, and stronger contrast against the quieter cool valley. The bough sways visibly over clean painted sky; never bake a fixed duplicate into the display. Its cached mask follows that same rotation for bird visibility.
+Home uses matching `brush3` display, live manifest, and foreground atlases. The upper pine bough, left pine, and bottom bushes form the foreground with richer green shadows, warm tips, and stronger contrast against the quieter cool valley. The bough sways visibly over clean painted sky; never bake a fixed duplicate into the display. Its cached mask follows that same rotation for bird visibility.
 
 The upper bough uses the transparent painted source `assets/yosemite-pine-bough.png`, with connected irregular forks, coarse layered pine fans, open gaps, and a muted palette referenced from the existing pine. Keep its aspect ratio, modest scale, and attachment beyond the right edge; regenerate the bird-occlusion mask when rebaking. Normal visits use the baked atlas and do not load this authoring source.
 
@@ -60,3 +60,5 @@ Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers 
 Background foliage receives a cool atmospheric glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the grade. Preserve the warm foreground highlights and the granite and sky values.
 
 For branch refinements, follow the focused desktop/mobile Playwright workflow in AGENTS.md and inspect the complete composition as well as the branch close-up.
+
+The current bough is repainted through the shared brush renderer using the left pine pigment texture. Progressive gust bending gives the left pine stronger tip movement while its root stays anchored.

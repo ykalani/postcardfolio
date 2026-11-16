@@ -56,3 +56,8 @@ Playwright authoring visits (`/about?repaint=1`) were inspected at 1600×1000, 3
 At the 1600×1000 logical view, a 160×170 sample inside the blue arch opening had **zero nontransparent live pixels**; an 80×25 sample over the fixed central kayak also had **zero nontransparent live pixels**. These checks confirm that this scene's animated water mask does not move sky or that kayak. Mobile starts were 273px at 390×844 and 227px at 320×700, keeping the opening and lake visible. The shared canopy lift is applied only after source-green alpha masking. Integrated packed-asset and publication checks remain with the coordinating task.
 
 The active About reference is the Pictured Rocks sandstone-arch view; the legacy filename does not identify it as Sleeping Bear. Extra foreground saturation and global noise changes were withdrawn; use the ordinary source-derived palette.
+
+
+## Precise people and kayak silhouettes
+
+The v5 edition refines only the actual people with small painted strokes, preserving hats, life vests, and arms from the supplied reference. Separate hull/person/paddle masks preserve the negative space between bodies rather than carrying cliff wedges along with them. A broader cleanup mask removes coarse paint overshoot independently of those tight moving silhouettes. Drift is limited to 4�6 logical pixels with slow, small bob/roll and broken painted wakes; the water, arch, and leaf effects retain their prior treatment. `scripts/check-tower-people.cjs` verifies person-only detail, transparent gaps, and multi-time desktop/mobile output.

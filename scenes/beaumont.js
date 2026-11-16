@@ -21,6 +21,30 @@ function paintedFoliage(painting, pixels, W, region) {
   return {...region, layer};
 }
 
+async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
+  const mask=document.createElement('canvas');mask.width=W;mask.height=H;
+  const m=mask.getContext('2d');
+  const outline=[[647,69],[663,91],[672,151],[708,166],[716,186],[755,185],[770,225],[784,350],[804,470],[819,570],[840,755],[826,900],[568,900],[549,800],[550,477],[558,394],[580,349],[586,241],[607,196],[624,183],[629,116]];
+  m.beginPath();outline.forEach(([x,y],i)=>i?m.lineTo(x,y):m.moveTo(x,y));m.closePath();m.fill();
+  const alpha=m.getImageData(0,0,W,H);
+  for(let y=60;y<905;y++)for(let x=540;x<850;x++){
+    const at=(y*W+x)*4,r=sourcePixels[at],g=sourcePixels[at+1],b=sourcePixels[at+2];
+    // Keep foreground needles/petals and sky openings in their original broad paint.
+    const foliage=blossom(r,g,b)>.08||needle(r,g,b)>.08;
+    const sky=b>r*1.04&&b>g*.98&&r+g+b>360;
+    const inset=x>630&&x<765&&y>190&&y<425;
+    if((foliage&&!inset)||sky)alpha.data[at+3]=0;
+  }
+  m.putImageData(alpha,0,0);
+  const x=540,y=60,w=310,h=845,samples=new Uint8ClampedArray(w*h*4);
+  for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)samples.set(pixels.subarray(((y+yy)*W+x+xx)*4,((y+yy)*W+x+xx)*4+4),(yy*w+xx)*4);
+  const detail=document.createElement('canvas');detail.width=w;detail.height=h;
+  const {paintBrushwork}=await import('./brush-painting.js');
+  await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.23,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
+  const d=detail.getContext('2d');d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);
+  ctx.drawImage(detail,x,y);return mask;
+}
+
 function prepare({painting, pixels, W, random}) {
   const foliage = [
     {kind:'blossom',x:229,y:34,w:278,h:283,anchorX:345,anchorY:40,strength:.85,phase:.1},
@@ -92,8 +116,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:4,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v4.webp',
+  liveVersion:5,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v5.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;
@@ -105,5 +129,5 @@ startScene({
       b*(.84+front*.1-architecture*.08)+light*.08+12-front*11+architecture*19];
   },
   angle:(x, y) => x > 545 && x < 850 && y > 70 && y < 920 ? 1.56 : -.7 + Math.sin(x * .015 + y * .008) * .55,
-  prepare, draw,
+  prepare, draw, refine:refineTower,
 });

@@ -14,7 +14,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    if(width===1600){
     const changes=await page.evaluate(route=>{
      const c=document.querySelector('#motion'),g=c.getContext('2d');
-     const regions=route?[{name:'pines',x:1200,y:300,w:350,h:320},{name:'water',x:100,y:700,w:700,h:150},{name:'mountain',x:650,y:100,w:200,h:200}]:[{name:'bough',x:800,y:65,w:700,h:230}];
+     const regions=route?[{name:'pines',x:1200,y:300,w:350,h:320},{name:'water',x:100,y:700,w:700,h:150},{name:'mountain',x:650,y:100,w:200,h:200}]:[{name:'bough',x:800,y:65,w:700,h:230},{name:'left pine',x:0,y:260,w:260,h:520}];
      const first=regions.map(r=>g.getImageData(r.x,r.y,r.w,r.h).data);window.seekScene(4);
      return regions.map((r,index)=>{const next=g.getImageData(r.x,r.y,r.w,r.h).data;let changed=0;for(let k=0;k<next.length;k+=4)if(next[k]!==first[index][k]||next[k+1]!==first[index][k+1]||next[k+2]!==first[index][k+2]||next[k+3]!==first[index][k+3])changed++;return {name:r.name,changed};});
     },route);

@@ -11,23 +11,24 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       for(let y=0;y<height;y++)for(let x=0;x<width;x++){
         const at=(y*width+x)*4;pixels.set(x<18?[190,90,40,255]:[40,100,175,255],at);
       }
-      async function render(seed) {
+      async function render(seed,scale=1,pigmentStep=24) {
         const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
         const ctx=canvas.getContext('2d');let strokes=0,maxBreadth=0;
         ctx.drawImage=()=>{throw new Error('The painter must not blit a source image');};
         const stroke=ctx.stroke.bind(ctx);ctx.stroke=()=>{strokes++;maxBreadth=Math.max(maxBreadth,ctx.lineWidth);stroke();};
         const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-        await paintBrushwork({ctx,pixels,width,height,random,angle:()=>.2,background:'#e0d6c4'});
+        await paintBrushwork({ctx,pixels,width,height,random,angle:()=>.2,background:'#e0d6c4',scale,pigmentStep});
         const rgba=ctx.getImageData(0,0,width,height).data;
         return {image:canvas.toDataURL(),strokes,maxBreadth,opaque:Array.from(rgba).filter((_,i)=>i%4===3).every(a=>a===255)};
       }
-      const first=await render(17),same=await render(17),different=await render(29);
+      const first=await render(17),same=await render(17),different=await render(29),fine=await render(17,.4,12);
       let rejected=false;
       try{await paintBrushwork({ctx:document.createElement('canvas').getContext('2d'),pixels,width:0,height,random:Math.random});}catch{rejected=true;}
-      return {deterministic:first.image===same.image,varied:first.image!==different.image,strokes:first.strokes,maxBreadth:first.maxBreadth,opaque:first.opaque,rejected};
+      return {deterministic:first.image===same.image,varied:first.image!==different.image,strokes:first.strokes,maxBreadth:first.maxBreadth,fineBreadth:fine.maxBreadth,opaque:first.opaque,rejected};
     });
     assert.ok(result.deterministic&&result.varied&&result.opaque&&result.rejected);
     assert.ok(result.strokes>25,'Artwork is reconstructed with brush strokes');
+    assert.ok(result.fineBreadth<result.maxBreadth*.45,'Local refinement uses a smaller loaded brush');
     assert.ok(result.maxBreadth<=14.3,'The largest brush marks are half the first expressive edition');
     console.log('Passed: seeded brush marks, partial edge cells, opaque underpainting, invalid input, and no source-image blitting.');
   } finally {await browser.close();}

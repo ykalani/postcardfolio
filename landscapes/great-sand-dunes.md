@@ -44,3 +44,8 @@ Source sampling and live-mask construction run only during local authoring (`?re
 ## Current motion pass
 
 Foreground brush coverage begins at the near riverbank and extends across the full bottom edge, with visibly stronger anchored sway. Painted river pigment flows within a source-colored water mask; sand grains lift and drift over mapped dune ridges. Separate sky-only cloud cutouts drift without moving the mountain silhouette; mountain-foot mist remains a separate slow layer.
+
+
+## Current visible motion (v5)
+
+Six mapped dune crests shed connected, broken-bristle spindrift veils that sweep downwind over seven-second fade cycles. These replace tiny isolated grains that disappeared against the painting. The river carries traveling light/dark painted crest groups and stronger displaced reflections, while rooted near brush bends in the same breeze. Sky clouds and mountain mist drift independently of fixed peaks. Portrait initial scroll is .82 so river motion sits above navigation. Use the v5 painting/fallback/live caches.

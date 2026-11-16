@@ -45,3 +45,8 @@ The coordinating agent owns page integration, shared painter options, final brow
 
 
 Authoring verification: the 1600 × 1000 painted crop was inspected in Playwright with no JavaScript page errors. The live preparation produced 526 source-bounded lake crests and five conifer cutouts. Final normal-runtime/mobile/wide checks belong to the coordinating agent after its version-2 asset alignment and latest natural-color style changes; these checks are not claimed complete here.
+
+
+## Current visible motion (v5)
+
+Broken groups of reflected wave crests advance toward the viewer across the masked lake, with perspective growth, teal shadow strokes and pale green highlights. Stronger water displacement and rooted pine sway make the breeze legible at normal desktop and portrait sizes. Mountains, dock and stored canoes stay fixed; no unrelated particle effect is added. Use the v5 painting/fallback/live caches.

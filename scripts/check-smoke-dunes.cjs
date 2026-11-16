@@ -14,7 +14,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    if(width===1600){
     const result=await page.evaluate(route=>{
      const g=document.querySelector('#motion').getContext('2d');
-     const regions=route==='projects'?[{name:'smoke',x:0,y:0,w:1600,h:230}]:[
+     const regions=route==='projects'?[{name:'smoke',x:0,y:0,w:1600,h:230},{name:'rising bristles',x:790,y:330,w:250,h:380}]:[
       {name:'clouds',x:0,y:0,w:1600,h:55},{name:'sand',x:300,y:350,w:280,h:220},
       {name:'river',x:300,y:745,w:900,h:90},{name:'brush',x:0,y:860,w:1600,h:140},
       {name:'mountains',x:450,y:170,w:400,h:80}];
