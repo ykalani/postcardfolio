@@ -104,7 +104,7 @@
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function paint(progress, leaving) {
+  function paint(progress) {
     context.clearRect(0, 0, width, height);
     // The last gaps close before navigation; departure opens them again immediately.
     const blanket = clamp((progress - .93) / .07);
@@ -114,15 +114,17 @@
     }
     const size = Math.max(width * .84, height * 1.2);
     for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+      if (row === 1 && col === 1) continue;
       const n = row * 3 + col, delay = (n % 4) * .035;
-      const settled = ease(clamp(progress * 1.12 - delay));
-      let dx = col - 1, dy = row - 1;
-      if (!dx && !dy) { dx = -.8; dy = .65; }
-      const travel = (1 - settled) * (leaving ? -1 : 1);
-      const x = col * width / 2 + dx * (width * .58 + size * .48) * travel;
-      const y = row * height / 2 + dy * (height * .58 + size * .4) * travel;
+      const settled = ease(clamp((progress - delay) / (1 - delay)));
+      const cloudSize = size * settled;
+      if (!cloudSize) continue;
+      // Swell from the perimeter, keeping each bank anchored as it grows and recedes.
+      const drift = size * .08 * (1 - settled);
+      const x = col * width / 2 + (col - 1) * drift;
+      const y = row * height / 2 + (row - 1) * drift;
       const sprite=sprites[n%4];
-      context.drawImage(sprite.image,...sprite.rect,x-size/2,y-size/2,size,size);
+      context.drawImage(sprite.image,...sprite.rect,x-cloudSize/2,y-cloudSize/2,cloudSize,cloudSize);
     }
   }
 
@@ -132,7 +134,7 @@
       function frame(now) {
         if (ticket !== generation) return resolve(false);
         const t = clamp((now - started) / duration);
-        paint(from + (to - from) * t, to < from);
+        paint(from + (to - from) * t);
         if (t === 1) resolve(true); else requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
@@ -158,10 +160,10 @@
       try {
         await prepare();if(!busy||preparing!==generation)return;
         canvas.hidden = false; root.dataset.cloudPhase = 'covering';
-        if (!await sweep(0, 1, 760)) return;
+        if (!await sweep(0, 1, 1000)) return;
         root.dataset.cloudPhase = 'covered';
         const ticket = generation;
-        await new Promise(resolve => setTimeout(resolve, 130));
+        await new Promise(resolve => setTimeout(resolve, 60));
         if (!busy || ticket !== generation) return;
         try { sessionStorage.setItem(key, new URL(link.href).pathname); } catch {}
         location.assign(link.href);
@@ -184,8 +186,8 @@
     const preparing=++generation;
     prepare().then(()=>{
       if(preparing!==generation)return;
-      canvas.hidden=false;paint(1,false);root.classList.remove('cloud-arrival');
-      root.dataset.cloudPhase='revealing';return sweep(1,0,850);
+      canvas.hidden=false;paint(1);root.classList.remove('cloud-arrival');
+      root.dataset.cloudPhase='revealing';return sweep(1,0,1050);
     }).then(completed=>{
       if(completed){reset();document.querySelector('h1')?.focus({preventScroll:true});}
     }).catch(()=>{reset();document.querySelector('h1')?.focus({preventScroll:true});});
