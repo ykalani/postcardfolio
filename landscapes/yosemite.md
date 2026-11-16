@@ -51,12 +51,12 @@ Portrait focus was adjusted to58.5% across the logical canvas so Bridalveil Fall
 
 ## Upper branch and foreground highlights
 
-Home uses matching `p4` display, live manifest, and foreground atlases. A tapered pine branch enters from the upper right, with individually painted needle sprays and a subtle shared-wind sway. Its cached mask participates in the bird visibility measurement. Moving bush cutouts and the static foreground share lifted warm greens and stronger local contrast, preserving the original foliage silhouettes.
+Home uses matching `brush2` display, live manifest, and foreground atlases. The upper pine bough, left pine, and bottom bushes form the foreground with richer green shadows, warm tips, and stronger contrast against the quieter cool valley. The bough sways visibly over clean painted sky; never bake a fixed duplicate into the display. Its cached mask follows that same rotation for bird visibility.
 
 The upper bough uses the transparent painted source `assets/yosemite-pine-bough.png`, with connected irregular forks, coarse layered pine fans, open gaps, and a muted palette referenced from the existing pine. Keep its aspect ratio, modest scale, and attachment beyond the right edge; regenerate the bird-occlusion mask when rebaking. Normal visits use the baked atlas and do not load this authoring source.
 
 Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers from the existing terrain painting without repainting the granite. The normal bake command still rebuilds the complete painting. Verify desktop, portrait, wide crops, motion, and bird occupancy after changing branch geometry.
 
-Background foliage receives a cool transparent glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the darkening. Preserve the warm foreground highlights and the granite and sky values.
+Background foliage receives a cool atmospheric glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the grade. Preserve the warm foreground highlights and the granite and sky values.
 
 For branch refinements, follow the focused desktop/mobile Playwright workflow in AGENTS.md and inspect the complete composition as well as the branch close-up.

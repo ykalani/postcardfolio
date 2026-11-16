@@ -21,7 +21,7 @@ function paintedFoliage(painting, pixels, W, region) {
   return {...region, layer};
 }
 
-function prepare({painting, pixels, W}) {
+function prepare({painting, pixels, W, random}) {
   const foliage = [
     {kind:'blossom',x:229,y:34,w:278,h:283,anchorX:345,anchorY:40,strength:.85,phase:.1},
     {kind:'blossom',x:411,y:139,w:194,h:271,anchorX:462,anchorY:138,strength:.65,phase:1.3},
@@ -36,7 +36,18 @@ function prepare({painting, pixels, W}) {
     {kind:'needle',x:824,y:89,w:270,h:329,anchorX:1007,anchorY:119,strength:.5,phase:4.8},
     {kind:'needle',x:1261,y:660,w:339,h:306,anchorX:1515,anchorY:799,strength:.7,phase:5.9},
   ].map(region => paintedFoliage(painting, pixels, W, region));
-  return {foliage};
+  const petals=[];
+  for(let i=0;i<64;i++){
+    const branch=foliage[i%7];let x,y;
+    for(let attempt=0;attempt<80;attempt++){
+      x=branch.x+random()*branch.w;y=branch.y+random()*branch.h;
+      const at=((y|0)*W+(x|0))*4;
+      if(blossom(pixels[at],pixels[at+1],pixels[at+2])>.38)break;
+    }
+    petals.push({x,y,phase:random(),duration:12+random()*10,fall:350+random()*450,
+      drift:80+random()*170,size:3+random()*3,turn:random()*6.28,tone:i%3});
+  }
+  return {foliage,petals};
 }
 
 function draw({ctx, t, state, wind}) {
@@ -52,6 +63,31 @@ function draw({ctx, t, state, wind}) {
     ctx.globalAlpha = .93;
     ctx.drawImage(branch.layer, branch.x - branch.anchorX, branch.y - branch.anchorY);
     ctx.restore();
+  }
+  for(const petal of state.petals){
+    const age=(t/petal.duration+petal.phase)%1,flutter=Math.sin(t*2.3+petal.turn);
+    const x=petal.x+age*petal.drift+Math.sin(age*10+petal.turn)*24*age;
+    const y=petal.y+age*petal.fall;
+    ctx.save();ctx.globalAlpha=clamp(age/.07)*clamp((1-age)/.18)*.94;
+    ctx.translate(x,y);ctx.rotate(age*7+petal.turn+flutter*.5);
+    ctx.scale(.4+Math.abs(Math.cos(t*1.7+petal.turn))*.6,1);
+    ctx.fillStyle=['#f1a7c3','#ffd0db','#d77ca9'][petal.tone];
+    ctx.beginPath();ctx.moveTo(-petal.size,0);ctx.quadraticCurveTo(-petal.size,-petal.size,0,-petal.size*.7);
+    ctx.quadraticCurveTo(petal.size*1.5,-petal.size*.2,petal.size*.6,petal.size*.5);
+    ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
+    ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
+  }
+  // Small chalky curls make the breeze visible between the flowering branches.
+  for(const [i,origin] of [[390,500],[1050,420],[670,550]].entries()){
+    const age=(t/15+(i===2?.18:i/3))%1,fade=Math.sin(age*Math.PI)**2;
+    ctx.save();ctx.globalAlpha=fade*.72;ctx.translate(origin[0]+age*95,origin[1]+Math.sin(age*6.28)*16);
+    ctx.strokeStyle='#f5e7d5';ctx.lineWidth=1.8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-90,9);
+    ctx.bezierCurveTo(-54,-12,-20,-8,5,5);
+    for(let j=0;j<=50;j++){
+      const u=j/50,a=-Math.PI*.5+u*Math.PI*2.3,r=23*(1-u)+2;
+      ctx.lineTo(5+Math.cos(a)*r,30+Math.sin(a)*r);
+    }
+    ctx.stroke();ctx.restore();
   }
 }
 

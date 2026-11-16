@@ -10,6 +10,8 @@ Judge the actual finished painting at normal desktop and mobile size. Visible pa
 
 Brush mark length, breadth, spacing, and sampling cells are now half of the first expressive edition; the same discrete pigment palette preserves the painted character.
 
+Give every composition deliberate depth: richer, higher-contrast near foliage or rock framing against cooler, quieter distant terrain. Keep material masks tied to the scene rather than adding rectangular color bands. Build motion from the same painted surfaces, anchor attachments and shorelines, and check the requested moving regions separately from the whole canvas. Preserve reduced-motion behavior and static artwork fallbacks.
+
 Active caches are `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` for the five shared-renderer scenes. Home uses `yosemite-terrain-brush2.webp`, `yosemite-display-brush2.webp`, and matching `*-brush2` live/foreground atlases. These names replace older photo-like cache versions so existing browser caches cannot conceal the new painting style. No reference-image downloads or brush generation occur during normal visits.
 
 ## Portfolio plan and scene briefs
