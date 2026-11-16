@@ -109,9 +109,11 @@
     // The last gaps close before navigation; departure opens them again immediately.
     const blanket = clamp((progress - .93) / .07);
     if (blanket) {
-      context.globalAlpha = blanket; context.fillStyle = '#f0eee3';
+      context.globalAlpha = blanket; context.fillStyle = '#fff';
       context.fillRect(0, 0, width, height); context.globalAlpha = 1;
     }
+    const white = ease(clamp(progress - 1));
+    progress = Math.min(progress, 1);
     const size = Math.max(width * .84, height * 1.2);
     for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
       if (row === 1 && col === 1) continue;
@@ -125,6 +127,10 @@
       const y = row * height / 2 + (row - 1) * drift;
       const sprite=sprites[n%4];
       context.drawImage(sprite.image,...sprite.rect,x-cloudSize/2,y-cloudSize/2,cloudSize,cloudSize);
+    }
+    if (white) {
+      context.fillStyle = '#fff'; context.globalAlpha = white;
+      context.fillRect(0, 0, width, height); context.globalAlpha = 1;
     }
   }
 
@@ -160,7 +166,8 @@
       try {
         await prepare();if(!busy||preparing!==generation)return;
         canvas.hidden = false; root.dataset.cloudPhase = 'covering';
-        if (!await sweep(0, 1, 1000)) return;
+        if (!await sweep(0, 1, 850)) return;
+        if (!await sweep(1, 2, 450)) return;
         root.dataset.cloudPhase = 'covered';
         const ticket = generation;
         await new Promise(resolve => setTimeout(resolve, 60));
@@ -184,10 +191,20 @@
   if (arriving && !reduced.matches) {
     clearTimeout(window.cloudFallback);
     const preparing=++generation;
-    prepare().then(()=>{
+    Promise.all([prepare(), new Promise(resolve => {
+      const ready = () => {
+        if (root.dataset.sceneReady === 'true') { observer.disconnect(); resolve(); }
+      };
+      const observer = new MutationObserver(ready);
+      observer.observe(root, {attributes:true, attributeFilter:['data-scene-ready']});
+      ready();
+      setTimeout(() => { observer.disconnect(); resolve(); }, 8000);
+    })]).then(async()=>{
       if(preparing!==generation)return;
-      canvas.hidden=false;paint(1);root.classList.remove('cloud-arrival');
-      root.dataset.cloudPhase='revealing';return sweep(1,0,1050);
+      canvas.hidden=false;paint(2);root.classList.remove('cloud-arrival');
+      root.dataset.cloudPhase='revealing';
+      if (!await sweep(2,1,450)) return false;
+      return sweep(1,0,1050);
     }).then(completed=>{
       if(completed){reset();document.querySelector('h1')?.focus({preventScroll:true});}
     }).catch(()=>{reset();document.querySelector('h1')?.focus({preventScroll:true});});

@@ -3,5 +3,5 @@
 .paper-slip:focus-visible{outline:2px solid #b36543;outline-offset:5px}
 .cloud-curtain{position:fixed;inset:0;width:100%;height:100%;z-index:1000;touch-action:none}
 .cloud-curtain[hidden]{display:none}
-.cloud-arrival::after{content:'';position:fixed;inset:0;background:#f0eee3;z-index:999}
+.cloud-arrival::after{content:'';position:fixed;inset:0;background:#fff;z-index:999}
 @media(max-width:650px){.paper-slip{right:max(22px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));padding:15px 27px 17px;font-size:23px}}
