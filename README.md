@@ -1,17 +1,13 @@
-# Postcardfolio — Yosemite
+# Postcardfolio
 
-A living, full-screen brush painting of Yosemite Valley. The current build focuses on the landscape: clouds drift above Half Dome, Bridalveil Fall flows, and a foreground pine moves in a shared breeze.
+Five living brush paintings for Yash Kalani’s portfolio:
 
-Plain HTML, CSS and JavaScript. No runtime dependencies or build step. Run `npm run dev` and open http://localhost:5173. Run `npm run check` for syntax, assets and resource references.
+- Home: Yosemite.
+- Projects: Hawaiʻi Volcanoes.
+- Experience: Great Sand Dunes.
+- Writing: Olympic.
+- About: Sleeping Bear Dunes at sunset.
 
-Live at https://postcardfolio.vercel.app and https://yash.kalani.name/postcardfolio/. The main domain's `portfolio/vercel.json` proxies `/postcardfolio/` to the Vercel production URL, so future Postcardfolio deployments update both addresses. Keep those routing rules when deploying the main portfolio.
+Plain HTML, CSS and JavaScript. Run `npm run dev` and `npm run check`. Playwright QA and baking commands are documented in [LANDSCAPE_PLAYBOOK.md](LANDSCAPE_PLAYBOOK.md), alongside the five scene briefs and exact image credits.
 
-The original postcard is preserved in `archive/postcard/`, excluded from Vercel deployment. The résumé is retained locally in that archive and ignored by Git.
-
-The terrain is painted with multiscale bristle strokes sampled from a CC0 photographic guide. `assets/yosemite-painting.webp` caches the initial coat. The left pine, right trees, and bottom canopy are separated by deeper foreground shadows and warm highlights. Foliage lifted from the actual painting rustles in a shared wind field. Faster drifting cloud banks, a continuously circling flock that remains in the visible sky, and a waterfall built from translucent brush washes, accelerating ribbons, and wind-carried chalk mist provide the live layers. Reduced motion is supported; hidden tabs stop drawing.
-
-To regenerate the terrain cache after changes, call `await window.paintLandscape()` in the browser and save the data URL from `window.exportPainting()` to `assets/yosemite-painting.webp`. If the cache is missing, the browser rebuilds it automatically. If the guide fails to load, the cached painting remains available.
-
-See `assets/CREDITS.md` for image provenance and licensing.
-
-The bottom-right writing paper slip opens `writing.html` through a painted cloud curtain. The clouds cover the current page before a native navigation, then part on arrival. Direct visits stay plain, and browser Back restores the landscape. Original visual reference: https://www.clash.ninja/images/content/what-are-the-clouds-clouding-problems-2.jpg (reference only; no game graphics are used).
+Live at https://postcardfolio.vercel.app/ and https://yash.kalani.name/postcardfolio/. Preserve the main portfolio’s proxy routing. Normal visits load finished paintings and prebuilt live layers; photographic guides are local authoring assets.

@@ -6,3 +6,5 @@ Source: https://commons.wikimedia.org/wiki/File:%E2%80%9CTunnel_View%E2%80%9D_ov
 License: https://creativecommons.org/publicdomain/zero/1.0/
 
 The photograph is not displayed on the page. yosemite-guide.jpg supplies material/color samples for procedural painting and foliage. yosemite-painting.webp is a cached canvas painting for immediate initial rendering.
+
+The reference guide is now used only for local authoring and is excluded from deployment. The display and live atlases are generated from the original painted canvas; normal visits never download the guide.

@@ -2,10 +2,10 @@
   const canvas=document.querySelector('#landscape'),ctx=canvas.getContext('2d',{alpha:false});
   const motion=document.querySelector('#motion'),air=motion.getContext('2d');
   const W=1600,H=1000,source=document.createElement('canvas');source.width=W;source.height=H;
-  const sample=source.getContext('2d',{willReadFrequently:true});
+  let sample;
   const painting=document.createElement('canvas');painting.width=W;painting.height=H;
   const p=painting.getContext('2d',{alpha:false});
-  let pixels,skyline=new Uint16Array(W),ready=false,seed=4176,clock=0,last=0,scale=1,ox=0,oy=0;
+  let pixels,skyline=new Uint16Array(W),ready=false,seed=4176,clock=0,last=0,liveReady=false,scale=1,ox=0,oy=0;
   const rand=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
   const range=(a,b)=>a+rand()*(b-a);
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -42,10 +42,31 @@
       stroke(c,x,y,range(30,140),range(2,9),col,-.035,.08,3);
     }
   }
+  function refineCliffs(){
+    // Follow the guide's actual light planes and joints; keep distant rock softer.
+    const luminance=(x,y)=>{
+      const at=(clamp(y,0,H-1)*W+clamp(x,0,W-1))*4;
+      return pixels[at]*.3+pixels[at+1]*.55+pixels[at+2]*.15;
+    };
+    for(let y=130;y<650;y+=2)for(let x=2;x<W-2;x+=2){
+      const col=pigment(x,y);
+      if(col.sky||col.leaf||y<skyline[x]+2)continue;
+      const depth=x>820&&x<1020?.45:1;
+      const local=(luminance(x-4,y)+luminance(x+4,y))*.5;
+      const definition=clamp(((col.l-142)*.16+(col.l-local)*.32)*depth,-15,17);
+      col.r+=definition;col.g+=definition;col.b+=definition*.9;
+      stroke(p,x,y,range(2.5,7),range(.65,1.7),col,1.53+range(-.1,.1),.5,2);
+      const gx=luminance(x+1,y)-luminance(x-1,y),gy=luminance(x,y+1)-luminance(x,y-1);
+      if(Math.hypot(gx,gy)>12){
+        const fine={...col,r:col.r+definition*.15,g:col.g+definition*.15,b:col.b+definition*.12};
+        stroke(p,x,y,range(1,3.2),range(.45,.95),fine,Math.atan2(gy,gx)+Math.PI*.5,.68,2);
+      }
+    }
+  }
   async function buildPainting(){
     seed=4176;sky(p,0);
     // Successive coats follow the real landforms. No source photograph is drawn onto the visible canvas.
-    for(const [step,size] of [[13,3.5],[6,1.8],[3.6,1]]){
+    for(const [step,size] of [[13,3.5],[6,1.8],[3.6,1],[1.9,.58]]){
       for(let y=100;y<H;y+=step){
         for(let x=0;x<W;x+=step)paintMark(x+range(-step*.5,step*.5),y+range(-step*.5,step*.5),size);
       }
@@ -58,18 +79,27 @@
       const x=range(852,925),y=range(425,485),col=pigment(x,y);
       if(!col.sky&&!col.leaf&&col.l>155){col.r+=10;col.g+=8;col.b+=8;stroke(p,x,y,range(2,8),range(.6,1.7),col,1.57,.8,3);}
     }
-    cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+    refineCliffs();cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';
+  }
+  function drawSprite(c,sprite,x,y,w=sprite.width,h=sprite.height){
+    if(sprite.image)c.drawImage(sprite.image,...sprite.rect,x,y,w,h);
+    else c.drawImage(sprite,x,y,w,h);
   }
   function fit(){
     const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=document.querySelector('main').clientHeight;
-    scale=Math.max(w/W,h/H);ox=w*.5-W*scale*(w<650?.563:.5);oy=(h-H*scale)*.5;
-    for(const c of [canvas,motion]){c.width=w*dpr;c.height=h*dpr;c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
+    scale=Math.max(w/W,h/H);ox=w*.5-W*scale*(w<650?.585:.5);oy=(h-H*scale)*.5;
+    for(const c of [canvas,motion]){
+      if(c.width!==Math.round(w*dpr))c.width=Math.round(w*dpr);
+      if(c.height!==Math.round(h*dpr))c.height=Math.round(h*dpr);
+      c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+    }
+    air.clearRect(0,0,w,h);
     ctx.fillStyle='#b0c7ca';ctx.fillRect(0,0,w,h);
     if(ready){
       ctx.drawImage(painting,ox,oy,W*scale,H*scale);
       if(foreground)ctx.drawImage(foreground,ox,oy,W*scale,H*scale);
-      air.save();air.translate(ox,oy);air.scale(scale,scale);
-      driftingClouds(air,clock);waterfall(air,clock);rustlingTrees(air,clock);birds(air,clock);air.restore();
+      if(liveReady){air.save();air.translate(ox,oy);air.scale(scale,scale);
+      driftingClouds(air,clock);waterfall(air,clock);rustlingTrees(air,clock);birds(air,clock);air.restore();}
     }
   }
   const cloudSprites=[];
@@ -89,9 +119,9 @@
       const texture=c.getImageData(0,0,sprite.width,sprite.height);
       for(let k=0;k<texture.data.length;k+=4){
         if(texture.data[k+3]<8)continue;
-        const grain=(random()-.5)*18;
+        const grain=(rand()-.5)*18;
         for(let channel=0;channel<3;channel++)texture.data[k+channel]=clamp(texture.data[k+channel]+grain,0,255);
-        if(random()<.045)texture.data[k+3]*=.5;
+        if(rand()<.045)texture.data[k+3]*=.5;
       }
       c.putImageData(texture,0,0);
       cloudSprites.push({...bank,sprite});
@@ -103,7 +133,7 @@
     c.closePath();c.clip();
     for(const cloud of cloudSprites){
       const x=(cloud.x+t*cloud.speed+510)%(W+1020)-510;
-      c.globalAlpha=.88;c.drawImage(cloud.sprite,x,cloud.y);
+      c.globalAlpha=.88;drawSprite(c,cloud.sprite,x,cloud.y);
     }
     c.restore();
   }
@@ -147,14 +177,19 @@
       c.closePath();c.fill();
     }
     for(let i=0;i<35;i++){
-      const side=(i/34-.5),end=.78+(i%6)*.036;
-      for(let q=(i%7)*.008;q<end;q+=.033){
-        const v=Math.min(end,q+.04),width=2.2+q*4.5+q**4*13;
-        const x=fallPosition(q,t)+side*width+Math.sin(q*29+i*1.8+t*.7)*q*.35;
-        const xx=fallPosition(v,t)+side*(2.2+v*4.5+v**4*13);
-        const alpha=(.26+(1-Math.abs(side)*2)*.3)*(1-q)**.9;
+      const side=(i/34-.5),start=(i%7)*.008,end=.78+(i%6)*.036;
+      // Batch adjacent bristle segments into six tonal bands instead of hundreds of strokes.
+      for(let band=0;band<6;band++){
+        const from=Math.max(start,end*band/6),to=end*(band+1)/6;if(from>=to)continue;
+        const alpha=(.26+(1-Math.abs(side)*2)*.3)*(1-(from+to)/2)**.9;
         c.strokeStyle=i%4===0?`rgba(178,204,201,${alpha*.65})`:`rgba(240,243,224,${alpha})`;
-        c.lineWidth=i%3===0?.65:.35;c.beginPath();c.moveTo(x,fallTop+q*fallHeight);c.lineTo(xx,fallTop+v*fallHeight);c.stroke();
+        c.lineWidth=i%3===0?.65:.35;c.beginPath();
+        for(let q=from;q<=to+.032;q+=.033){
+          const v=Math.min(to,q),width=2.2+v*4.5+v**4*13;
+          const x=fallPosition(v,t)+side*width+Math.sin(v*29+i*1.8+t*.7)*v*.35;
+          if(q===from)c.moveTo(x,fallTop+v*fallHeight);else c.lineTo(x,fallTop+v*fallHeight);
+        }
+        c.stroke();
       }
     }
     c.strokeStyle='rgba(250,248,227,.86)';c.lineWidth=1.5;c.beginPath();c.moveTo(1039.6,462);c.quadraticCurveTo(1039.3,468,1040,474);c.stroke();
@@ -182,7 +217,7 @@
       const age=(t*.11+i/8)%1,wind=1+Math.sin(t*.48)*.5;
       const x=fallPosition(.97,t)+age*wind*13+Math.sin(i*2.4)*age*5,y=fallBase-2-age*8;
       const size=.25+age*.57;
-      c.save();c.globalAlpha=Math.sin(age*Math.PI)*.63;c.translate(x,y);c.scale(size,size);c.rotate(-age*.15);c.drawImage(fallMist[i%4],-27,-19);c.restore();
+      c.save();c.globalAlpha=Math.sin(age*Math.PI)*.63;c.translate(x,y);c.scale(size,size);c.rotate(-age*.15);drawSprite(c,fallMist[i%4],-27,-19);c.restore();
     }
     // Fine spray follows the same wind; no randomly respawned particles.
     c.fillStyle='rgba(235,242,225,.22)';
@@ -246,8 +281,8 @@
       }
       if(visible<90)continue;
       c.putImageData(image,0,0);
-      canopy.push({sprite,x,y,near:near/visible,pine:x<190});
-      if(leafY)looseLeaves.push({x:leafX,y:leafY,phase:((x*13+y*7)%997)/997,duration:9+(x%7),size:.6+near/visible*.7});
+      if(x<190||near/visible>.12)canopy.push({sprite,x,y,near:near/visible,pine:x<190});
+      if(leafY&&x<190&&looseLeaves.length<8)looseLeaves.push({x:leafX,y:leafY,phase:((x*13+y*7)%997)/997,duration:9+(x%7),size:.6+near/visible*.7});
     }
     const savedSeed=seed;seed=7183;
     for(const col of [{r:125,g:139,b:92},{r:166,g:167,b:111},{r:94,g:116,b:81},{r:184,g:171,b:118}]){
@@ -259,7 +294,9 @@
     seed=savedSeed;
   }
   function rustlingTrees(c,t){
+    const viewLeft=-ox/scale,viewRight=(innerWidth-ox)/scale;
     for(const patch of canopy){
+      if(patch.x+patch.sprite.width+10<viewLeft||patch.x-10>viewRight)continue;
       // One gust travels across the near canopy; high branches yield more than their trunks.
       const windTime=t-patch.x*.0016;
       const gust=Math.sin(windTime*.75)*.65+Math.sin(windTime*1.55)*.22;
@@ -268,17 +305,18 @@
       const sway=(gust+flutter)*flex;
       const anchor=patch.sprite.height;
       c.save();c.translate(patch.x+patch.sprite.width*.5,patch.y+anchor);
-      c.rotate(-sway*.0025);c.drawImage(patch.sprite,-patch.sprite.width*.5+sway,-anchor+Math.sin(windTime*1.2)*flex*.18);c.restore();
+      c.rotate(-sway*.0025);drawSprite(c,patch.sprite,-patch.sprite.width*.5+sway,-anchor+Math.sin(windTime*1.2)*flex*.18);c.restore();
     }
     // Pigment flecks lift from the canopy, turn in the gust, then settle out of sight.
     for(let i=0;i<looseLeaves.length;i++){
-      const leaf=looseLeaves[i],age=(t/leaf.duration+leaf.phase)%1;
+      const leaf=looseLeaves[i];if(leaf.x+220<viewLeft||leaf.x-30>viewRight)continue;
+      const age=(t/leaf.duration+leaf.phase)%1;
       const breeze=Math.sin((t-leaf.x*.0016)*.75),arc=Math.sin(age*Math.PI);
       const x=leaf.x+age*(100+leaf.size*55)+arc*Math.sin(t*.7+i)*18;
       const y=leaf.y-arc*(28+leaf.size*20)+age*age*90;
       c.save();c.globalAlpha=arc*arc*.72;c.translate(x,y);c.rotate(age*5+Math.sin(t*1.6+i)*.6);
       c.scale(leaf.size*(.25+.75*Math.abs(Math.cos(t*2.2+i))),leaf.size);
-      c.transform(1,0,breeze*.25,1,0,0);c.drawImage(leafSprites[i%leafSprites.length],-11,-7);c.restore();
+      c.transform(1,0,breeze*.25,1,0,0);drawSprite(c,leafSprites[i%leafSprites.length],-11,-7);c.restore();
     }
   }
   function birds(c,t){
@@ -302,7 +340,7 @@
   }
   function animate(now){
     requestAnimationFrame(animate);
-    if(!ready||!pixels||document.hidden||window.breezePaused||now-last<40)return;
+    if(!ready||!liveReady||document.hidden||window.breezePaused||window.scenePaused||now-last<40)return;
     const dt=Math.min((now-last)/1000,.08);last=now;clock+=dt;
     air.clearRect(0,0,innerWidth,motion.height/(Math.min(devicePixelRatio||1,2)));air.save();air.translate(ox,oy);air.scale(scale,scale);
     driftingClouds(air,clock);
@@ -310,27 +348,115 @@
     rustlingTrees(air,clock);birds(air,clock);
     air.restore();
   }
-  const img=new Image();img.decoding='async';img.src='assets/yosemite-guide.jpg';
-  img.onload=async()=>{
+  function loadImage(url,priority='low'){
+    return new Promise((resolve,reject)=>{
+      const img=new Image();img.decoding='async';img.fetchPriority=priority;
+      img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Image unavailable: '+url));img.src=url;
+    });
+  }
+  function showPainting(img){
+    p.drawImage(img,0,0,W,H);ready=true;fit();
+    document.documentElement.dataset.sceneReady='true';
+    performance.mark('scene-visible');
+  }
+  async function prepareAuthoring(rebuild=false){
+    const img=await loadImage('assets/yosemite-guide.jpg');
+    sample??=source.getContext('2d',{willReadFrequently:true});
     sample.drawImage(img,0,0,W,H);pixels=sample.getImageData(0,0,W,H).data;
     for(let x=0;x<W;x++){
       let y=0;
       for(;y<650;y++){const i=(y*W+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];if(!(b>160&&b>r*1.3&&b>g*1.04&&b-r>45))break;}
       skyline[x]=y;
     }
-    cacheClouds();cacheWaterfall();
-    const cached=new Image();cached.src='assets/yosemite-painting.webp';
-    cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
-    cached.onerror=()=>buildPainting();
+    cloudSprites.length=0;fallMist.length=0;cacheClouds();cacheWaterfall();liveReady=true;
+    if(rebuild)await buildPainting();
+    else{try{const cached=await loadImage('assets/yosemite-painting.webp?v=cliffs-2');p.drawImage(cached,0,0,W,H);cacheCanopy();showPainting(cached);}catch{await buildPainting();}}
+    document.documentElement.dataset.sceneLive='true';
+  }
+  let foregroundGroups=[],foregroundManifest;
+  const foregroundLoads=new Map();
+  async function loadVisibleForeground(){
+    const left=-ox/scale,right=(innerWidth-ox)/scale;
+    const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
+    const results=await Promise.allSettled(visible.map(group=>{
+      if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
+        const atlas=await loadImage(new URL(group.atlas,foregroundManifest).href);
+        canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
+        fit();
+      })());
+      return foregroundLoads.get(group.atlas);
+    }));
+    document.documentElement.dataset.sceneComplete=results.every(r=>r.status==='fulfilled')?'true':'partial';
+    performance.mark('scene-complete');
+  }
+  async function loadLiveAssets(){
+    try{
+      const url=new URL('assets/yosemite-live-p2.json',location.href);
+      const response=await fetch(url,{priority:'low'});if(!response.ok)throw new Error('Live manifest unavailable');
+      const data=await response.json();if(data.version!==2||data.skyline.length!==W)throw new Error('Invalid scene assets');
+      const atlas=await loadImage(new URL(data.atlas,url).href);
+      const sprite=record=>({image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]});
+      skyline.set(data.skyline);
+      cloudSprites.push(...data.clouds.map(record=>({...record,sprite:sprite(record)})));
+      fallMist.push(...data.mist.map(sprite));
+      leafSprites.push(...data.leaves.map(sprite));looseLeaves.push(...data.looseLeaves);
+      foregroundGroups=data.foreground;foregroundManifest=url;
+      liveReady=true;fit();document.documentElement.dataset.sceneLive='true';performance.mark('scene-live');
+      loadVisibleForeground();
+    }catch{document.documentElement.dataset.sceneLive='static';}
+  }
+  async function startScene(){
+    if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
+    try{showPainting(await loadImage('assets/yosemite-display-p2.webp','high'));}
+    catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
+    // Yield a frame so the finished painting is visible before preparing live layers.
+    requestAnimationFrame(()=>loadLiveAssets());
+  }
+  startScene().catch(()=>{document.documentElement.dataset.sceneReady='error';});
+  window.exportSceneAssets=()=>{
+    const display=document.createElement('canvas');display.width=W;display.height=H;
+    const dc=display.getContext('2d');dc.drawImage(painting,0,0);if(foreground)dc.drawImage(foreground,0,0);
+    const common=[],groups=[[],[],[]],metadata={version:2,atlas:'yosemite-live-p2.webp',skyline:Array.from(skyline),looseLeaves,clouds:[],mist:[],foreground:[],leaves:[]};
+    const add=(sprite,props,list,entries)=>{const record={...props};list.push(record);entries.push({sprite,record});};
+    cloudSprites.forEach(({sprite,...props})=>add(sprite,props,metadata.clouds,common));
+    fallMist.forEach(sprite=>add(sprite,{},metadata.mist,common));
+    leafSprites.forEach(sprite=>add(sprite,{},metadata.leaves,common));
+    for(let i=0;i<3;i++)metadata.foreground.push({atlas:['yosemite-near-left-p2.webp','yosemite-near-center-p2.webp','yosemite-near-right-p2.webp'][i],canopy:[]});
+    canopy.forEach(({sprite,...props})=>{
+      const group=Math.min(2,Math.floor((props.x+sprite.width/2)/(W/3)));
+      add(sprite,props,metadata.foreground[group].canopy,groups[group]);
+    });
+    function pack(entries){
+      let x=0,y=0,row=0;
+      for(const entry of entries){
+        const {width:w,height:h}=entry.sprite;
+        if(x+w+4>2048){x=0;y+=row+4;row=0;}
+        entry.record.rect=[x+2,y+2,w,h];x+=w+4;row=Math.max(row,h);
+      }
+      const atlas=document.createElement('canvas');atlas.width=2048;atlas.height=y+row+4;
+      const ac=atlas.getContext('2d');entries.forEach(({sprite,record})=>ac.drawImage(sprite,record.rect[0],record.rect[1]));
+      return atlas.toDataURL('image/webp',.86);
+    }
+    const atlases={[metadata.atlas]:pack(common)};
+    metadata.foreground.forEach((group,i)=>{atlases[group.atlas]=pack(groups[i])});
+    return {metadata,display:display.toDataURL('image/webp',.84),atlases};
   };
-  img.onerror=()=>{
-    const cached=new Image();cached.src='assets/yosemite-painting.webp';
-    cached.onload=()=>{p.drawImage(cached,0,0,W,H);cacheCanopy();ready=true;fit();document.documentElement.dataset.sceneReady='true';};
-    cached.onerror=()=>{document.documentElement.dataset.sceneReady='error';};
-  };
-  window.paintLandscape=buildPainting;
+  window.paintLandscape=()=>prepareAuthoring(true);
   window.exportPainting=()=>painting.toDataURL('image/webp',.94);
-  let timer;addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(fit,100);});
+  window.seekScene=seconds=>{clock=seconds;fit();};
+  window.pauseScene=paused=>{window.scenePaused=paused;};
+  window.sceneBirdsAt=t=>{
+    const left=-ox/scale,right=(innerWidth-ox)/scale;
+    const top=(scrollY-oy)/scale,bottom=(scrollY+innerHeight-oy)/scale;
+    const span=right-left+180,spacing=Math.min(24,(right-left)/9),visible=[];
+    for(let flock=0;flock<2;flock++)for(let i=0;i<3;i++){
+      const x=left-60+((t/32+flock*.5+.19)%1)*span-i*spacing;
+      const y=224+flock*26+i*10+Math.sin(t*.3+flock)*4;
+      if(x>=left-8&&x<=right+8&&x>=0&&x<W&&y<skyline[Math.floor(x)]-12&&y>=top&&y<=bottom)visible.push({flock,i,x,y});
+    }
+    return visible;
+  };
+  let timer;addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{fit();if(liveReady&&foregroundManifest)loadVisibleForeground();},100);});
   addEventListener('visibilitychange',()=>{last=performance.now();});
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   window.breezePaused=reduce.matches;reduce.addEventListener('change',e=>{window.breezePaused=e.matches;if(e.matches)fit();});

@@ -1,9 +1,9 @@
 (() => {
   const key = 'postcard-cloud-arrival';
   const root = document.documentElement;
-  const link = document.querySelector('[data-cloud-link]');
+  const links = [...document.querySelectorAll('[data-cloud-link]')];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let canvas, context, sprites, width, height, busy = false, generation = 0;
+  let canvas, context, sprites, width, height, busy = false, generation = 0, spritePromise;
   let seed = 4319;
   const random = () => {
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -70,8 +70,28 @@
     return sprite;
   }
 
-  function prepare() {
-    if (!sprites) sprites = Array.from({length:4}, (_, i) => cloudSprite(i));
+  window.exportCloudCurtain=()=>{
+    const atlas=document.createElement('canvas');atlas.width=atlas.height=1200;
+    const c=atlas.getContext('2d');
+    for(let i=0;i<4;i++)c.drawImage(cloudSprite(i),(i%2)*600,Math.floor(i/2)*600);
+    return atlas.toDataURL('image/webp',.86);
+  };
+
+  async function loadSprites(){
+    if(sprites)return;
+    if(!spritePromise)spritePromise=new Promise((resolve,reject)=>{
+      const image=new Image();image.decoding='async';image.fetchPriority='low';
+      const timeout=setTimeout(()=>reject(new Error('Cloud texture timeout')),2000);
+      image.onload=()=>{clearTimeout(timeout);resolve(image)};
+      image.onerror=()=>{clearTimeout(timeout);reject(new Error('Cloud texture unavailable'))};
+      image.src='assets/cloud-curtain-p1.webp';
+    }).then(image=>{
+      sprites=Array.from({length:4},(_,i)=>({image,rect:[(i%2)*600,Math.floor(i/2)*600,600,600]}));
+    }).catch(error=>{spritePromise=undefined;throw error});
+    return spritePromise;
+  }
+  async function prepare() {
+    await loadSprites();
     if (!canvas) {
       canvas = document.createElement('canvas');
       canvas.className = 'cloud-curtain'; canvas.hidden = true;
@@ -101,7 +121,8 @@
       const travel = (1 - settled) * (leaving ? -1 : 1);
       const x = col * width / 2 + dx * (width * .58 + size * .48) * travel;
       const y = row * height / 2 + dy * (height * .58 + size * .4) * travel;
-      context.drawImage(sprites[n % 4], x - size / 2, y - size / 2, size, size);
+      const sprite=sprites[n%4];
+      context.drawImage(sprite.image,...sprite.rect,x-size/2,y-size/2,size,size);
     }
   }
 
@@ -125,42 +146,49 @@
     document.body.removeAttribute('aria-busy');
   }
 
-  if (link) {
-    link.addEventListener('click', async event => {
-      if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || reduced.matches) return;
+  if (links.length) {
+    for (const link of links) link.addEventListener('click', async event => {
+      if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if(link.getAttribute('aria-current')==='page'){event.preventDefault();return;}
+      if(reduced.matches)return;
       event.preventDefault();
       if (busy) return;
       busy = true; document.body.setAttribute('aria-busy','true');
+      const preparing=++generation;
       try {
-        prepare(); canvas.hidden = false; root.dataset.cloudPhase = 'covering';
+        await prepare();if(!busy||preparing!==generation)return;
+        canvas.hidden = false; root.dataset.cloudPhase = 'covering';
         if (!await sweep(0, 1, 760)) return;
         root.dataset.cloudPhase = 'covered';
         const ticket = generation;
         await new Promise(resolve => setTimeout(resolve, 130));
         if (!busy || ticket !== generation) return;
-        try { sessionStorage.setItem(key, 'writing'); } catch {}
+        try { sessionStorage.setItem(key, new URL(link.href).pathname); } catch {}
         location.assign(link.href);
       } catch {
+        if(!busy||preparing!==generation)return;
         reset(); location.assign(link.href);
       }
     });
-    const preload = () => { if (!sprites) sprites = Array.from({length:4}, (_, i) => cloudSprite(i)); };
-    if ('requestIdleCallback' in window) requestIdleCallback(preload, {timeout:1500});
-    else setTimeout(preload, 300);
+    // Do not download or generate navigation clouds until the user approaches the link.
+    for(const link of links)for(const event of ['pointerenter','focus','pointerdown'])link.addEventListener(event,()=>{loadSprites().catch(()=>{})},{passive:true});
   }
 
   let arriving = false;
   try {
-    arriving = !link && sessionStorage.getItem(key) === 'writing';
-    if (!link) sessionStorage.removeItem(key);
+    arriving = sessionStorage.getItem(key) === location.pathname;
+    sessionStorage.removeItem(key);
   } catch {}
   if (arriving && !reduced.matches) {
-    prepare(); canvas.hidden = false; paint(1, false);
-    clearTimeout(window.cloudFallback); root.classList.remove('cloud-arrival');
-    root.dataset.cloudPhase = 'revealing';
-    sweep(1, 0, 850).then(() => {
-      reset(); document.querySelector('h1')?.focus({preventScroll:true});
-    });
+    clearTimeout(window.cloudFallback);
+    const preparing=++generation;
+    prepare().then(()=>{
+      if(preparing!==generation)return;
+      canvas.hidden=false;paint(1,false);root.classList.remove('cloud-arrival');
+      root.dataset.cloudPhase='revealing';return sweep(1,0,850);
+    }).then(completed=>{
+      if(completed){reset();document.querySelector('h1')?.focus({preventScroll:true});}
+    }).catch(()=>{reset();document.querySelector('h1')?.focus({preventScroll:true});});
   } else {
     clearTimeout(window.cloudFallback); root.classList.remove('cloud-arrival');
   }
