@@ -395,7 +395,7 @@ Local baking: `npm run bake:landscapes` regenerates all four new caches; append 
 
 The user replaced Writing with the supplied Banff portrait and About with the supplied sandstone-arch/kayak photo. The About source depicts Pictured Rocks rather than Sleeping Bear; its legacy asset directory and module ID remain `sleeping-bear` for compatibility. The sixth destination is `tech-blog`, using the supplied Beaumont Tower photograph. Preserve the user originals and scene-specific canonical reference copies; never overwrite them during baking.
 
-The user withdrew the proposed extra noise, brighter foreground-bush pass, and upper Yosemite branch. Keep the existing Yosemite artwork, grain strength, and foreground colors. Do not reintroduce those withdrawn changes when regenerating the three replacement/new scenes.
+The user withdrew the proposed extra noise and upper Yosemite branch. Preserve Yosemite's existing artwork and grain strength. The latest foreground direction adds richer cool green shadows and warm sunlit tips to separate the near trees from the distant forest; retain this depth-feathered grade when rebaking Home. Do not apply it to the other scenes.
 
 New scenes use `liveVersion:2`, `painting-v2.webp`, `fallback-v2.webp`, and matching `live-v2.json`/`live-v2.webp`. Existing Volcanoes and Great Sand Dunes retain their original v1 packs; Home retains its p2 atlas set. `sourceY` is an optional vertical crop anchor for local authoring, used by Banff to keep mountain walls, lake, and canoe foreground in one coherent full-bleed crop. No stretching or invented side-fill is used.
 

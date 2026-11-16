@@ -250,18 +250,18 @@
     const paint=p.getImageData(0,0,W,H).data;
     foreground=document.createElement('canvas');foreground.width=W;foreground.height=H;
     const fc=foreground.getContext('2d'),front=fc.createImageData(W,H);
-    // The near trees use the existing pigment, with deeper shadows and warmer needle tips.
+    // Open warm, sunlit tips against cool green shadows; depth feathers the grade into the valley.
     for(let y=140;y<H;y++)for(let x=0;x<W;x++){
       const at=(y*W+x)*4,r=pixels[at],g=pixels[at+1],b=pixels[at+2],depth=foregroundDepth(x,y);
       const foliage=g>b*.94&&g>r*.87,wood=r+g+b<225;
       if(depth<.01||(!foliage&&!wood)||y<skyline[x]+4)continue;
       const brightness=paint[at]*.3+paint[at+1]*.55+paint[at+2]*.15;
-      const highlight=clamp((brightness-145)/65,0,1);
-      front.data[at]=clamp((paint[at]-115)*1.25+99+highlight*5,0,255);
-      front.data[at+1]=clamp((paint[at+1]-115)*1.24+103+highlight*7,0,255);
-      front.data[at+2]=clamp((paint[at+2]-115)*1.2+91,0,255);
+      const highlight=clamp((brightness-135)/75,0,1);
+      front.data[at]=clamp((paint[at]-125)*1.42+108+highlight*17,0,255);
+      front.data[at+1]=clamp((paint[at+1]-125)*1.4+117+highlight*13,0,255);
+      front.data[at+2]=clamp((paint[at+2]-125)*1.28+96+highlight*2,0,255);
       const green=clamp((g-b+3)/18,0,1)*clamp((g-r+12)/20,0,1);
-      front.data[at+3]=Math.round(225*depth*Math.max(green,wood?.65:0));
+      front.data[at+3]=Math.round(240*depth*Math.max(green,wood?.65:0));
     }
     fc.putImageData(front,0,0);
     // Feathered, overlapping cutouts preserve the painted silhouette as branches flex.
@@ -380,7 +380,8 @@
     const visible=foregroundGroups.filter(group=>group.canopy.some(patch=>Math.min(right,patch.x+patch.rect[2])-Math.max(left,patch.x)>=12));
     const results=await Promise.allSettled(visible.map(group=>{
       if(!foregroundLoads.has(group.atlas))foregroundLoads.set(group.atlas,(async()=>{
-        const atlas=await loadImage(new URL(group.atlas,foregroundManifest).href);
+        const url=new URL(group.atlas,foregroundManifest);url.searchParams.set('v','foreground-3');
+        const atlas=await loadImage(url.href);
         canopy.push(...group.canopy.map(record=>({...record,sprite:{image:atlas,rect:record.rect,width:record.rect[2],height:record.rect[3]}})));
         fit();
       })());
@@ -407,7 +408,7 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-p2.webp','high'));}
+    try{showPainting(await loadImage('assets/yosemite-display-p2.webp?v=foreground-3','high'));}
     catch{try{showPainting(await loadImage('assets/yosemite-painting.webp?v=cliffs-2','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
