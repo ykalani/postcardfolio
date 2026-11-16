@@ -58,3 +58,5 @@ The upper bough samples pigment from the existing painted pine and its foregroun
 Use `node scripts/bake-assets.cjs --foreground-only` to regenerate these layers from the existing terrain painting without repainting the granite. The normal bake command still rebuilds the complete painting. Verify desktop, portrait, wide crops, motion, and bird occupancy after changing branch geometry.
 
 Background foliage receives a cool transparent glaze that fades out toward the near trees. Bake it into the display and canopy layers; retain the ungraded terrain cache so repeated bakes cannot compound the darkening. Preserve the warm foreground highlights and the granite and sky values.
+
+The upper limb uses a continuous irregular taper, shaded bark grain, small knots, and attached tapered twigs. For wood-only refinements, follow the focused desktop/mobile Playwright workflow in AGENTS.md.

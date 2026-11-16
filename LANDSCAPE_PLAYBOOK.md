@@ -322,7 +322,7 @@ We observed median browser frame intervals near 16.7 ms after optimizing. This m
 
 The built-in browser host was unavailable in the original session. Playwright worked and is required by repository instructions for browser automation, visual previews, and browser testing.
 
-Test the new park at desktop, portrait mobile, and a wide screen. Inspect screenshots yourself; do not rely exclusively on numeric assertions. Also inspect a short time sequence or video, because a beautiful still can hide incoherent motion.
+Scope browser checks to the change, as required by AGENTS.md. For a branch-only visual change, check Yosemite on desktop and portrait mobile with a short motion comparison; do not run the full 24-view suite. Use the broader suite for shared rendering, navigation, layout, or changes across multiple scenes. Test a new park at desktop, portrait mobile, and a wide screen. Inspect screenshots yourself; do not rely exclusively on numeric assertions. Also inspect a short time sequence or video, because a beautiful still can hide incoherent motion.
 
 Minimum checks:
 
@@ -403,7 +403,7 @@ Local baking: `npm run bake:landscapes` regenerates all four new caches; append 
 
 The user replaced Writing with the supplied Banff portrait and About with the supplied sandstone-arch/kayak photo. The About source depicts Pictured Rocks rather than Sleeping Bear; its legacy asset directory and module ID remain `sleeping-bear` for compatibility. The sixth destination is `tech-blog`, using the supplied Beaumont Tower photograph. Preserve the user originals and scene-specific canonical reference copies; never overwrite them during baking.
 
-The user withdrew the proposed extra noise and upper Yosemite branch. Preserve Yosemite's existing artwork and grain strength. The latest foreground direction adds richer cool green shadows and warm sunlit tips to separate the near trees from the distant forest; retain this depth-feathered grade when rebaking Home. Do not apply it to the other scenes.
+The upper Yosemite branch was restored and is part of Home. Preserve the existing landscape artwork and grain strength; branch refinements should retain its framing, pine needles, and wind motion. The latest foreground direction adds richer cool green shadows and warm sunlit tips to separate the near trees from the distant forest; retain this depth-feathered grade when rebaking Home. Do not apply it to the other scenes.
 
 New scenes use `liveVersion:2`, `painting-v2.webp`, `fallback-v2.webp`, and matching `live-v2.json`/`live-v2.webp`. Existing Volcanoes and Great Sand Dunes retain their original v1 packs; Home retains its p2 atlas set. `sourceY` is an optional vertical crop anchor for local authoring, used by Banff to keep mountain walls, lake, and canoe foreground in one coherent full-bleed crop. No stretching or invented side-fill is used.
 
