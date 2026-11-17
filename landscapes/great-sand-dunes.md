@@ -49,3 +49,7 @@ Foreground brush coverage begins at the near riverbank and extends across the fu
 ## Current visible motion (v5)
 
 Six mapped dune crests shed connected, broken-bristle spindrift veils that sweep downwind over seven-second fade cycles. These replace tiny isolated grains that disappeared against the painting. The river carries traveling light/dark painted crest groups and stronger displaced reflections, while rooted near brush bends in the same breeze. Sky clouds and mountain mist drift independently of fixed peaks. Portrait initial scroll is .82 so river motion sits above navigation. Use the v5 painting/fallback/live caches.
+
+## Snow refinement (v6)
+
+Snow deposits follow the guide's pale mountain faces, with brighter chalk-white planes, cool blue shadows, and broken strokes that follow the ridges. Exposed violet rock remains between deposits. This selective authoring pass stays inside a mountain mask and uses the existing brush painter; it adds no photographic detail. Runtime uses paired v6 painting, fallback, and live assets. Cloud banks continue left to right with pauses between passes, and the river flows right to left.

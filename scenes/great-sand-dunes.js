@@ -11,6 +11,31 @@ for(let x=0;x<W;x++){
   const edge=skyAt(x)-12,fade=sm.createLinearGradient(0,edge-24,0,edge);
   fade.addColorStop(0,'white');fade.addColorStop(1,'transparent');sm.fillStyle=fade;sm.fillRect(x,0,1,205);
 }
+async function refineSnow({ctx,sourcePixels,random}){
+  const x0=190,y0=60,w=930,h=170,mask=layer(W,H),m=mask.getContext('2d'),snow=layer(w,h),samples=new Uint8ClampedArray(w*h*4);
+  const ridge=[[190,175],[280,137],[350,109],[424,73],[467,91],[503,88],[549,68],[600,91],[665,107],[709,134],[747,123],[779,104],[810,114],[852,112],[905,109],[941,113],[1008,97],[1049,116],[1120,140]];
+  m.beginPath();ridge.forEach(([x,y],i)=>i?m.lineTo(x,y+5):m.moveTo(x,y+5));
+  for(const [x,y] of [[1120,144],[1020,156],[960,160],[900,184],[810,195],[710,199],[600,195],[490,189],[380,189],[280,177],[190,175]])m.lineTo(x,y);
+  m.closePath();m.clip();
+  m.strokeStyle='white';m.lineCap='butt';m.lineWidth=5;
+  // Snow follows the guide's pale, neutral deposits; exposed violet rock stays between them.
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const at=((y+y0)*W+x+x0)*4,k=(y*w+x)*4,r=sourcePixels[at],g=sourcePixels[at+1],b=sourcePixels[at+2];
+    const light=clamp((Math.min(r,g,b)-145)/65,0,1);
+    samples[k]=199+light*44;samples[k+1]=215+light*30;samples[k+2]=232+light*15;
+    if(x%5===0&&y%5===0&&Math.min(r,g,b)>150&&Math.max(r,g,b)-Math.min(r,g,b)<42){
+      const angle=x+x0<424?-.55:x+x0<780?.85:-.6,length=3+random()*3;
+      const cx=x+x0+(random()-.5)*2,cy=y+y0+(random()-.5)*2,dx=Math.cos(angle)*length,dy=Math.sin(angle)*length;
+      m.lineWidth=3+random()*4;m.beginPath();m.moveTo(cx-dx,cy-dy);m.lineTo(cx+dx,cy+dy);m.stroke();
+    }
+  }
+  const alpha=m.getImageData(x0,y0,w,h).data;
+  const {paintBrushwork}=await import('./brush-painting.js');
+  await paintBrushwork({ctx:snow.getContext('2d'),pixels:samples,width:w,height:h,random,pigmentStep:12,
+    angle:x=>x+x0<424?-.55:x+x0<780?.85:-.6,skip:(x,y)=>!alpha[(y*w+x)*4+3]});
+  const painted=layer(W,H),p=painted.getContext('2d');p.drawImage(snow,x0,y0);
+  p.globalCompositeOperation='destination-in';p.drawImage(mask,0,0);ctx.drawImage(painted,0,0);return mask;
+}
 function prepare({painting,pixels,random}){
   const mask=layer(W,DEPTH),water=layer(W,DEPTH),m=mask.getContext('2d'),alpha=m.createImageData(W,DEPTH),ripples=[];
   for(let y=0;y<DEPTH;y++)for(let x=0;x<W;x++){
@@ -124,7 +149,7 @@ function draw({ctx,t,state,wind}){
   }
   for(const patch of state.foliage){const sway=wind+Math.sin(t*2.4+patch.phase)*.2;ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,patch.y+patch.sprite.height);ctx.transform(1,0,sway*.045,1,0,0);ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-patch.sprite.height);ctx.restore();}
 }
-startScene({liveVersion:5,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v5.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.82,
+startScene({liveVersion:6,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v6.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.82,
   grade(r,g,b,x,y){
     const l=r*.3+g*.55+b*.15,near=clamp((y-805)/100,0,1);
     const brush=near*clamp((Math.max(r,g)-b*1.15)/35,0,1);
@@ -133,4 +158,4 @@ startScene({liveVersion:5,id:'great-sand-dunes',guide:'assets/great-sand-dunes/g
       g*(.84+brush*.2-far*.08)+l*.1+10-brush*13+far*15,
       b*(.8+brush*.08-far*.08)+l*.12+11-brush*19+far*25];
   },
-  angle(x,y){if(y>730&&y<850)return-.04;if(y>330&&y<745)return.12+Math.sin(x*.007+y*.008)*.24;return y<330?1.2:-1.1;},prepare,draw});
+  angle(x,y){if(y>730&&y<850)return-.04;if(y>330&&y<745)return.12+Math.sin(x*.007+y*.008)*.24;return y<330?1.2:-1.1;},prepare,draw,refine:refineSnow});
