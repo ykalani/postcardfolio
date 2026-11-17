@@ -15,9 +15,8 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     const result=await page.evaluate(route=>{
      const g=document.querySelector('#motion').getContext('2d');
      const regions=route==='experiences'?[{name:'smoke',x:0,y:0,w:1600,h:230},{name:'rising bristles',x:790,y:330,w:250,h:380}]:[
-      {name:'clouds',x:0,y:0,w:1600,h:55},{name:'sand',x:300,y:350,w:280,h:220},
-      {name:'river',x:300,y:745,w:900,h:90},{name:'brush',x:0,y:860,w:1600,h:140},
-      {name:'mountains',x:450,y:170,w:400,h:80}];
+      {name:'clouds',x:0,y:100,w:1600,h:140},{name:'sand',x:300,y:600,w:1000,h:220},
+      {name:'grass',x:0,y:860,w:1600,h:140},{name:'mountains',x:450,y:300,w:400,h:150}];
      function read(){return regions.map(r=>g.getImageData(r.x,r.y,r.w,r.h).data);}
      function delta(a,b){let changed=0,energy=0;for(let i=0;i<a.length;i+=4){const d=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2])+Math.abs(a[i+3]-b[i+3]);if(d>0)changed++;energy+=d;}return{changed,energy};}
      const first=read();window.seekScene(6);const next=read();
@@ -32,6 +31,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    }else await page.evaluate(()=>window.seekScene(6));
    await page.screenshot({path:path.join(output,`${route}-${width}-t6.png`)});assert.deepEqual(errors,[]);await page.close();
   }
-  console.log('Passed: smoke, cloud, sand, water and foreground motion; steady mountain and continuous cycles. Screenshots: '+output);
+  console.log('Passed: smoke, cloud, sand and grass motion; steady mountain and continuous cycles. Screenshots: '+output);
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

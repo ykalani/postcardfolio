@@ -123,7 +123,7 @@ Before coding, write a short brief containing:
 
 Do not combine landmarks from incompatible viewpoints and call it an accurate scene. If an artistic rearrangement is needed, make it deliberate and avoid misrepresenting the geography. Verify which feature is which: Half Dome and El Capitan are not interchangeable labels.
 
-Use the five linked scene briefs above. Earlier suggestions for Zion, Grand Teton, Glacier, Bryce Canyon, Arches, and Acadia are superseded by this selection. Great Sand Dunes is a daylight scene of dune ridges, the Sangre de Cristo backdrop, and seasonal Medano Creek. Sleeping Bear is a water-led Lake Michigan sunset. Keep these two dune destinations visually distinct.
+Use the linked scene briefs above. Earlier suggestions for Zion, Grand Teton, Glacier, Bryce Canyon, Arches, and Acadia are superseded by this selection. Great Sand Dunes now uses the supplied warm-light view of orange dunes, snowy mountain faces, and grassland, with no visible creek. The scene brief records its current composition and motion.
 
 Pick a real photograph for the chosen viewpoint before deciding exact landmark coordinates. Do not give every park the same clouds, pine tree, waterfall, lake, and pollen.
 

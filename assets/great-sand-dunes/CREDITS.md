@@ -1,3 +1,11 @@
+# Great Sand Dunes - current supplied reference
+
+The user supplied the new 990 x 742 landscape by replacing `fallback.webp`. Its bytes are preserved as `guide.webp` for local authoring. The image shows orange dune ridges, snow-covered mountain faces in warm light, sparse clouds, and low grassland. No river is visible. Photographer, date, and license were not supplied; the earlier NPS attribution does not apply to this replacement.
+
+The scene center-cover crops the supplied reference into a 1600 x 1000 original brush painting. Runtime assets are `painting-v8.webp`, `fallback-v8.webp`, and the paired `live-v8.json` / `live-v8.webp`. Neither the supplied photograph nor an authoring guide is downloaded during normal visits.
+
+## Previous reference - historical attribution
+
 # Great Sand Dunes painting guide
 
 - Photograph: Gold Aspens and Cottonwoods, Dunes, and Snow-Dusted Cleveland Peak.

@@ -12,8 +12,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
       await page.screenshot({path:path.join(output,`${width}-initial.png`)});
-      await page.evaluate(()=>window.seekScene(.75));
-      await page.screenshot({path:path.join(output,`${width}-river-t075.png`)});
       await page.evaluate(()=>scrollTo(0,0));
       for(const t of [0,3,6,24,31]){
         await page.evaluate(t=>window.seekScene(t),t);
@@ -22,22 +20,18 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
       if(width===1600){
         const report=await page.evaluate(()=>{
           const c=document.querySelector('#motion').getContext('2d');
-          const read=()=>[c.getImageData(0,0,1600,55).data,c.getImageData(450,170,400,80).data,c.getImageData(0,280,1600,65).data];
+          const read=()=>[c.getImageData(0,100,1600,140).data,c.getImageData(450,300,400,150).data,c.getImageData(300,600,1000,220).data,c.getImageData(0,860,1600,140).data];
           const delta=(a,b)=>a.reduce((sum,v,i)=>sum+Math.abs(v-b[i]),0);
           window.seekScene(0);const first=read();window.seekScene(3);const next=read();
           const movement=first.map((v,i)=>delta(v,next[i]));
-          const prominent=[next[0],next[2]].map(data=>{
-            let count=0;for(let i=0;i<data.length;i+=4)if(data[i]>190&&data[i+3]>180)count++;return count;
-          });
           const seams=[28,68,108].map(t=>{
             window.seekScene(t-.001);const a=read()[0];window.seekScene(t+.001);return delta(a,read()[0]);
           });
-          const proto=CanvasRenderingContext2D.prototype,draw=proto.drawImage,move=proto.moveTo;
+          const proto=CanvasRenderingContext2D.prototype,draw=proto.drawImage;
           const ids=new WeakMap();let serial=0,positions=new Map(),last=new Map(),backwards=0,gaps=0,frames=0;
           proto.drawImage=function(sprite,...args){
-            const sky=this.canvas.width===1600&&this.canvas.height===205&&sprite.width<1000;
-            const fog=this.canvas===document.querySelector('#motion')&&sprite.width===500&&sprite.height===140;
-            if((sky||fog)&&args[0]+sprite.width>0&&args[0]<1600){
+            const sky=this.canvas.width===1600&&this.canvas.height===440&&sprite.width<1000;
+            if(sky&&args[0]+sprite.width>0&&args[0]<1600){
               if(!ids.has(sprite))ids.set(sprite,serial++);positions.set(ids.get(sprite),args[0]);
             }
             return draw.call(this,sprite,...args);
@@ -50,29 +44,19 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
             }
           }finally{proto.drawImage=draw;}
           const stream={backwards,gaps,frames};
-          let bands=[],ripples=[];
-          proto.drawImage=function(...args){if(this.canvas.width===1600&&this.canvas.height===165&&args.length===9)bands.push(args[5]);return draw.apply(this,args);};
-          proto.moveTo=function(x,y){if(this.canvas.width===1600&&this.canvas.height===165)ripples.push(x);return move.call(this,x,y);};
-          let river;
-          try{
-            window.seekScene(1);const firstBands=bands,firstRipples=ripples;bands=[];ripples=[];window.seekScene(1.1);
-            river={bandsLeft:bands.every((x,i)=>x<firstBands[i]),ripplesLeft:ripples.every((x,i)=>x<firstRipples[i]||x-firstRipples[i]>1500),bands:bands.length,ripples:ripples.length};
-          }finally{proto.drawImage=draw;proto.moveTo=move;}
-          return{movement,prominent,seams,river,stream};
+          return{movement,seams,stream};
         });
         assert.ok(report.movement[0]>10000,'Sky clouds visibly change within three seconds');
         assert.equal(report.movement[1],0,'Mountains stay fixed');
-        assert.ok(report.movement[2]>10000,'Low cloud bank visibly changes');
-        assert.ok(report.prominent.every(count=>count>1000),`Sky and low clouds have substantial bright, opaque brushwork: ${report.prominent}`);
+        assert.ok(report.movement[2]>10000,'Wind moves painted sand on the new dune ridges');
+        assert.ok(report.movement[3]>10000,'Foreground grass moves');
         assert.ok(report.seams.every(energy=>energy<report.movement[0]*.05),'Cloud wrapping has no visible pop');
         assert.equal(report.stream.backwards,0,'Every cloud bank travels left to right');
         assert.ok(report.stream.gaps>=12&&report.stream.gaps<report.stream.frames/2,'Cloud stream has recurring clear intervals');
-        assert.ok(report.river.bands>0&&report.river.bandsLeft,'All river reflections flow right to left');
-        assert.ok(report.river.ripples>0&&report.river.ripplesLeft,'All river ripples and crests flow right to left');
         console.log(JSON.stringify(report));
       }
       assert.deepEqual(errors,[]);await page.close();
     }
-    console.log(`Passed: dunes clouds, right-to-left river, fixed mountains and seamless cloud wrapping. Screenshots: ${output}`);
+    console.log(`Passed: intermittent clouds, windblown sand, grass and fixed mountains. Screenshots: ${output}`);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
