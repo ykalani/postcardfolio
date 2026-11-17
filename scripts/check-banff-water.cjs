@@ -13,7 +13,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       page.on('pageerror', error=>errors.push(error.message));
       await page.goto(base+'/writing');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
-      assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v6.webp');
+      assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v7.webp');
       assert.equal(await page.evaluate(()=>window.exportSceneAssets().metadata.state.foliage.length),4,'Four painted shoreline conifers');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
       for (const name of ['.trail-post','.trail-pika']) {
