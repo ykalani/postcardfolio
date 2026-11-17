@@ -2,19 +2,19 @@ import {startScene} from './scene-painter.js';
 const W=1600,H=1000,TOP=725,DEPTH=165;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const layer=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;};
-const skyline=[[0,205],[180,124],[330,78],[480,57],[650,124],[800,102],[1000,71],[1130,58],[1290,114],[1460,81],[1600,56]];
+const skyline=[[0,205],[120,185],[190,175],[280,137],[350,109],[424,73],[467,91],[503,88],[549,68],[600,91],[665,107],[709,134],[747,123],[779,104],[810,114],[852,112],[905,109],[941,113],[1008,97],[1049,116],[1120,140],[1160,103],[1195,85],[1250,91],[1290,114],[1370,119],[1460,101],[1510,88],[1600,79]];
 const skyAt=x=>{for(let i=1;i<skyline.length;i++)if(x<=skyline[i][0]){const a=skyline[i-1],b=skyline[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 56;};
 const skyMotion=layer(W,205),skyMask=layer(W,205),sm=skyMask.getContext('2d');
 let fogSource,fogBanks;
 // Feather traveling pigment before the peaks so the sky has no hard polygon edge.
 for(let x=0;x<W;x++){
-  const edge=skyAt(x)-12,fade=sm.createLinearGradient(0,edge-24,0,edge);
+  const edge=skyAt(x)-24,fade=sm.createLinearGradient(0,edge-24,0,edge);
   fade.addColorStop(0,'white');fade.addColorStop(1,'transparent');sm.fillStyle=fade;sm.fillRect(x,0,1,205);
 }
 async function refineSnow({ctx,sourcePixels,random}){
   const x0=190,y0=60,w=930,h=170,mask=layer(W,H),m=mask.getContext('2d'),snow=layer(w,h),samples=new Uint8ClampedArray(w*h*4);
-  const ridge=[[190,175],[280,137],[350,109],[424,73],[467,91],[503,88],[549,68],[600,91],[665,107],[709,134],[747,123],[779,104],[810,114],[852,112],[905,109],[941,113],[1008,97],[1049,116],[1120,140]];
-  m.beginPath();ridge.forEach(([x,y],i)=>i?m.lineTo(x,y+5):m.moveTo(x,y+5));
+  const ridge=skyline.filter(([x])=>x>=190&&x<=1120);
+  m.beginPath();ridge.forEach(([x,y],i)=>i?m.lineTo(x,y+8):m.moveTo(x,y+8));
   for(const [x,y] of [[1120,144],[1020,156],[960,160],[900,184],[810,195],[710,199],[600,195],[490,189],[380,189],[280,177],[190,175]])m.lineTo(x,y);
   m.closePath();m.clip();
   m.strokeStyle='white';m.lineCap='butt';m.lineWidth=5;
@@ -81,7 +81,7 @@ function prepare({painting,pixels,random}){
       const at=((region.y+y)*W+region.x+x)*4,k=(y*region.w+x)*4;
       const light=Math.min(pixels[at],pixels[at+1],pixels[at+2]);
       const edge=Math.sin(x/region.w*Math.PI)*Math.sin(y/region.h*Math.PI);
-      data.data[k+3]*=clamp((light-130)/65,0,1)*edge*clamp((skyAt(region.x+x)-region.y-y-12)/16,0,1);
+      data.data[k+3]*=clamp((light-130)/65,0,1)*edge*clamp((skyAt(region.x+x)-region.y-y-24)/16,0,1);
     }
     c.putImageData(data,0,0);clouds.push({...region,sprite});
   }
@@ -149,7 +149,7 @@ function draw({ctx,t,state,wind}){
   }
   for(const patch of state.foliage){const sway=wind+Math.sin(t*2.4+patch.phase)*.2;ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,patch.y+patch.sprite.height);ctx.transform(1,0,sway*.045,1,0,0);ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-patch.sprite.height);ctx.restore();}
 }
-startScene({liveVersion:6,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v6.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.82,
+startScene({liveVersion:7,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.jpg',cache:'assets/great-sand-dunes/painting-v7.webp',background:'#b9b0a4',focusX:.54,focusY:.5,initialScroll:.82,
   grade(r,g,b,x,y){
     const l=r*.3+g*.55+b*.15,near=clamp((y-805)/100,0,1);
     const brush=near*clamp((Math.max(r,g)-b*1.15)/35,0,1);

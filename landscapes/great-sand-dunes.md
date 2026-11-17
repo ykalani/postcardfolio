@@ -53,3 +53,5 @@ Six mapped dune crests shed connected, broken-bristle spindrift veils that sweep
 ## Snow refinement (v6)
 
 Snow deposits follow the guide's pale mountain faces, with brighter chalk-white planes, cool blue shadows, and broken strokes that follow the ridges. Exposed violet rock remains between deposits. This selective authoring pass stays inside a mountain mask and uses the existing brush painter; it adds no photographic detail. Runtime uses paired v6 painting, fallback, and live assets. Cloud banks continue left to right with pauses between passes, and the river flows right to left.
+
+The v7 assets align cloud extraction and snow placement to the same detailed summit outline. Sky cutouts stop above the mountain brush edges, so snowy mountain pixels cannot travel with the clouds.
