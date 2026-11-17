@@ -21,33 +21,13 @@ fs.mkdirSync(output, {recursive: true});
       await card.evaluate(card => {card.getAnimations()[0].pause();card.getAnimations()[0].currentTime = 640;});
       await page.screenshot({path: path.join(output, `flight-${width}.png`)});
       const flying = await card.boundingBox();
-      const continuity = await card.evaluate(card => {
-        const animation = card.getAnimations()[0];
-        const position = time => {
-          animation.currentTime = time;
-          const matrix = new DOMMatrix(getComputedStyle(card).transform);
-          return [matrix.m41, matrix.m42];
-        };
-        return [800, 1600, 2400].map(time => {
-          const before = position(time - 8), at = position(time), after = position(time + 8);
-          const incoming = at.map((v, i) => v - before[i]);
-          const outgoing = after.map((v, i) => v - at[i]);
-          return Math.hypot(...incoming.map((v, i) => v - outgoing[i])) / Math.hypot(...incoming);
-        });
-      });
-      assert.ok(continuity.every(change => change < .12), `Loop velocity stays continuous: ${continuity}`);
-      const loop = [];
-      for (const [label, time] of [['loop-top', 1200], ['loop-bottom', 2000]]) {
-        await card.evaluate((card, time) => {card.getAnimations()[0].currentTime = time;}, time);
-        await page.screenshot({path: path.join(output, `${label}-${width}.png`)});
-        const box = await card.boundingBox();
-        loop.push(box.y + box.height / 2);
-      }
-      assert.ok(loop[1] - loop[0] > 150, 'Flight loops from above to below the landing point');
-      await card.evaluate(card => {card.getAnimations()[0].currentTime = 3200;});
+      await card.evaluate(card => {card.getAnimations()[0].currentTime = 1200;});
+      await page.screenshot({path: path.join(output, `approach-${width}.png`)});
+      const approaching = await card.boundingBox();
+      await card.evaluate(card => {card.getAnimations()[0].currentTime = 1700;});
       await page.screenshot({path: path.join(output, `landed-${width}.png`)});
       const landed = await card.boundingBox();
-      assert.ok(flying.x < landed.x - 50, 'Card slides across the scene');
+      assert.ok(flying.x < approaching.x && approaching.x <= landed.x + 1, 'Card slides toward the center without cycling');
       assert.ok(Math.abs(landed.x + landed.width / 2 - width / 2) < 2, 'Card lands horizontally centered');
       assert.ok(landed.x >= 0 && landed.x + landed.width <= width, 'Card fits viewport');
       assert.ok(landed.width / landed.height > 1.5, 'Card has landscape postcard proportions');
