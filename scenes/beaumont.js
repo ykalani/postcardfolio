@@ -101,17 +101,22 @@ function draw({ctx, t, state, wind}) {
     ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
     ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
   }
-  // Small chalky curls make the breeze visible between the flowering branches.
-  for(const [i,origin] of [[390,500],[1050,420],[670,550]].entries()){
-    const age=(t/15+(i===2?.18:i/3))%1,fade=Math.sin(age*Math.PI)**2;
-    ctx.save();ctx.globalAlpha=fade*.72;ctx.translate(origin[0]+age*95,origin[1]+Math.sin(age*6.28)*16);
-    ctx.strokeStyle='#f5e7d5';ctx.lineWidth=1.8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-90,9);
-    ctx.bezierCurveTo(-54,-12,-20,-8,5,5);
-    for(let j=0;j<=50;j++){
-      const u=j/50,a=-Math.PI*.5+u*Math.PI*2.3,r=23*(1-u)+2;
-      ctx.lineTo(5+Math.cos(a)*r,30+Math.sin(a)*r);
+  // Broken pigment dabs follow rolling eddies instead of outlining a wind icon.
+  for(const [i,origin] of [[370,530],[1080,430],[730,570]].entries()){
+    const age=(t/22+i/3)%1,fade=Math.sin(age*Math.PI)**2;
+    ctx.save();ctx.translate(origin[0]+age*65,origin[1]);
+    for(let lane=0;lane<3;lane++)for(let j=0;j<48;j++){
+      const u=j/47,angle=u*Math.PI*2.25-t*.12+i;
+      const x=-120+u*235+Math.sin(angle)*42;
+      const y=Math.cos(angle)*34+lane*8+Math.sin(u*Math.PI)*lane*3;
+      ctx.globalAlpha=fade*Math.sin(u*Math.PI)*(.5+lane*.08);
+      ctx.fillStyle=['#8eacb9','#eee1b8','#c8b578'][(Math.floor(j/4)+lane)%3];
+      const length=8+(j%3)*2;
+      // Square-ended, stepped marks keep the breeze in the painting's pixel texture.
+      ctx.fillRect(Math.round(x/2)*2,Math.round(y/2)*2,length,4);
+      ctx.fillRect(Math.round(x/2)*2+2,Math.round(y/2)*2-2,length-4,2);
     }
-    ctx.stroke();ctx.restore();
+    ctx.restore();
   }
 }
 
