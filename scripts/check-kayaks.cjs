@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});
- const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v9');fs.mkdirSync(output,{recursive:true});
+ const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v10');fs.mkdirSync(output,{recursive:true});
  try{
   for(const width of[1600,390]){
    const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[],authoringRequests=[];
@@ -12,12 +12,12 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
    await page.evaluate(()=>window.pauseScene(true));
    const result=await page.evaluate(async()=>{
-    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v9.json',location.href))).json(),boats=meta.state.boats;
-    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v9.webp',location.href);await image.decode();
+    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v10.json',location.href))).json(),boats=meta.state.boats;
+    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v10.webp',location.href);await image.decode();
     const atlas=document.createElement('canvas');atlas.width=image.width;atlas.height=image.height;
     const g=atlas.getContext('2d');g.drawImage(image,0,0);
     const backgrounds=[];
-    for(const version of[7,9]){
+    for(const version of[7,10]){
      const art=new Image();art.src=new URL(`assets/sleeping-bear/painting-v${version}.webp`,location.href);await art.decode();
      const c=document.createElement('canvas');c.width=1600;c.height=1000;const brush=c.getContext('2d');brush.drawImage(art,0,0);
      backgrounds.push([[50,40,260,120],[400,300,300,250],[250,800,650,150]].map(r=>brush.getImageData(...r).data));
@@ -26,9 +26,13 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     const mask=meta.state.mask.$sprite;
     const waterMask=[[1050,500],[400,850]].map(([x,y])=>g.getImageData(mask[0]+x,mask[1]+y,1,1).data[3]);
     const cutouts=boats.map(boat=>{
-     const data=g.getImageData(...boat.sprite.$sprite).data;let solid=0;
-     for(let i=3;i<data.length;i+=4)if(data[i]>20)solid++;
-     return{coverage:solid/(boat.w*boat.h),corners:[data[3],data[(boat.w-1)*4+3],data[(boat.h-1)*boat.w*4+3],data[data.length-1]]};
+     const data=g.getImageData(...boat.sprite.$sprite).data;let solid=0,green=0,red=0;
+     for(let i=0;i<data.length;i+=4)if(data[i+3]>20){
+      solid++;const y=Math.floor(i/4/boat.w),r=data[i],g=data[i+1],b=data[i+2];
+      if(y>boat.h*.65&&g>r*1.03&&g>b*1.6)green++;
+      if(y<boat.h*.8&&r>g*1.5&&r>b*1.5)red++;
+     }
+     return{coverage:solid/(boat.w*boat.h),green:green/solid,red:red/solid,corners:[data[3],data[(boat.w-1)*4+3],data[(boat.h-1)*boat.w*4+3],data[data.length-1]]};
     });
     const leafLight=meta.state.leafSprites.map(sprite=>{
      const data=g.getImageData(...sprite.$sprite).data;let light=0,alpha=0;
@@ -50,6 +54,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     return{count:boats.length,depth:boats.map(b=>b.depth),cutouts,leafLight,waterMask,backgroundError,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
    });
    assert.equal(result.count,4);assert.deepEqual(result.depth,[1,1,0,2]);assert.ok(result.cutouts.every(s=>s.coverage>.1&&s.coverage<.75&&s.corners.every(a=>a<20)),'Painted boats retain transparent silhouettes');
+   assert.ok(result.cutouts.every(s=>s.green>.12&&s.red>.015),'Brush-painted hulls and jackets match the reference green and red pigments');
    assert.ok(result.moved&&result.repeat&&result.fixed);
    assert.ok(result.backgroundError.every(error=>error<3),'Original sky, cliffs and water retain their brush painting');
    assert.deepEqual(result.waterMask,[0,255],'Water motion excludes the sky opening');

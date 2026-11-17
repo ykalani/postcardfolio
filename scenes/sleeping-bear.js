@@ -3,10 +3,10 @@ const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value))
 const W = 1600, H = 1000;
 // Sprite crops retain the natural painted edges; depth determines scale and overlap.
 const BOATS = [
-  {crop:[50,190,694,240],x:100,bottom:729,w:190,depth:1},
-  {crop:[868,224,615,157],x:800,bottom:702,w:185,depth:1},
-  {crop:[92,688,587,158],x:1148,bottom:692,w:112,depth:0},
-  {crop:[804,614,686,256],x:1150,bottom:719,w:255,depth:2}
+  {crop:[50,190,694,240],x:100,bottom:729,w:190,depth:1,hullTop:.61,hullBottom:.9},
+  {crop:[868,224,615,157],x:800,bottom:702,w:185,depth:1,hullTop:.76},
+  {crop:[92,688,587,158],x:1148,bottom:685,w:112,depth:0,hullTop:.73},
+  {crop:[804,614,686,256],x:1150,bottom:719,w:255,depth:2,hullTop:.78,heightScale:.76}
 ];
 const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
 let kayakSprites;
@@ -16,11 +16,20 @@ async function prepareKayakArt({ctx,random}) {
   const {paintBrushwork}=await import('./brush-painting.js');
   kayakSprites=[];
   for(const boat of BOATS){
-    const h=Math.round(boat.crop[3]*boat.w/boat.crop[2]),mask=canvas(boat.w,h),sprite=canvas(boat.w,h);
+    const h=Math.round(boat.crop[3]*boat.w/boat.crop[2]*(boat.heightScale??1)),mask=canvas(boat.w,h),sprite=canvas(boat.w,h);
     mask.getContext('2d').drawImage(image,...boat.crop,0,0,boat.w,h);
-    const c=sprite.getContext('2d');
-    await paintBrushwork({ctx:c,pixels:mask.getContext('2d').getImageData(0,0,boat.w,h).data,
-      width:boat.w,height:h,random,scale:.35,pigmentStep:24,angle:()=>-.08});
+    const c=sprite.getContext('2d'),samples=mask.getContext('2d').getImageData(0,0,boat.w,h).data;
+    // Match the reference's green-yellow shells and red vests before laying loaded brush marks.
+    for(let y=0;y<h;y++)for(let x=0;x<boat.w;x++){
+      const at=(y*boat.w+x)*4,r=samples[at],g=samples[at+1],b=samples[at+2],light=r*.3+g*.55+b*.15;
+      if(y>=h*boat.hullTop-x*.025&&y<h*(boat.hullBottom??1)&&r>g*.85&&g>b*1.3){
+        samples[at]=light*.84+8;samples[at+1]=light*.9+20;samples[at+2]=light*.17+11;
+      }else if(y>h*.25&&y<h*boat.hullTop&&r>g*1.6&&g>b*1.1){
+        samples[at]=light*1.15+25;samples[at+1]=light*.39+10;samples[at+2]=light*.32+13;
+      }
+    }
+    await paintBrushwork({ctx:c,pixels:samples,width:boat.w,height:h,random,scale:.55,pigmentStep:24,
+      angle:(x,y)=>y>=h*boat.hullTop-x*.025?-.04:x>boat.w*.18&&x<boat.w*.78?1.2:-.45});
     c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';
     kayakSprites.push(sprite);
   }
@@ -197,8 +206,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:9,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v9.webp',
+  liveVersion:10,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v10.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.72,
   grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;

@@ -79,3 +79,7 @@ Shore geometry follows the new painted edge around y713-747. Boat positions and 
 ## Original background with generated kayakers only (v9)
 
 The user explicitly restored the original project background and limited image generation to the kayakers. The terrain uses the original photographic guide, v7 pigment grade, directional brush painter and shoreline. The generated gouache landscape is superseded and must not be used for active terrain. Generated kayak studies are repainted through the same shared brush painter at sprite scale, retaining their transparent silhouettes. Small feathered repairs remove the reference boats before the new sprites animate, avoiding stationary copies. The v9 painting, fallback and live atlas are baked together. Mobile keeps the lower framing for visible kayakers.
+
+## Reference-colored kayak brushwork (v10)
+
+The kayak cutouts receive larger loaded brush marks (scale .55), with horizontal hull strokes and upright figure strokes. Their pigments follow the supplied reference: yellow-green shells, red life jackets and dark clothing, instead of the generated studies' orange/gold treatment. The near tandem's vertical proportions are compressed to match the low seated paddlers in the photograph; the distant boat sits at its original waterline. Transparent silhouettes, independent movement and the original background renderer are retained. Browser checks verify the rendered hull/vest colors as well as motion, transparency and the original background.
