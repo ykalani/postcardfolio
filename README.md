@@ -15,6 +15,6 @@ Home opens through the painted clouds, then a wide, light, textured postcard sli
 
 Live at https://postcardfolio.vercel.app/ and https://yash.kalani.name/postcardfolio/. Preserve the main portfolio’s proxy routing. Normal visits load finished paintings and prebuilt live layers; photographic guides are local authoring assets.
 
-Each other section starts with the same folded postcard slip, using the portrait thumbnail. Open it to bring the postcard into view and close it to return to the slip. Both versions show the landscape's location beneath Yash's name.
+Every scene opens with its postcard up after the clouds reveal the painting. Close it to show the compact portrait slip in the corner; use the slip to reopen it. Location and institution labels appear on the compact slips.
 
 Experience, Projects, Writing, and Tech Blog have a small receipt-like paper slip peeking up from the bottom, below navigation. Press it to unfold a tall paper panel with the painting still visible on both sides; the down arrow stays above the independently scrolling content and folds it away again. Add section content inside that page's `.paper-content` container. Escape also closes the paper and returns focus to the slip. About instead uses its corner postcard for all 15 profiles from https://yash.kalani.name/links, with a painted stamp and an independently scrolling link list on smaller screens. Run `node scripts/check-about.cjs` for the focused About postcard check.
