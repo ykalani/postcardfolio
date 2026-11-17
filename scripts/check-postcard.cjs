@@ -18,21 +18,36 @@ fs.mkdirSync(output, {recursive: true});
       await page.screenshot({path: path.join(output, `clouds-${width}.png`)});
       await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true');
       const card = page.locator('.postcard');
-      await card.evaluate(card => {card.getAnimations()[0].pause();card.getAnimations()[0].currentTime = 380;});
+      await card.evaluate(card => {card.getAnimations()[0].pause();card.getAnimations()[0].currentTime = 640;});
       await page.screenshot({path: path.join(output, `flight-${width}.png`)});
       const flying = await card.boundingBox();
-      await card.evaluate(card => {card.getAnimations()[0].currentTime = 1700;});
+      const loop = [];
+      for (const [label, time] of [['loop-top', 1280], ['loop-bottom', 2240]]) {
+        await card.evaluate((card, time) => {card.getAnimations()[0].currentTime = time;}, time);
+        await page.screenshot({path: path.join(output, `${label}-${width}.png`)});
+        const box = await card.boundingBox();
+        loop.push(box.y + box.height / 2);
+      }
+      assert.ok(loop[1] - loop[0] > 150, 'Flight loops from above to below the landing point');
+      await card.evaluate(card => {card.getAnimations()[0].currentTime = 3200;});
       await page.screenshot({path: path.join(output, `landed-${width}.png`)});
       const landed = await card.boundingBox();
       assert.ok(flying.x < landed.x - 50, 'Card slides across the scene');
       assert.ok(Math.abs(landed.x + landed.width / 2 - width / 2) < 2, 'Card lands horizontally centered');
       assert.ok(landed.x >= 0 && landed.x + landed.width <= width, 'Card fits viewport');
+      assert.ok(landed.width / landed.height > 1.5, 'Card has landscape postcard proportions');
+      assert.equal(await page.locator('.postcard-message,.postcard-subtitle,.postcard-signature,.postcard-heading').count(), 0, 'Old copy removed');
       const nav = await page.locator('.scene-nav').boundingBox();
       assert.ok(landed.y + landed.height < nav.y, 'Navigation stays clear');
-      await page.getByRole('button', {name: 'Enjoy the view'}).click();
-      assert.equal(await card.isVisible(), false);
-      await page.getByRole('button', {name: 'A postcard from Yash'}).click();
-      assert.equal(await card.isVisible(), true);
+      if (width === 390) {
+        assert.equal(await page.getByRole('button', {name: 'Enjoy the view'}).isVisible(), false);
+        assert.equal((await card.innerText()).replace(/\s+/g, ' ').trim(), 'place stamp here Yash Kalani');
+      } else {
+        await page.getByRole('button', {name: 'Enjoy the view'}).click();
+        assert.equal(await card.isVisible(), false);
+        await page.getByRole('button', {name: 'A postcard from Yash'}).click();
+        assert.equal(await card.isVisible(), true);
+      }
       assert.deepEqual(errors, []);
       await page.close();
     }
