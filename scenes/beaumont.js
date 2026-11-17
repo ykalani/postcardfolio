@@ -8,17 +8,63 @@ function paintedFoliage(painting, pixels, W, region) {
   const c = layer.getContext('2d');
   c.drawImage(painting, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
   const image = c.getImageData(0, 0, region.w, region.h);
+  const stemX=region.x+region.w*.5-region.anchorX,stemY=region.y+region.h*.65-region.anchorY;
   for (let y = 0; y < region.h; y++) for (let x = 0; x < region.w; x++) {
     const local = (y * region.w + x) * 4;
     const at = ((region.y + y) * W + region.x + x) * 4;
     const r = pixels[at], g = pixels[at + 1], b = pixels[at + 2];
     const edge = Math.min(x, y, region.w - x - 1, region.h - y - 1);
-    const material = region.kind === 'blossom' ? blossom(r, g, b) : needle(r, g, b);
-    // Only original petals or needles move; architecture, woody stems, and bright sky are absent.
-    image.data[local + 3] *= material * clamp(edge / 13);
+    let material = needle(r, g, b);
+    if(region.kind === 'blossom') {
+      const localX=region.x+x-region.anchorX,localY=region.y+y-region.anchorY;
+      const along=clamp((localX*stemX+localY*stemY)/(stemX*stemX+stemY*stemY));
+      const stemDistance=Math.hypot(localX-along*stemX,localY-along*stemY);
+      const woody=Math.max(r,g,b)<145&&Math.abs(r-g)<24&&b<g*1.15&&stemDistance<14;
+      material=blossom(r,g,b)>.045||woody?1:0;
+    }
+    image.data[local + 3] *= material * clamp(edge / 8);
   }
   c.putImageData(image, 0, 0);
+  if(region.kind === 'blossom') {
+    // Include the broad painted edges around the source petals and attached twigs.
+    const mask=document.createElement('canvas');mask.width=region.w;mask.height=region.h;
+    const m=mask.getContext('2d');m.filter='blur(3px)';m.drawImage(layer,0,0);
+    const coverage=m.getImageData(0,0,region.w,region.h);
+    c.drawImage(painting,region.x,region.y,region.w,region.h,0,0,region.w,region.h);
+    const pigment=c.getImageData(0,0,region.w,region.h);
+    for(let at=3;at<pigment.data.length;at+=4)pigment.data[at]=clamp((coverage.data[at]-8)/28)*255;
+    c.putImageData(pigment,0,0);
+  }
   return {...region, layer};
+}
+
+function branchBackground(painting, foliage, W, H) {
+  const background=document.createElement('canvas');background.width=W;background.height=H;
+  const c=background.getContext('2d');
+  for(const branch of foliage)if(branch.kind==='blossom')c.drawImage(branch.layer,branch.x,branch.y);
+  const mask=c.getImageData(0,0,W,H).data;
+  c.clearRect(0,0,W,H);c.drawImage(painting,0,0);
+  const pigment=c.getImageData(0,0,W,H),original=new Uint8ClampedArray(pigment.data);
+  const nearest=new Int32Array(W*H).fill(-1),queue=new Int32Array(W*H);
+  let head=0,tail=0;
+  // Propagate nearby background pigment into the resting silhouettes, once at bake time.
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+    const at=y*W+x;
+    if(mask[at*4+3])continue;
+    if([at-1,at+1,at-W,at+W].some(p=>mask[p*4+3])){nearest[at]=at;queue[tail++]=at;}
+  }
+  while(head<tail){
+    const at=queue[head++],x=at%W;
+    for(const next of [x?at-1:-1,x<W-1?at+1:-1,at-W,at+W]){
+      if(next<0||next>=W*H||!mask[next*4+3]||nearest[next]>=0)continue;
+      nearest[next]=nearest[at];queue[tail++]=next;
+    }
+  }
+  for(let at=0;at<W*H;at++)if(mask[at*4+3]&&nearest[at]>=0){
+    const alpha=mask[at*4+3]/255;
+    for(let channel=0;channel<3;channel++)pigment.data[at*4+channel]=original[at*4+channel]*(1-alpha)+original[nearest[at]*4+channel]*alpha;
+  }
+  c.putImageData(pigment,0,0);return background;
 }
 
 async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
@@ -45,7 +91,7 @@ async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
   ctx.drawImage(detail,x,y);return mask;
 }
 
-function prepare({painting, pixels, W, random}) {
+function prepare({painting, pixels, W, H, random}) {
   const foliage = [
     {kind:'blossom',x:229,y:34,w:278,h:283,anchorX:345,anchorY:40,strength:.85,phase:.1},
     {kind:'blossom',x:411,y:139,w:194,h:271,anchorX:462,anchorY:138,strength:.65,phase:1.3},
@@ -71,21 +117,22 @@ function prepare({painting, pixels, W, random}) {
     petals.push({x,y,phase:random(),duration:12+random()*10,fall:350+random()*450,
       drift:80+random()*170,size:3+random()*3,turn:random()*6.28,tone:i%3});
   }
-  return {foliage,petals};
+  return {foliage,petals,background:branchBackground(painting,foliage,W,H)};
 }
 
 function draw({ctx, t, state, wind}) {
+  ctx.drawImage(state.background,0,0);
   for (const branch of state.foliage) {
     const delayed = t - branch.x * .0013;
     const gust = Math.sin(delayed * .73) * .47 + wind * .5;
     const rustle = Math.sin(t * 2.6 + branch.phase) * .085 + Math.sin(t * 4.1 + branch.phase * 2) * .035;
-    const bend = (gust + rustle) * branch.strength;
     const flowering = branch.kind === 'blossom';
+    const bend = (flowering ? Math.sin(t*.95-branch.x*.001+branch.phase*.2)*.75+Math.sin(t*1.8+branch.phase)*.15 : gust+rustle) * branch.strength;
     ctx.save(); ctx.translate(branch.anchorX, branch.anchorY);
     // A shear pivots the photographed cluster around its fixed woody attachment.
-    ctx.transform(1, 0, bend * (flowering ? .04 : .016), 1, 0, 0);
-    ctx.rotate(bend * (flowering ? .008 : .0025));
-    ctx.globalAlpha = .93;
+    ctx.transform(1, 0, bend * (flowering ? .01 : .016), 1, 0, 0);
+    ctx.rotate(bend * (flowering ? .065 : .0025));
+    ctx.globalAlpha = flowering ? 1 : .93;
     ctx.drawImage(branch.layer, branch.x - branch.anchorX, branch.y - branch.anchorY);
     ctx.restore();
   }
@@ -105,8 +152,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:6,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v6.webp',
+  liveVersion:7,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v7.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;

@@ -20,7 +20,7 @@ Brush direction follows upright masonry in the tower zone and irregular branch/p
 
 ## Living elements
 
-Twelve source-masked painted cutouts cover seven magnolia clusters and five evergreen branch masses. Pink-petal masks reject warm brick and woody stems; green-needle masks reject stone, clock, and sky. Feathered edges avoid rectangular patches. Each cluster shears and rotates gently around a fixed photographed woody attachment with a shared gust and small spatial delay, plus restrained tip rustle. The building and its supports stay fixed.
+Twelve source-masked painted cutouts cover seven magnolia clusters and five evergreen branch masses. Magnolia masks include opaque petals, their broad brush edges, and nearby attached twigs; green-needle masks reject stone, clock, and sky. Feathered edges avoid rectangular patches. Each flowering cluster swings around its fixed attachment with a spatially delayed sway. A prebuilt background replaces the resting magnolia silhouettes with nearby background pigment, so stationary copies cannot hide the motion. The building and its supports stay fixed.
 
 Current motion adds 64 seeded pink petals released from source-masked flowering branches. Petals flutter, turn edge-on, and fade at cycle boundaries. Flowering clusters sway visibly around their fixed woody attachments. The clock and tower remain fixed; there are no visible wind streaks or spirals.
 
@@ -30,15 +30,15 @@ The initial configuration favors logical x≈712 (`focusX:.445`) so the tower cl
 
 ## Runtime assets and verification
 
-The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline. Root bakes `assets/beaumont/painting-v4.webp`, `fallback-v4.webp`, `live-v4.webp`, and `live-v4.json` from the authoring route before deployment. Normal viewing loads those caches and does not process the source image.
+The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline. Bake `assets/beaumont/painting-v7.webp`, `fallback-v7.webp`, `live-v7.webp`, and `live-v7.json` from the authoring route before deployment. Normal viewing loads those caches and does not process the source image. The live atlas includes the cleared background; static fallbacks keep the complete original artwork.
 
-Check source/copy byte equality, scene syntax, exact center-cover crop, and that the motion cutout alpha stays zero over the clock and masonry. Root owns integrated Playwright desktop, portrait, wide, temporal, fallback, and navigation checks, and the final commit/deployment.
+Check source/copy byte equality, scene syntax, exact center-cover crop, and that foliage cutouts exclude the clock and masonry. Keep browser verification scoped to Beaumont when only this scene changes.
 
-Current runtime caches are the `painting-v6.webp`, `fallback-v6.webp`, and `live-v6.*` edition. `scripts/check-petals-kayaks.cjs` checks petal flight and flowering-branch sway regions on desktop plus portrait screenshots.
+Current runtime caches are the v7 edition. `scripts/check-beaumont-branches.cjs` verifies opaque silhouettes, cleared resting flowers, and at least ten scene pixels of actual tip travel per flowering cluster, plus desktop/mobile motion screenshots.
 
 
 ## Local tower detail edition
 
-The current v6 edition doubles the tower's v5 brush size from .23 to .46: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing. Runtime visitors load prebuilt v6 assets.
+The v7 edition preserves the doubled tower brush size from v6 (.46): masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing.
 
 Wind is expressed through branch sway and drifting petals only. Flowering cutouts use a stronger anchored bend than the evergreen cutouts; the underlying architecture stays fixed.
