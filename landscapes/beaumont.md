@@ -30,15 +30,15 @@ The initial configuration favors logical x≈712 (`focusX:.445`) so the tower cl
 
 ## Runtime assets and verification
 
-The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline. Bake `assets/beaumont/painting-v7.webp`, `fallback-v7.webp`, `live-v7.webp`, and `live-v7.json` from the authoring route before deployment. Normal viewing loads those caches and does not process the source image. The live atlas includes the cleared background; static fallbacks keep the complete original artwork.
+The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline. Bake `assets/beaumont/painting-v8.webp`, `fallback-v8.webp`, `live-v8.webp`, and `live-v8.json` from the authoring route before deployment. Normal viewing loads those caches and does not process the source image. The live atlas includes the cleared background; static fallbacks keep the complete original artwork.
 
 Check source/copy byte equality, scene syntax, exact center-cover crop, and that foliage cutouts exclude the clock and masonry. Keep browser verification scoped to Beaumont when only this scene changes.
 
-Current runtime caches are the v7 edition. `scripts/check-beaumont-branches.cjs` verifies opaque silhouettes, cleared resting flowers, and at least ten scene pixels of actual tip travel per flowering cluster, plus desktop/mobile motion screenshots.
+Current runtime caches are the v8 edition. `scripts/check-beaumont-branches.cjs` verifies opaque silhouettes, cleared resting flowers, and at least ten scene pixels of actual tip travel per flowering cluster, plus desktop/mobile motion screenshots.
 
 
 ## Local tower detail edition
 
-The v7 edition preserves the doubled tower brush size from v6 (.46): masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing.
+The v8 edition uses a .75 tower brush scale: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing.
 
 Wind is expressed through branch sway and drifting petals only. Flowering cutouts use a stronger anchored bend than the evergreen cutouts; the underlying architecture stays fixed.
