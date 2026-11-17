@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});
- const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v8');fs.mkdirSync(output,{recursive:true});
+ const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v9');fs.mkdirSync(output,{recursive:true});
  try{
   for(const width of[1600,390]){
    const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[],authoringRequests=[];
@@ -12,10 +12,17 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
    await page.evaluate(()=>window.pauseScene(true));
    const result=await page.evaluate(async()=>{
-    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v8.json',location.href))).json(),boats=meta.state.boats;
-    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v8.webp',location.href);await image.decode();
+    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v9.json',location.href))).json(),boats=meta.state.boats;
+    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v9.webp',location.href);await image.decode();
     const atlas=document.createElement('canvas');atlas.width=image.width;atlas.height=image.height;
     const g=atlas.getContext('2d');g.drawImage(image,0,0);
+    const backgrounds=[];
+    for(const version of[7,9]){
+     const art=new Image();art.src=new URL(`assets/sleeping-bear/painting-v${version}.webp`,location.href);await art.decode();
+     const c=document.createElement('canvas');c.width=1600;c.height=1000;const brush=c.getContext('2d');brush.drawImage(art,0,0);
+     backgrounds.push([[50,40,260,120],[400,300,300,250],[250,800,650,150]].map(r=>brush.getImageData(...r).data));
+    }
+    const backgroundError=backgrounds[0].map((before,i)=>{const after=backgrounds[1][i];let difference=0;for(let n=0;n<before.length;n++)if(n%4!==3)difference+=Math.abs(before[n]-after[n]);return difference/(before.length*.75);});
     const mask=meta.state.mask.$sprite;
     const waterMask=[[1050,500],[400,850]].map(([x,y])=>g.getImageData(mask[0]+x,mask[1]+y,1,1).data[3]);
     const cutouts=boats.map(boat=>{
@@ -40,10 +47,11 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     try{for(const t of[0,2,6,13]){frame=[];window.seekScene(t);frames.push(frame);}}
     finally{ctx.drawImage=draw;}
     window.seekScene(0);const first=hash();window.seekScene(6);const moved=hash()!==first;window.seekScene(0);
-    return{count:boats.length,depth:boats.map(b=>b.depth),cutouts,leafLight,waterMask,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
+    return{count:boats.length,depth:boats.map(b=>b.depth),cutouts,leafLight,waterMask,backgroundError,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
    });
    assert.equal(result.count,4);assert.deepEqual(result.depth,[1,1,0,2]);assert.ok(result.cutouts.every(s=>s.coverage>.1&&s.coverage<.75&&s.corners.every(a=>a<20)),'Painted boats retain transparent silhouettes');
    assert.ok(result.moved&&result.repeat&&result.fixed);
+   assert.ok(result.backgroundError.every(error=>error<3),'Original sky, cliffs and water retain their brush painting');
    assert.deepEqual(result.waterMask,[0,255],'Water motion excludes the sky opening');
    assert.deepEqual(authoringRequests,[],'Normal visits load only baked artwork');
    assert.ok(result.leafLight.every(light=>light>0&&light<125),'Leaves use dark olive brush pigments');
@@ -52,7 +60,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    }
    for(const t of[0,2,6,13]){
     await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`about-${width}-t${t}.png`)});
-    if(width===1600)await page.screenshot({path:path.join(output,`kayaks-t${t}.png`),clip:{x:55,y:675,width:1400,height:150}});
+    if(width===1600)await page.screenshot({path:path.join(output,`kayaks-t${t}.png`),clip:{x:55,y:610,width:1400,height:160}});
    }
    assert.deepEqual(errors,[]);console.log(width,JSON.stringify(result));await page.close();
   }

@@ -3,20 +3,50 @@ const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value))
 const W = 1600, H = 1000;
 // Sprite crops retain the natural painted edges; depth determines scale and overlap.
 const BOATS = [
-  {crop:[50,190,694,240],x:100,bottom:775,w:190,depth:1},
-  {crop:[868,224,615,157],x:800,bottom:755,w:185,depth:1},
-  {crop:[92,688,587,158],x:1050,bottom:734,w:112,depth:0},
-  {crop:[804,614,686,256],x:1150,bottom:770,w:255,depth:2}
+  {crop:[50,190,694,240],x:100,bottom:729,w:190,depth:1},
+  {crop:[868,224,615,157],x:800,bottom:702,w:185,depth:1},
+  {crop:[92,688,587,158],x:1148,bottom:692,w:112,depth:0},
+  {crop:[804,614,686,256],x:1150,bottom:719,w:255,depth:2}
 ];
-const SHORE = [[0,713],[155,724],[660,724],[810,720],[920,714],[1040,714],[1280,720],[1500,742],[1600,747]];
-let kayakStudy;
+const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
+let kayakSprites;
 
-async function paintGouache({ctx,sourcePixels}) {
-  const [art,boats]=await Promise.all(['gouache-master.png','kayak-study.png'].map(async file=>{
-    const image=new Image();image.src='assets/sleeping-bear/'+file;await image.decode();return image;
-  }));
-  // Bake the art-directed master before extracting foliage and water layers.
-  ctx.drawImage(art,0,0,W,H);sourcePixels.set(ctx.getImageData(0,0,W,H).data);kayakStudy=boats;
+async function prepareKayakArt({ctx,random}) {
+  const image=new Image();image.src='assets/sleeping-bear/kayak-study.png';await image.decode();
+  const {paintBrushwork}=await import('./brush-painting.js');
+  kayakSprites=[];
+  for(const boat of BOATS){
+    const h=Math.round(boat.crop[3]*boat.w/boat.crop[2]),mask=canvas(boat.w,h),sprite=canvas(boat.w,h);
+    mask.getContext('2d').drawImage(image,...boat.crop,0,0,boat.w,h);
+    const c=sprite.getContext('2d');
+    await paintBrushwork({ctx:c,pixels:mask.getContext('2d').getImageData(0,0,boat.w,h).data,
+      width:boat.w,height:h,random,scale:.35,pigmentStep:24,angle:()=>-.08});
+    c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';
+    kayakSprites.push(sprite);
+  }
+  // Remove the reference kayakers from the original painting before adding independent sprites.
+  const original=ctx.getImageData(0,0,W,H),clean=ctx.getImageData(0,0,W,H);
+  const repairs=[[80,640,215,100,300],[775,640,220,80,650],[1135,632,290,108,1430]];
+  for(const [left,top,width,height,cliffX] of repairs){
+    for(let y=top;y<top+height;y++)for(let x=left;x<left+width;x++){
+      const at=(y*W+x)*4,edge=Math.min(x-left,y-top,left+width-x-1,top+height-y-1),blend=clamp(edge/12);
+      const wet=y>=shoreAt(x),sky=x>910-(y-620)*.9&&x<1270+(y-620)*.1;
+      const island=sky&&x>1100&&x<1250&&y<665;
+      const u=Math.floor((x-left)*35/width);
+      const sampleX=wet?x:island?1080+u:sky?940+u:cliffX+u;
+      const from=((wet?y+74:y)*W+sampleX)*4;
+      for(let k=0;k<3;k++)clean.data[at+k]=original.data[at+k]*(1-blend)+original.data[from+k]*blend;
+    }
+  }
+  const study=canvas(W,H),studyContext=study.getContext('2d');studyContext.putImageData(clean,0,0);
+  for(const [left,top,width,height] of repairs){
+    const patch=canvas(width,height),c=patch.getContext('2d');
+    await paintBrushwork({ctx:c,pixels:studyContext.getImageData(left,top,width,height).data,
+      width,height,random,angle:(x,y)=>top+y>shoreAt(left+x)?-.025:left+x>1270?1.3:.05});
+    const paint=c.getImageData(0,0,width,height);
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++)paint.data[(y*width+x)*4+3]*=clamp(Math.min(x,y,width-x-1,height-y-1)/12);
+    c.putImageData(paint,0,0);ctx.drawImage(patch,left,top);
+  }
 }
 
 function canvas(width, height) {
@@ -30,8 +60,8 @@ function shoreAt(x) {
 }
 function prepareBoats(){
   return BOATS.map((boat,index)=>{
-    const {x,w,depth,crop,bottom}=boat,h=Math.round(crop[3]*w/crop[2]);
-    const sprite=canvas(w,h);sprite.getContext('2d').drawImage(kayakStudy,...crop,0,0,w,h);
+    const {x,w,depth,bottom}=boat,h=kayakSprites[index].height;
+    const sprite=kayakSprites[index];
     return {sprite,x,y:bottom-h,w,h,depth,phase:index*1.9,range:depth===0?2.2:3.5+index*.3};
   });
 }
@@ -58,7 +88,7 @@ function prepare({painting,pixels,random}) {
   const water=canvas(W,H),mask=canvas(W,H),m=mask.getContext('2d');
   const alpha=m.createImageData(W,H);
   const wavelets=[];
-  for(let y=710;y<H;y++)for(let x=0;x<W;x++){
+  for(let y=660;y<H;y++)for(let x=0;x<W;x++){
     const distance=y-shoreAt(x); if(distance<=0)continue;
     const at=(y*W+x)*4;
     alpha.data[at]=alpha.data[at+1]=alpha.data[at+2]=255;
@@ -66,9 +96,9 @@ function prepare({painting,pixels,random}) {
   }
   m.putImageData(alpha,0,0);
   for(let i=0;i<380;i++){
-    const x=random()*W,y=716+random()*284;
+    const x=random()*W,y=674+random()*326;
     if(y<shoreAt(x)+5)continue;
-    const at=((y|0)*W+(x|0))*4,depth=clamp((y-710)/290);
+    const at=((y|0)*W+(x|0))*4,depth=clamp((y-665)/335);
     wavelets.push({x,y,depth,length:2+random()*(4+depth*27),phase:random()*Math.PI*2,
       bright:random()>.46,color:[waterColors[at],waterColors[at+1],waterColors[at+2]]});
   }
@@ -107,11 +137,11 @@ function prepare({painting,pixels,random}) {
 function draw({ctx,t,state,wind}) {
   const c=state.water.getContext('2d');c.clearRect(0,0,W,H);
   // The real painted reflections move only inside the mapped water, never the arch's sky opening.
-  for(let y=710;y<H;y+=4){
-    const depth=clamp((y-710)/290);
+  for(let y=660;y<H;y+=4){
+    const depth=clamp((y-660)/340);
     const cross=Math.sin(y*.073-t*1.05)+Math.sin(y*.031+t*.48)*.38;
     const dx=cross*(.25+depth*4.2);
-    const sy=clamp(y+Math.sin(y*.046-t*.85)*depth*1.6,710,H-4);
+    const sy=clamp(y+Math.sin(y*.046-t*.85)*depth*1.6,660,H-4);
     c.drawImage(state.painting,0,sy,W,4,dx,y,W,4);
   }
   c.lineCap='round';
@@ -167,8 +197,17 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:8,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v8.webp',
-  background:'#244c52',focusX:.63,focusY:.53,initialScroll:.72,
-  prepare,draw,refine:paintGouache
+  liveVersion:9,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v9.webp',
+  background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.72,
+  grade:(r,g,b,x,y)=>{
+    const light=r*.3+g*.55+b*.15;
+    const leaf=clamp((g-r*.94-2)/30)*clamp((g-b*1.02)/28)*clamp((360-y)/160);
+    const nearRock=clamp((x-1050)/430)*clamp((r-b)/70)*clamp((670-y)/150);
+    return [r*(.9+leaf*.28+nearRock*.11)+light*.045+9-leaf*49+nearRock*5,
+      g*(.91+leaf*.27+nearRock*.06)+light*.035+8-leaf*43-nearRock*5,
+      b*(.89+leaf*.18)+light*.045+10-leaf*42-nearRock*15];
+  },
+  angle:(x,y)=>y>665?-.025:x>1270?1.3:.045+Math.sin(x*.011+y*.005)*.19,
+  prepare,draw,refine:prepareKayakArt
 });

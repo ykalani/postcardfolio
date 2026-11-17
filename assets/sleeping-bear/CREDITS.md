@@ -32,3 +32,7 @@ Current motion/detail edition uses `painting-v5.webp`, `fallback-v5.webp`, and `
 The user requested a new artistic direction after rejecting the procedural painting. `gouache-master.png` is an AI-generated gouache/oil-pastel interpretation made with OpenAI image generation, using the supplied arch photograph and previous crop as references. `kayak-study.png` contains four matching AI-generated transparent painted kayak studies. These are illustrative interpretations, not human-authored physical paintings or photographs of the place. Original source provenance above remains unchanged.
 
 The landscape was directed toward large warm sandstone planes, cool indigo shadows, dark foliage, a quiet sky and broad teal lake strokes. Kayak studies were generated separately to animate without stationary copies. The source masters are retained for authoring; `painting-v8.webp`, `fallback-v8.webp` and `live-v8.*` contain the production painting and motion layers.
+
+## Current source policy (v9)
+
+The active background is restored to the original programmatic brush painting from the user-supplied photograph, with its original color grade and geography. The generated v8 landscape is superseded. Image generation is used only for `kayak-study.png`; the cutouts are repainted with the project's shared brush renderer before baking `live-v9.*`. `painting-v9.webp` and `fallback-v9.webp` contain the original background with small repairs where the reference boats were removed.
