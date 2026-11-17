@@ -101,21 +101,21 @@ function draw({ctx, t, state, wind}) {
     ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
     ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
   }
-  // Pigment travels through the current; each dab turns with its local flow.
+  // Broken chalk-colored dabs sweep inward around an open spiral.
   for(const [i,origin] of [[370,530],[1080,430],[730,570]].entries()){
-    const travel=t*46+Math.sin(t*.65+i)*9+Math.sin(t*1.3+i)*3;
-    ctx.save();ctx.translate(origin[0],origin[1]);
+    const travel=t*.075+Math.sin(t*.65+i)*.009;
+    ctx.save();ctx.translate(origin[0]+Math.sin(t*.25+i)*24,origin[1]);
     for(let lane=0;lane<3;lane++)for(let j=0;j<36;j++){
-      const u=(j/36+Math.sin(j*2.4+lane)*.004+travel/420+lane*.013+1)%1;
-      const angle=u*Math.PI*2-t*.28+i;
-      const ripple=u*Math.PI*3+i+lane*.12;
-      const x=-200+u*420;
-      const y=Math.sin(angle)*30+Math.sin(ripple)*12+(lane-1)*8;
-      const slope=(Math.cos(angle)*30*Math.PI*2+Math.cos(ripple)*12*Math.PI*3)/420;
+      const u=(j/36+Math.sin(j*2.4+lane)*.004+travel+lane*.013+1)%1;
+      const turn=Math.PI*3.5,angle=u*turn+i*.8-.45;
+      const radius=108-u*100+(lane-1)*5;
+      const x=Math.cos(angle)*radius*1.25,y=Math.sin(angle)*radius*.85;
+      const dx=(-100*Math.cos(angle)-radius*Math.sin(angle)*turn)*1.25;
+      const dy=(-100*Math.sin(angle)+radius*Math.cos(angle)*turn)*.85;
       ctx.globalAlpha=Math.sin(u*Math.PI)**.8*(.42+lane*.08)*(.85+Math.sin(t*.65+i)*.15);
-      ctx.fillStyle=['#8eacb9','#eee1b8','#c8b578'][(Math.floor(j/4)+lane)%3];
+      ctx.fillStyle=['#dededb','#eeeeeb','#c9cbc8'][(Math.floor(j/4)+lane)%3];
       const length=8+(j%3)*2;
-      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan(slope));
+      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));
       ctx.fillRect(-length/2,-2,length,4);
       ctx.fillRect(-length/2+2,-4,length-4,2);
       ctx.restore();
