@@ -45,10 +45,14 @@ const assert=require('node:assert/strict');
     });
     ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.94;ctx.drawImage(strokes,0,0);
     if(!wood){
-     ctx.globalAlpha=.88;ctx.fillStyle='#34413b';
-     for(const [x,y,w,h] of [[327,95,7,8],[385,148,7,5]]){
+     ctx.globalAlpha=.97;ctx.fillStyle='#171e1b';
+     for(const [x,y,w,h] of [[327,95,14,13],[385,148,7,5]]){
       ctx.beginPath();ctx.moveTo(x-w*.5,y-h*.3);ctx.lineTo(x+w*.15,y-h*.5);
       ctx.lineTo(x+w*.5,y+h*.2);ctx.lineTo(x-w*.2,y+h*.5);ctx.closePath();ctx.fill();
+     }
+     ctx.strokeStyle='#242b27';ctx.lineWidth=3;ctx.lineCap='butt';
+     for(const [x,y,dx,dy] of [[319,91,13,-1],[321,99,11,2],[325,87,6,2]]){
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dx,y+dy);ctx.stroke();
      }
     }
     const after=ctx.getImageData(0,0,canvas.width,canvas.height).data;let changed=0,alphaChanges=0;
@@ -60,7 +64,7 @@ const assert=require('node:assert/strict');
   for(const result of results){
    assert.equal(result.alphaChanges,0,'Source strokes preserve the generated cutout silhouette');
    assert.ok(result.changed>1000,'Reference brushwork visibly changes the cutout');
-   fs.writeFileSync(`assets/banff/${result.name}-source-brush-v6.webp`,Buffer.from(result.url.split(',')[1],'base64'));
+   fs.writeFileSync(`assets/banff/${result.name}-source-brush-v${result.name==='post'?6:7}.webp`,Buffer.from(result.url.split(',')[1],'base64'));
    console.log(`${result.name}: ${result.changed} pixels repainted with landscape brushwork; silhouette preserved`);
   }
  } finally {await browser.close();}
