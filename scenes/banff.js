@@ -71,8 +71,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:6,
-  id: 'banff', guide: 'assets/banff/lake-lousie.avif', cache: 'assets/banff/painting-v6.webp',
+  liveVersion:7,
+  id: 'banff', guide: 'assets/banff/lake-lousie.avif', cache: 'assets/banff/painting-v7.webp',
   sourceY: .5, background: '#557e83', focusX: .55, focusY: .5, initialScroll: .5,
   grade(r, g, b, x, y) {
     const light = r * .3 + g * .55 + b * .15;
@@ -84,5 +84,18 @@ startScene({
       b * (.9 - pine * .08) + light * .035 + 8 - pine * 6];
   },
   angle(x, y) {return y > WATER_TOP && x < 1250 ? -.035 : y < 160 ? .04 : 1.46 + Math.sin(x * .009) * .12;},
+  async refine({ctx, pixels, random}) {
+    const {paintBrushwork} = await import('./brush-painting.js');
+    // Smaller dry-brush accents describe rock and trees while leaving broad sky and water paint intact.
+    await paintBrushwork({ctx, pixels, random, width:W, height:H, scale:.72,
+      angle:(x,y)=>1.46 + Math.sin(x * .009) * .12,
+      skip(x,y) {
+        if (y < 160 || y > 800 || (y > 470 && x < 1250)) return true;
+        const at = (y * W + x) * 4;
+        const neighbor = (Math.min(H - 1, y + 4) * W + Math.min(W - 1, x + 4)) * 4;
+        return Math.abs(pixels[at] - pixels[neighbor]) + Math.abs(pixels[at+1] - pixels[neighbor+1]) + Math.abs(pixels[at+2] - pixels[neighbor+2]) < 85;
+      }
+    });
+  },
   prepare, draw
 });
