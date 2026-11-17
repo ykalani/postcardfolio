@@ -5,9 +5,9 @@ Six expressive brush paintings for Yash Kalani’s portfolio, with visible flat-
 - Home: Yosemite.
 - Experience (`/experiences`): Hawaiʻi Volcanoes.
 - Projects (`/projects`): Great Sand Dunes.
-- Writing: Banff.
+- Writing: Pictured Rocks, using the supplied arch-and-kayaks photo.
 - Tech Blog: Beaumont Tower.
-- About: Pictured Rocks, using the supplied arch-and-kayaks photo.
+- About: Lake Louise (Banff).
 
 Plain HTML, CSS and JavaScript. Run `npm run dev` and `npm run check`. Playwright QA and baking commands are documented in [LANDSCAPE_PLAYBOOK.md](LANDSCAPE_PLAYBOOK.md), alongside the scene briefs and exact image credits.
 

@@ -47,7 +47,7 @@ for (const page of [...pages,'credits.html']) {
     await access(new URL(target,import.meta.url));
   }
 }
-for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes']]) {
+for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes'],['writing.html','sleeping-bear'],['about.html','banff']]) {
   assert.ok((await readFile(new URL(page,import.meta.url),'utf8')).includes(`src="scenes/${scene}.js"`),`${page}: correct scene`);
 }
 console.log('Passed: script syntax, six landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');
