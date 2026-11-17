@@ -29,22 +29,30 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
           });
           const proto=CanvasRenderingContext2D.prototype,draw=proto.drawImage;
           const ids=new WeakMap();let serial=0,positions=new Map(),last=new Map(),backwards=0,gaps=0,frames=0;
+          const roots=new WeakMap();let rootDrift=0,swayMin=0,swayMax=0,mountainLeak=0;
           proto.drawImage=function(sprite,...args){
             const sky=this.canvas.width===1600&&this.canvas.height===440&&sprite.width<1000;
             if(sky&&args[0]+sprite.width>0&&args[0]<1600){
               if(!ids.has(sprite))ids.set(sprite,serial++);positions.set(ids.get(sprite),args[0]);
+            }
+            if(this.canvas===document.querySelector('#motion')&&sprite.width>=280&&sprite.width<600&&sprite.height>=235){
+              const matrix=this.getTransform(),root=[matrix.e,matrix.f];
+              if(roots.has(sprite)&&Math.hypot(...root.map((v,i)=>v-roots.get(sprite)[i]))>.1)rootDrift++;
+              roots.set(sprite,root);swayMin=Math.min(swayMin,matrix.c);swayMax=Math.max(swayMax,matrix.c);
             }
             return draw.call(this,sprite,...args);
           };
           try{
             for(let t=0;t<120;t+=.5){
               positions=new Map();window.seekScene(t);frames++;if(!positions.size)gaps++;
+              const mountain=c.getImageData(950,175,40,50).data;
+              for(let i=3;i<mountain.length;i+=4)if(mountain[i])mountainLeak++;
               for(const [id,x] of positions)if(last.has(id)&&x<last.get(id))backwards++;
               last=positions;
             }
           }finally{proto.drawImage=draw;}
           const stream={backwards,gaps,frames};
-          return{movement,seams,stream};
+          return{movement,seams,stream,brush:{rootDrift,swayMin,swayMax},mountainLeak};
         });
         assert.ok(report.movement[0]>10000,'Sky clouds visibly change within three seconds');
         assert.equal(report.movement[1],0,'Mountains stay fixed');
@@ -53,6 +61,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
         assert.ok(report.seams.every(energy=>energy<report.movement[0]*.05),'Cloud wrapping has no visible pop');
         assert.equal(report.stream.backwards,0,'Every cloud bank travels left to right');
         assert.ok(report.stream.gaps>=12&&report.stream.gaps<report.stream.frames/2,'Cloud stream has recurring clear intervals');
+        assert.equal(report.mountainLeak,0,'Clouds stay behind the mountain faces');
+        assert.equal(report.brush.rootDrift,0,'Foreground brush roots stay fixed');
+        assert.ok(report.brush.swayMin<-.15&&report.brush.swayMax>.15,'Foreground brush bends visibly in both directions');
         console.log(JSON.stringify(report));
       }
       assert.deepEqual(errors,[]);await page.close();

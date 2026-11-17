@@ -201,7 +201,7 @@ function draw({ctx,t,state,wind}) {
   c.globalCompositeOperation='destination-in';c.drawImage(state.mask,0,0);
   c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(state.water,0,0);ctx.restore();
   for(const boat of [...state.boats].sort((a,b)=>a.depth-b.depth)){
-    const drift=(Math.sin(t*.22+boat.phase)-Math.sin(boat.phase))*boat.range*3;
+    const drift=(Math.sin(t*.6+boat.phase)-Math.sin(boat.phase))*boat.range*6;
     const depth=.7+boat.depth*.35;
     const wave=((Math.sin(t*.85+boat.phase)-Math.sin(boat.phase))*1.25+(Math.sin(t*1.3+boat.phase*1.7)-Math.sin(boat.phase*1.7))*.35)*depth;
     const roll=(Math.cos(t*.85+boat.phase)-Math.cos(boat.phase))*.004*depth;
