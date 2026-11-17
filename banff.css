@@ -1,7 +1,11 @@
 .trail-companion{position:fixed;z-index:1;left:24px;bottom:-24px;width:270px;height:240px;pointer-events:none}
 .trail-companion img{position:absolute;height:auto}
 .trail-post{width:250px;left:10px;bottom:0}
-.trail-pika{width:126px;left:35px;bottom:114px;transform-origin:55% 94%;animation:pika-shuffle 9s ease-in-out infinite}
+.trail-pika{position:absolute;width:126px;aspect-ratio:3/2;left:35px;bottom:114px;transform-origin:55% 94%;animation:pika-shuffle 9s ease-in-out infinite}
+.trail-pika img{inset:0;width:100%}
+.trail-pika-body{clip-path:polygon(0 0,38% 0,38% 35%,54% 46%,77% 86%,100% 86%,100% 100%,0 100%)}
+.trail-pika-head{clip-path:polygon(35% 0,100% 0,100% 86%,72% 86%,49% 46%,35% 35%);transform-origin:60% 75%;animation:pika-head-bob 3.6s ease-in-out infinite}
+@keyframes pika-head-bob{0%,20%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(1.3px) rotate(.9deg)}70%{transform:translateY(-.8px) rotate(-.7deg)}}
 @keyframes pika-shuffle{0%,20%,100%{transform:translateX(0) rotate(0)}35%,45%{transform:translateX(2px) rotate(.6deg)}65%,75%{transform:translateX(-1px) rotate(-.4deg)}}
-@media(prefers-reduced-motion:reduce){.trail-pika{animation:none}}
+@media(prefers-reduced-motion:reduce){.trail-pika,.trail-pika-head{animation:none}}
 @media(max-width:650px){.trail-companion{left:10px;bottom:160px;width:200px;height:200px}.trail-post{width:190px;left:3px}.trail-pika{width:94px;left:21px;bottom:88px}}

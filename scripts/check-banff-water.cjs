@@ -13,12 +13,13 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       page.on('pageerror', error=>errors.push(error.message));
       await page.goto(base+'/about');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
+      await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
       assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v7.webp');
       assert.equal(await page.evaluate(()=>window.exportSceneAssets().metadata.state.foliage.length),4,'Four painted shoreline conifers');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
-      for (const name of ['.trail-post','.trail-pika']) {
+      for (const name of ['.trail-post','.trail-pika-body']) {
         const sprite = page.locator(name);
-        assert.ok((await sprite.getAttribute('src')).endsWith('-source-brush-v6.webp'),'Loads the unified landscape-brush cutout');
+        assert.ok((await sprite.getAttribute('src')).endsWith(name==='.trail-post'?'-source-brush-v6.webp':'-source-brush-v7.webp'),'Loads the current landscape-brush cutout');
         const alpha = await sprite.evaluate(async image=>{
           await image.decode(); const c=document.createElement('canvas');c.width=image.naturalWidth;c.height=image.naturalHeight;
           const g=c.getContext('2d');g.drawImage(image,0,0);const d=g.getImageData(0,0,c.width,c.height).data;let visible=0;
@@ -30,6 +31,10 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       const pika=await page.locator('.trail-pika').boundingBox(),navigation=await page.locator('.scene-nav').boundingBox();
       assert.ok(pika.x>=0&&pika.x+pika.width<=width,'Pika fits the viewport');
       assert.ok(pika.y+pika.height<navigation.y||pika.x+pika.width<navigation.x,'Pika stays clear of navigation');
+      await page.locator('.trail-pika').evaluate(el=>{const a=el.getAnimations()[0];a.pause();a.currentTime=0;});
+      const head=page.locator('.trail-pika-head'),body=page.locator('.trail-pika-body');
+      await head.evaluate(el=>{const a=el.getAnimations()[0];a.pause();a.currentTime=0;});
+      const bodyAtRest=await body.boundingBox(),headAtRest=await head.boundingBox();
       await page.screenshot({path:path.join(output,`about-${width}-t0.png`)});
       if (width===1600) {
         const report = await page.evaluate(()=>{
@@ -63,7 +68,13 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
         console.log(JSON.stringify(report));
       }
       await page.evaluate(()=>window.seekScene(6));
+      await head.evaluate(el=>{el.getAnimations()[0].currentTime=1620;});
+      assert.notDeepEqual(await head.boundingBox(),headAtRest,'Head bobs');
+      assert.deepEqual(await body.boundingBox(),bodyAtRest,'Body and paws stay anchored');
       await page.screenshot({path:path.join(output,`about-${width}-t6.png`)});
+      await page.emulateMedia({reducedMotion:'reduce'});
+      assert.equal(await head.evaluate(el=>el.getAnimations().length),0,'Reduced motion freezes the head');
+      assert.equal(await page.locator('.trail-pika').evaluate(el=>el.getAnimations().length),0,'Reduced motion freezes the shuffle');
       assert.deepEqual(errors,[]);await page.close();
     }
     console.log('Passed: whole-lake motion, fixed landmarks, desktop/mobile snapshots: '+output);
