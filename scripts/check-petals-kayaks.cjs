@@ -14,7 +14,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    if(width===1600){
     const result=await page.evaluate(route=>{
      const g=document.querySelector('#motion').getContext('2d'),landscape=document.querySelector('#landscape').toDataURL();
-     const regions=route==='tech-blog'?[{name:'petal flight',x:300,y:390,w:450,h:300},{name:'wind curl',x:650,y:550,w:190,h:120}]:[
+     const regions=route==='tech-blog'?[{name:'petal flight',x:300,y:390,w:450,h:300},{name:'flowering branch sway',x:229,y:34,w:278,h:283}]:[
       {name:'falling leaves',x:300,y:330,w:650,h:260},{name:'water',x:200,y:780,w:850,h:200},
       {name:'left kayak',x:60,y:640,w:260,h:110},{name:'middle kayak',x:750,y:635,w:240,h:100},{name:'right kayak',x:1120,y:635,w:320,h:120}];
      const first=regions.map(r=>g.getImageData(r.x,r.y,r.w,r.h).data);window.seekScene(6);
@@ -26,6 +26,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    }else await page.evaluate(()=>window.seekScene(6));
    await page.screenshot({path:path.join(output,`${route}-${width}-t6.png`)});assert.deepEqual(errors,[]);await page.close();
   }
-  console.log('Passed: falling petals, wind curls, falling leaves, water and three kayaks; fixed underlying paintings. Screenshots: '+output);
+  console.log('Passed: falling petals, flowering branch sway, falling leaves, water and three kayaks; fixed underlying paintings. Screenshots: '+output);
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

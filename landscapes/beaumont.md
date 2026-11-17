@@ -22,7 +22,7 @@ Brush direction follows upright masonry in the tower zone and irregular branch/p
 
 Twelve source-masked painted cutouts cover seven magnolia clusters and five evergreen branch masses. Pink-petal masks reject warm brick and woody stems; green-needle masks reject stone, clock, and sky. Feathered edges avoid rectangular patches. Each cluster shears and rotates gently around a fixed photographed woody attachment with a shared gust and small spatial delay, plus restrained tip rustle. The building and its supports stay fixed.
 
-Current requested motion adds 64 seeded pink petals released from source-masked flowering branches and three small chalk-colored wind curls. Petals flutter, turn edge-on, and fade at cycle boundaries. The clock and tower remain fixed; no pollen or clock-hand animation is added.
+Current motion adds 64 seeded pink petals released from source-masked flowering branches. Petals flutter, turn edge-on, and fade at cycle boundaries. Flowering clusters sway visibly around their fixed woody attachments. The clock and tower remain fixed; there are no visible wind streaks or spirals.
 
 ## Portrait framing
 
@@ -34,11 +34,11 @@ The scene module is `scenes/beaumont.js`, using the shared `startScene` pipeline
 
 Check source/copy byte equality, scene syntax, exact center-cover crop, and that the motion cutout alpha stays zero over the clock and masonry. Root owns integrated Playwright desktop, portrait, wide, temporal, fallback, and navigation checks, and the final commit/deployment.
 
-Current runtime caches are the half-size-brush `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` edition. `scripts/check-petals-kayaks.cjs` checks petal-flight and wind-curl regions on desktop plus portrait screenshots.
+Current runtime caches are the `painting-v6.webp`, `fallback-v6.webp`, and `live-v6.*` edition. `scripts/check-petals-kayaks.cjs` checks petal flight and flowering-branch sway regions on desktop plus portrait screenshots.
 
 
 ## Local tower detail edition
 
 The current v6 edition doubles the tower's v5 brush size from .23 to .46: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing. Runtime visitors load prebuilt v6 assets.
 
-The breeze uses neutral chalk-white and soft gray pixel dabs. One or two traveling gusts enter straight; the leading tip curls first while the tail stays straight. The bend advances back along the gust into a tightening spiral, then unwinds, straightens, and fades away. Two staggered slots cap the active count at two; each appearance varies its delay, duration, position, size, curl, and handedness. Randomness is sampled once per visit and held stable within each gust, so its texture never flickers. `scripts/check-beaumont-wind.cjs` checks the tip-first curl, lifecycle, active count, varied placement, neutral pigments, fixed architecture, and desktop/mobile motion sequences.
+Wind is expressed through branch sway and drifting petals only. Flowering cutouts use a stronger anchored bend than the evergreen cutouts; the underlying architecture stays fixed.

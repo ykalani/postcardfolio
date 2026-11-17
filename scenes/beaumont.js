@@ -2,7 +2,6 @@ import {startScene} from './scene-painter.js';
 const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const blossom = (r, g, b) => clamp((r - g - 3) / 19) * clamp((b - g + 7) / 17) * clamp((r - 90) / 70) * clamp((b - r * .65) / 28);
 const needle = (r, g, b) => clamp((g - r * .99 - 1) / 18) * clamp((g - b * 1.03) / 16) * clamp((205 - g) / 55);
-const breezeSeed = Math.random() * 10000;
 
 function paintedFoliage(painting, pixels, W, region) {
   const layer = document.createElement('canvas'); layer.width = region.w; layer.height = region.h;
@@ -81,10 +80,11 @@ function draw({ctx, t, state, wind}) {
     const gust = Math.sin(delayed * .73) * .47 + wind * .5;
     const rustle = Math.sin(t * 2.6 + branch.phase) * .085 + Math.sin(t * 4.1 + branch.phase * 2) * .035;
     const bend = (gust + rustle) * branch.strength;
+    const flowering = branch.kind === 'blossom';
     ctx.save(); ctx.translate(branch.anchorX, branch.anchorY);
     // A shear pivots the photographed cluster around its fixed woody attachment.
-    ctx.transform(1, 0, bend * .016, 1, 0, 0);
-    ctx.rotate(bend * .0025);
+    ctx.transform(1, 0, bend * (flowering ? .04 : .016), 1, 0, 0);
+    ctx.rotate(bend * (flowering ? .008 : .0025));
     ctx.globalAlpha = .93;
     ctx.drawImage(branch.layer, branch.x - branch.anchorX, branch.y - branch.anchorY);
     ctx.restore();
@@ -101,38 +101,6 @@ function draw({ctx, t, state, wind}) {
     ctx.quadraticCurveTo(petal.size*1.5,-petal.size*.2,petal.size*.6,petal.size*.5);
     ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
     ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
-  }
-  // Two staggered streams let each gust arrive, curl, unfurl, and leave.
-  for(let i=0;i<2;i++){
-    const clock=t+i*10.5,cycle=Math.floor(clock/21);
-    const random=n=>{const value=Math.sin(breezeSeed+cycle*127.1+i*311.7+n*74.7)*43758.5453;return value-Math.floor(value);};
-    const duration=13+random(0)*4,age=(clock-cycle*21-random(6)*2)/duration;
-    if(age<0||age>=1)continue;
-    const fold=Math.sin(clamp((age-.15)/.7)*Math.PI)**2;
-    const fade=clamp(age/.12)*clamp((1-age)/.22);
-    const size=.8+random(1)*.35,turn=Math.PI*(3+random(2)),direction=random(5)<.5?-1:1;
-    ctx.save();ctx.translate(550+random(3)*350+(age-.5)*800,380+random(4)*270);
-    const boundary=1-fold*.9,step=430/35*size;
-    let x=-215*size,y=0;
-    // Curvature starts at the leading tip and travels back along the straight tail.
-    for(let j=0;j<36;j++){
-      const u=j/35,angle=direction*turn*clamp((u-boundary)/.9)**2;
-      if(j){
-        const middle=direction*turn*clamp(((j-.5)/35-boundary)/.9)**2;
-        x+=Math.cos(middle)*step;y+=Math.sin(middle)*step;
-      }
-      for(let lane=0;lane<3;lane++){
-        const offset=(lane-1)*5*size;
-        ctx.globalAlpha=fade*clamp(u/.12)*clamp((1-u)/.08)*(.42+lane*.08);
-        ctx.fillStyle=['#dededb','#eeeeeb','#c9cbc8'][(Math.floor(j/4)+lane)%3];
-        const length=6+(j%3)*2;
-        ctx.save();ctx.translate(x-Math.sin(angle)*offset,y+Math.cos(angle)*offset);ctx.rotate(angle);
-        ctx.fillRect(-length/2,-2,length,4);
-        ctx.fillRect(-length/2+2,-4,length-4,2);
-        ctx.restore();
-      }
-    }
-    ctx.restore();
   }
 }
 
