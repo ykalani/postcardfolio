@@ -83,3 +83,7 @@ The user explicitly restored the original project background and limited image g
 ## Reference-colored kayak brushwork (v10)
 
 The kayak cutouts receive larger loaded brush marks (scale .55), with horizontal hull strokes and upright figure strokes. Their pigments follow the supplied reference: yellow-green shells, red life jackets and dark clothing, instead of the generated studies' orange/gold treatment. The near tandem's vertical proportions are compressed to match the low seated paddlers in the photograph; the distant boat sits at its original waterline. Transparent silhouettes, independent movement and the original background renderer are retained. Browser checks verify the rendered hull/vest colors as well as motion, transparency and the original background.
+
+## Direct reference kayakers (v11)
+
+The user requested the exact reference with paint applied over the actual kayak graphics. Generated kayak studies are no longer used. All four hulls, people, blades and thin shafts are traced in the supplied photograph's 1600x1000 center crop. Only source colors enter the shared brush painter; no photographic patch is drawn on the visible artwork. Unscaled painted silhouettes retain the actual poses and paddle positions. Motion starts at zero displacement and roll so the initial frame aligns with the reference, then the existing drift/bob continues. The original terrain renderer and shoreline remain in use. QA checks reference bounding boxes, transparent gaps between paddlers, initial alignment, short motion and background preservation.

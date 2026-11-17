@@ -1,37 +1,68 @@
 import {startScene} from './scene-painter.js';
 const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const W = 1600, H = 1000;
-// Sprite crops retain the natural painted edges; depth determines scale and overlap.
+// Traced directly in the reference's 1600x1000 center crop; no generated poses or rescaling.
 const BOATS = [
-  {crop:[50,190,694,240],x:100,bottom:729,w:190,depth:1,hullTop:.61,hullBottom:.9},
-  {crop:[868,224,615,157],x:800,bottom:702,w:185,depth:1,hullTop:.76},
-  {crop:[92,688,587,158],x:1148,bottom:685,w:112,depth:0,hullTop:.73},
-  {crop:[804,614,686,256],x:1150,bottom:719,w:255,depth:2,hullTop:.78,heightScale:.76}
+  {depth:1,parts:[
+    [[130,695],[167,700],[218,701],[264,695],[269,700],[256,712],[194,720],[151,724],[135,719]],
+    [[173,697],[176,687],[182,683],[183,675],[186,669],[194,670],[199,677],[198,683],[207,688],[213,697]],
+    [[217,696],[218,686],[225,680],[225,668],[231,663],[241,664],[245,669],[244,678],[249,685],[254,695]],
+    [[100,702],[121,697],[137,698],[138,704],[121,711],[100,709]],
+    [[164,670],[177,672],[186,679],[181,686],[169,681],[162,677]],
+    [[253,695],[275,694],[279,700],[257,705]]
+  ],shafts:[[[132,702],[191,689],[262,698]],[[178,681],[204,696],[225,714]]]},
+  {depth:1,parts:[
+    [[789,672],[831,677],[882,681],[932,681],[972,683],[961,690],[911,694],[841,695],[799,687]],
+    [[854,681],[858,676],[869,672],[870,664],[875,662],[880,666],[879,672],[885,678],[890,682]],
+    [[905,683],[910,674],[916,670],[916,662],[921,659],[925,663],[924,670],[932,676],[938,683]],
+    [[847,660],[852,660],[861,674],[859,680],[855,676]],
+    [[932,673],[943,671],[948,676],[942,682]]
+  ],shafts:[[[854,670],[865,678],[881,685]],[[915,682],[933,676],[943,675]]]},
+  // The small kayak behind the right-hand yellow one has its own float/depth.
+  {depth:0,parts:[
+    [[1168,675],[1201,675],[1240,678],[1289,674],[1300,677],[1288,683],[1207,686],[1175,683]],
+    [[1189,677],[1192,667],[1196,660],[1203,659],[1208,665],[1208,671],[1217,675],[1220,682]],
+    [[1248,677],[1250,668],[1255,664],[1256,657],[1263,656],[1267,662],[1266,668],[1274,675],[1276,680]],
+    [[1167,674],[1180,672],[1186,676],[1181,681]]
+  ],shafts:[[[1178,676],[1200,670],[1220,678]],[[1257,675],[1273,677],[1292,678]]]},
+  {depth:2,parts:[
+    [[1155,697],[1190,692],[1235,694],[1280,691],[1330,686],[1370,679],[1398,675],[1401,681],[1394,699],[1363,708],[1230,711],[1175,707]],
+    [[1207,695],[1205,683],[1212,679],[1216,671],[1223,666],[1230,669],[1231,676],[1238,680],[1246,687],[1242,696]],
+    [[1254,694],[1257,684],[1269,681],[1270,673],[1276,668],[1283,669],[1286,676],[1283,682],[1290,686],[1295,693]],
+    [[1214,653],[1220,647],[1226,649],[1233,664],[1229,672],[1222,669]]
+  ],shafts:[[[1226,664],[1232,681],[1242,704]],[[1275,684],[1287,688],[1307,696]]]}
 ];
 const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
 let kayakSprites;
 
-async function prepareKayakArt({ctx,random}) {
-  const image=new Image();image.src='assets/sleeping-bear/kayak-study.png';await image.decode();
+async function prepareKayakArt({ctx,sourcePixels,random}) {
   const {paintBrushwork}=await import('./brush-painting.js');
   kayakSprites=[];
   for(const boat of BOATS){
-    const h=Math.round(boat.crop[3]*boat.w/boat.crop[2]*(boat.heightScale??1)),mask=canvas(boat.w,h),sprite=canvas(boat.w,h);
-    mask.getContext('2d').drawImage(image,...boat.crop,0,0,boat.w,h);
-    const c=sprite.getContext('2d'),samples=mask.getContext('2d').getImageData(0,0,boat.w,h).data;
-    // Match the reference's green-yellow shells and red vests before laying loaded brush marks.
-    for(let y=0;y<h;y++)for(let x=0;x<boat.w;x++){
-      const at=(y*boat.w+x)*4,r=samples[at],g=samples[at+1],b=samples[at+2],light=r*.3+g*.55+b*.15;
-      if(y>=h*boat.hullTop-x*.025&&y<h*(boat.hullBottom??1)&&r>g*.85&&g>b*1.3){
-        samples[at]=light*.84+8;samples[at+1]=light*.9+20;samples[at+2]=light*.17+11;
-      }else if(y>h*.25&&y<h*boat.hullTop&&r>g*1.6&&g>b*1.1){
-        samples[at]=light*1.15+25;samples[at+1]=light*.39+10;samples[at+2]=light*.32+13;
-      }
+    const points=[...boat.parts.flat(),...boat.shafts.flat()],xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+    const x=Math.min(...xs)-4,y=Math.min(...ys)-4,w=Math.max(...xs)-x+5,h=Math.max(...ys)-y+5;
+    const mask=canvas(w,h),m=mask.getContext('2d'),sprite=canvas(w,h),c=sprite.getContext('2d');
+    for(const points of boat.parts){
+      m.beginPath();points.forEach(([px,py],i)=>i?m.lineTo(px-x,py-y):m.moveTo(px-x,py-y));m.closePath();m.fill();
     }
-    await paintBrushwork({ctx:c,pixels:samples,width:boat.w,height:h,random,scale:.55,pigmentStep:24,
-      angle:(x,y)=>y>=h*boat.hullTop-x*.025?-.04:x>boat.w*.18&&x<boat.w*.78?1.2:-.45});
+    m.lineWidth=2;m.lineCap='round';
+    for(const points of boat.shafts){m.beginPath();points.forEach(([px,py],i)=>i?m.lineTo(px-x,py-y):m.moveTo(px-x,py-y));m.stroke();}
+    const silhouette=m.getImageData(0,0,w,h),samples=new Uint8ClampedArray(w*h*4);
+    for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
+      const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4;
+      for(let k=0;k<3;k++)samples[local+k]=sourcePixels[at+k];
+      samples[local+3]=255;
+      const r=samples[local],g=samples[local+1],b=samples[local+2];
+      if(b>r*1.12&&b>g*.99&&r+g+b>350)silhouette.data[local+3]=0;
+    }
+    m.putImageData(silhouette,0,0);
+    await paintBrushwork({ctx:c,pixels:samples,width:w,height:h,random,scale:.3,pigmentStep:24,
+      angle:(px,py)=>y+py>=boat.parts[0][0][1]-3?-.04:1.2});
     c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';
-    kayakSprites.push(sprite);
+    // Keep the reference's thin paddle shafts legible between the broader painted forms.
+    c.strokeStyle='#34473c';c.lineWidth=1.1;c.lineCap='butt';
+    for(const points of boat.shafts){c.beginPath();points.forEach(([px,py],i)=>i?c.lineTo(px-x,py-y):c.moveTo(px-x,py-y));c.stroke();}
+    kayakSprites.push({sprite,x,y,w,h});
   }
   // Remove the reference kayakers from the original painting before adding independent sprites.
   const original=ctx.getImageData(0,0,W,H),clean=ctx.getImageData(0,0,W,H);
@@ -68,11 +99,7 @@ function shoreAt(x) {
   return SHORE.at(-1)[1];
 }
 function prepareBoats(){
-  return BOATS.map((boat,index)=>{
-    const {x,w,depth,bottom}=boat,h=kayakSprites[index].height;
-    const sprite=kayakSprites[index];
-    return {sprite,x,y:bottom-h,w,h,depth,phase:index*1.9,range:depth===0?2.2:3.5+index*.3};
-  });
+  return BOATS.map((boat,index)=>({...kayakSprites[index],depth:boat.depth,phase:index*1.9,range:boat.depth===0?2.2:3.5+index*.3}));
 }
 
 function foliageCutout(painting,pixels,region) {
@@ -167,10 +194,10 @@ function draw({ctx,t,state,wind}) {
   c.globalCompositeOperation='destination-in';c.drawImage(state.mask,0,0);
   c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(state.water,0,0);ctx.restore();
   for(const boat of [...state.boats].sort((a,b)=>a.depth-b.depth)){
-    const drift=Math.sin(t*.22+boat.phase)*boat.range*4;
+    const drift=(Math.sin(t*.22+boat.phase)-Math.sin(boat.phase))*boat.range*3;
     const depth=.7+boat.depth*.35;
-    const wave=(Math.sin(t*.85+boat.phase)*1.25+Math.sin(t*1.3+boat.phase*1.7)*.35)*depth;
-    const roll=Math.cos(t*.85+boat.phase)*.004*depth;
+    const wave=((Math.sin(t*.85+boat.phase)-Math.sin(boat.phase))*1.25+(Math.sin(t*1.3+boat.phase*1.7)-Math.sin(boat.phase*1.7))*.35)*depth;
+    const roll=(Math.cos(t*.85+boat.phase)-Math.cos(boat.phase))*.004*depth;
     ctx.save();ctx.translate(boat.x+boat.w*.5+drift,boat.y+boat.h*.8+wave);
     ctx.rotate(roll);ctx.drawImage(boat.sprite,-boat.w*.5,-boat.h*.8);ctx.restore();
     // Small broken pressure ripples follow the hull, with independent fade rather than a dashed outline.
@@ -206,8 +233,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:10,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v10.webp',
+  liveVersion:11,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v11.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.72,
   grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;

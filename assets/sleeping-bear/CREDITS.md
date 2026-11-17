@@ -38,3 +38,7 @@ The landscape was directed toward large warm sandstone planes, cool indigo shado
 The active background is restored to the original programmatic brush painting from the user-supplied photograph, with its original color grade and geography. The generated v8 landscape is superseded. Image generation is used only for `kayak-study.png`; the cutouts are repainted with the project's shared brush renderer before baking `live-v9.*`. `painting-v9.webp` and `fallback-v9.webp` contain the original background with small repairs where the reference boats were removed.
 
 The v10 kayak edition uses the same generated kayak studies, repainted with broader directional brush strokes and the green hull/red vest palette of the user-supplied photograph. No new generated imagery or background is introduced.
+
+## Current source policy (v11): exact reference silhouettes
+
+Both terrain and kayakers now use the user-supplied photograph as their source. Generated kayak studies are superseded and unused in the active scene. Manually traced hull, person and paddle masks preserve the supplied photograph's geometry and positions; color samples are rendered through the shared brush painter and clipped to those silhouettes. The active painting, fallback and motion atlas use v11. Historical generated assets are retained as superseded studies only.
