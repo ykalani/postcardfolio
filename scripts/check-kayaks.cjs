@@ -69,7 +69,9 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    if(width===1600)for(let i=0;i<4;i++){
     const [x,y,w,h]=result.referenceBounds[i],start=result.frames[0][i];
     assert.ok(Math.abs(start.x-(x+w*.5))<.001&&Math.abs(start.y-(y+h*.8))<.001,'Animation starts at the exact reference position');
-    const xs=result.frames.map(frame=>frame[i].x);assert.ok(Math.max(...xs)-Math.min(...xs)>5,`Kayak ${i} visibly moves`);
+    const xs=result.frames.map(frame=>frame[i].x);assert.ok(Math.max(...xs)-Math.min(...xs)>14,`Kayak ${i} has a visible side-to-side sway`);
+    const changes=xs.slice(1).map((x,j)=>x-xs[j]);
+    assert.ok(changes.some(dx=>dx>0)&&changes.some(dx=>dx<0),`Kayak ${i} moves both left and right`);
    }
    for(const t of[0,2,6,13]){
     await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`about-${width}-t${t}.png`)});
