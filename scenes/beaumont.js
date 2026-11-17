@@ -86,7 +86,7 @@ async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
   for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)samples.set(pixels.subarray(((y+yy)*W+x+xx)*4,((y+yy)*W+x+xx)*4+4),(yy*w+xx)*4);
   const detail=document.createElement('canvas');detail.width=w;detail.height=h;
   const {paintBrushwork}=await import('./brush-painting.js');
-  await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.46,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
+  await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.75,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
   const d=detail.getContext('2d');d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);
   ctx.drawImage(detail,x,y);return mask;
 }
@@ -153,8 +153,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:7,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v7.webp',
+  liveVersion:8,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v8.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;
