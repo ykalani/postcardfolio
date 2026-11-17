@@ -1,5 +1,7 @@
 .trail-companion{position:fixed;z-index:1;left:24px;bottom:-24px;width:210px;height:240px;pointer-events:none}
 .trail-companion img{position:absolute;height:auto}
 .trail-post{width:180px;left:10px;bottom:0}
-.trail-pika{width:194px;left:4px;bottom:74px}
+.trail-pika{width:194px;left:4px;bottom:74px;transform-origin:55% 94%;animation:pika-shuffle 9s ease-in-out infinite}
+@keyframes pika-shuffle{0%,20%,100%{transform:translateX(0) rotate(0)}35%,45%{transform:translateX(2px) rotate(.6deg)}65%,75%{transform:translateX(-1px) rotate(-.4deg)}}
+@media(prefers-reduced-motion:reduce){.trail-pika{animation:none}}
 @media(max-width:650px){.trail-companion{left:10px;bottom:100px;width:150px;height:200px}.trail-post{width:136px;left:3px}.trail-pika{width:146px;left:0;bottom:56px}}
