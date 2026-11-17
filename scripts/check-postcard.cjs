@@ -33,7 +33,7 @@ fs.mkdirSync(output, {recursive: true});
       assert.ok(Math.abs(landed.x + landed.width / 2 - width / 2) < 2, 'Card lands horizontally centered');
       assert.ok(landed.x >= 0 && landed.x + landed.width <= width, 'Card fits viewport');
       assert.ok(landed.width / landed.height > 1.5, 'Card has landscape postcard proportions');
-      assert.equal(await page.locator('.postcard-message,.postcard-subtitle,.postcard-signature,.postcard-heading').count(), 0, 'Old copy removed');
+      assert.equal(await page.locator('.postcard-location,.postcard-message,.postcard-subtitle,.postcard-signature,.postcard-heading').count(), 0, 'Old copy removed');
       const nav = await page.locator('.scene-nav').boundingBox();
       assert.ok(landed.y + landed.height < nav.y, 'Navigation stays clear');
       const close = page.getByRole('button', {name: 'Close postcard', exact: true});
@@ -62,6 +62,7 @@ fs.mkdirSync(output, {recursive: true});
       'tech-blog': 'Beaumont Tower, Michigan',
       about: 'Lake Louise, Alberta'
     };
+    const institutions = {experiences:'Hawaiʻi Volcanoes National Park',projects:'Great Sand Dunes National Park',writing:'Pictured Rocks National Lakeshore','tech-blog':'Michigan State University',about:'Banff National Park'};
     for (const width of [1600, 390]) for (const [route, location] of Object.entries(locations)) {
       const page = await browser.newPage({viewport: {width, height: width === 390 ? 844 : 1000}});
       const errors = [];
@@ -73,20 +74,22 @@ fs.mkdirSync(output, {recursive: true});
       const folded = page.getByRole('button', {name: 'Open postcard from Yash'});
       assert.equal(await card.isVisible(), false, `${route}: starts collapsed`);
       assert.equal(await folded.isVisible(), true);
-      assert.equal(await folded.locator('.postcard-return-location').textContent(), location);
+      assert.equal(await folded.locator('.postcard-return-place').textContent(), location);
       assert.equal(await folded.locator('img').getAttribute('src'), 'assets/pfp_stamp.webp');
       const bounds = await folded.boundingBox();
       assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width, `${route}: slip fits`);
+      assert.equal(await folded.locator('.postcard-return-institution').textContent(), institutions[route]);
+      assert.ok(await folded.evaluate(el => {
+        const place = el.querySelector('.postcard-return-place'), institution = el.querySelector('.postcard-return-institution');
+        const line = parseFloat(getComputedStyle(place).lineHeight);
+        return place.offsetHeight <= line + 1 && institution.offsetHeight <= line + 1 && institution.offsetTop >= place.offsetTop + place.offsetHeight;
+      }), 'Location occupies exactly two lines');
       await page.screenshot({path: path.join(output, `${route}-${width}-slip.png`)});
       await folded.focus();
       await folded.press('Enter');
       await card.evaluate(async card => {await Promise.all(card.getAnimations().map(animation => animation.finished));});
       assert.equal(await card.isVisible(), true);
-      assert.equal(await card.locator('.postcard-location').textContent(), location);
-      assert.ok(await card.evaluate(card => {
-        const name = card.querySelector('h2'), label = card.querySelector('.postcard-location');
-        return label.offsetTop >= name.offsetTop + name.offsetHeight;
-      }), `${route}: location sits beneath name`);
+      assert.equal(await card.locator('.postcard-location').count(), 0, 'Large postcard has no subtitle');
       await page.screenshot({path: path.join(output, `${route}-${width}-open.png`)});
       await page.getByRole('button', {name: 'Close postcard', exact: true}).click();
       assert.equal(await folded.evaluate(button => button === document.activeElement), true);
