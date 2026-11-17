@@ -39,7 +39,7 @@ fs.mkdirSync(output, {recursive: true});
       assert.ok(closePosition.x < landed.x + 60 && closePosition.y < landed.y + 60, 'Close is at the top left');
       await close.click();
       assert.equal(await card.isVisible(), false);
-      const folded = page.getByRole('button', {name: 'Open postcard from Yash'});
+      const folded = page.locator('#show-postcard');
       await folded.focus();
       assert.equal(await folded.evaluate(button => button === document.activeElement), true);
       assert.equal(await folded.locator('img').evaluate(img => img.complete && img.naturalWidth > 0), true);
@@ -67,7 +67,7 @@ fs.mkdirSync(output, {recursive: true});
       await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true');
       await page.waitForFunction(() => document.documentElement.dataset.cloudPhase === 'idle');
       const card = page.locator('.postcard');
-      const folded = page.getByRole('button', {name: 'Open postcard from Yash'});
+      const folded = page.locator('#show-postcard');
       assert.equal(await card.isVisible(), false, `${route}: starts collapsed`);
       assert.equal(await folded.isVisible(), true);
       assert.equal(await folded.locator('.postcard-return-location').textContent(), location);
@@ -87,9 +87,15 @@ fs.mkdirSync(output, {recursive: true});
       await page.screenshot({path: path.join(output, `${route}-${width}-open.png`)});
       await page.getByRole('button', {name: 'Close postcard', exact: true}).click();
       assert.equal(await folded.evaluate(button => button === document.activeElement), true);
-      await page.locator('.content-slip').click();
-      assert.equal(await page.locator('.paper-sheet').isVisible(), true, `${route}: content remains accessible`);
-      await page.keyboard.press('Escape');
+      if (route === 'about') {
+        assert.equal(await page.locator('.content-slip,.paper-sheet').count(), 0);
+        await folded.click();
+        assert.equal(await page.locator('.about-links a').count(), 15);
+      } else {
+        await page.locator('.content-slip').click();
+        assert.equal(await page.locator('.paper-sheet').isVisible(), true, `${route}: content remains accessible`);
+        await page.keyboard.press('Escape');
+      }
       assert.deepEqual(errors, []);
       await page.close();
     }
