@@ -11,7 +11,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
     for (const width of [1600,390]) {
       const page = await browser.newPage({viewport:{width,height:width===1600?1000:844}}), errors=[];
       page.on('pageerror', error=>errors.push(error.message));
-      await page.goto(base+'/writing');
+      await page.goto(base+'/about');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
       assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v7.webp');
       assert.equal(await page.evaluate(()=>window.exportSceneAssets().metadata.state.foliage.length),4,'Four painted shoreline conifers');
@@ -29,7 +29,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       const pika=await page.locator('.trail-pika').boundingBox(),navigation=await page.locator('.scene-nav').boundingBox();
       assert.ok(pika.x>=0&&pika.x+pika.width<=width,'Pika fits the viewport');
       assert.ok(pika.y+pika.height<navigation.y||pika.x+pika.width<navigation.x,'Pika stays clear of navigation');
-      await page.screenshot({path:path.join(output,`writing-${width}-t0.png`)});
+      await page.screenshot({path:path.join(output,`about-${width}-t0.png`)});
       if (width===1600) {
         const report = await page.evaluate(()=>{
           const g=document.querySelector('#motion').getContext('2d');
@@ -59,7 +59,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
         console.log(JSON.stringify(report));
       }
       await page.evaluate(()=>window.seekScene(6));
-      await page.screenshot({path:path.join(output,`writing-${width}-t6.png`)});
+      await page.screenshot({path:path.join(output,`about-${width}-t6.png`)});
       assert.deepEqual(errors,[]);await page.close();
     }
     console.log('Passed: whole-lake motion, fixed landmarks, desktop/mobile snapshots: '+output);

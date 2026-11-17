@@ -1,5 +1,9 @@
 # Banff — user-provided reference and painting
 
+## Verified publication
+
+The matching photograph appears as the header of Fora Travel's guide curated by Anna Staudt: https://www.foratravel.com/guides/L6R7DT/luxury-and-adventure-the-ultimate-guide-to-banff-national-park-anna-staudt . Verified visually November 16, 2026 against the supplied reference (same clouds, boats, people, and shoreline, with a different crop). The page identifies the curator but does not explicitly credit the photographer or state a reuse license.
+
 - Source: the image supplied by the user for this portfolio, received November 16, 2026. The user identifies the setting as Banff.
 - Preserved input: `provided-reference.webp`, copied byte-for-byte from the supplied image before any painter preparation. `guide.webp` is a second exact copy for offscreen authoring and regeneration.
 - Original dimensions: 2846 × 3794. Original filename, photographer, capture date, and a public reuse license were not supplied; none is invented here. No external stock photograph replaces this reference.

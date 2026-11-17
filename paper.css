@@ -1,0 +1,13 @@
+.content-slip,.paper-sheet{background:#faf5e8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' seed='23' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath opacity='.1' filter='url(%23n)' d='M0 0h150v150H0z'/%3E%3C/svg%3E");color:#3c5148;border:1px solid #eee4ce;box-shadow:3px 14px 28px #18362a38,0 2px 3px #18362a26;font-family:Georgia,serif}
+.content-slip{position:fixed;z-index:4;bottom:125px;left:50%;transform:translateX(-50%) rotate(-1deg);width:min(720px,calc(100% - 48px));min-height:56px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-radius:2px;cursor:pointer;font-size:18px;font-style:italic}
+.paper-arrow{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.paper-sheet{position:fixed;inset:0;margin:0;padding:0;width:100%;height:100dvh;max-width:none;max-height:none;overflow:hidden;border-radius:0}
+.paper-sheet[open]{display:flex;flex-direction:column}
+.paper-sheet::backdrop{background:transparent}
+.paper-sheet-header{flex:none;display:flex;justify-content:flex-end;padding:max(12px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 12px 20px;border-bottom:1px solid #3c51481a}
+.paper-collapse{display:grid;place-items:center;width:48px;height:48px;border:1px solid #3c514833;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
+.paper-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:40px max(24px,calc((100vw - 960px)/2)) max(40px,env(safe-area-inset-bottom));scrollbar-color:#9ba38d #faf5e8}
+.paper-content h2{margin:0 0 32px;font:normal clamp(32px,5vw,56px)/1.15 Georgia,serif;letter-spacing:-1px}
+.content-slip:focus-visible,.paper-collapse:focus-visible{outline:2px solid #b36543;outline-offset:4px}
+html:has(.paper-sheet[open]){overflow:hidden}
+@media(max-width:650px){.content-slip{bottom:135px}.paper-content{padding-top:28px}}

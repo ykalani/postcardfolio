@@ -4,7 +4,7 @@ import {spawnSync} from 'node:child_process';
 
 const pages = ['index.html','projects.html','experiences.html','writing.html','tech-blog.html','about.html'];
 const scenes = [['great-sand-dunes','guide.webp',10],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',7],['sleeping-bear','guide.webp',12],['beaumont','guide.webp',7]];
-const scripts = ['scene.js','cloud-transition.js','postcard.js','server.mjs',
+const scripts = ['scene.js','cloud-transition.js','postcard.js','paper.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
 for (const script of scripts) {
@@ -47,7 +47,7 @@ for (const page of [...pages,'credits.html']) {
     await access(new URL(target,import.meta.url));
   }
 }
-for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes']]) {
+for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes'],['writing.html','sleeping-bear'],['about.html','banff']]) {
   assert.ok((await readFile(new URL(page,import.meta.url),'utf8')).includes(`src="scenes/${scene}.js"`),`${page}: correct scene`);
 }
 console.log('Passed: script syntax, six landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');
