@@ -14,6 +14,10 @@ Sparse painted sky cutouts travel only left to right, with recurring gaps betwee
 
 ## Mobile and assets
 
-Preserve the 160svh stage. Focus at .54 across the painting and start at the centered .5 scroll position to show the dunes and mountain faces together. Scrolling upward reveals more sky.
+Preserve the 160svh stage. Focus at .54 across the painting and start at .7 scroll to show the dunes and waving foreground together. Scrolling upward reveals the snowy peaks and more sky.
 
-The scene uses the v8 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that cloud sprites contain no mountain pigment. Normal visits use cached art, never the supplied photograph.
+The scene uses the v9 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that cloud sprites contain no mountain pigment. Normal visits use cached art, never the supplied photograph.
+
+## Contrast and foreground brush (v9)
+
+The user requested stronger separation between clouds, green foothills, snowy mountains, and sand, plus a foreground of waving brush. Sky blues sit behind warmer cloud highlights; cool mountain shadows recede behind richer green hills and orange dune faces. Color transitions follow mapped landforms and source light values. Five foreground shrub clumps use the shared broken-bristle painter and sway around fixed roots with a shared gust and smaller tip flutter. Mobile starts at .7 scroll so the moving foreground and dunes are visible together; scrolling upward reveals the peaks and clouds.
