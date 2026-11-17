@@ -42,3 +42,5 @@ The v10 kayak edition uses the same generated kayak studies, repainted with broa
 ## Current source policy (v11): exact reference silhouettes
 
 Both terrain and kayakers now use the user-supplied photograph as their source. Generated kayak studies are superseded and unused in the active scene. Manually traced hull, person and paddle masks preserve the supplied photograph's geometry and positions; color samples are rendered through the shared brush painter and clipped to those silhouettes. The active painting, fallback and motion atlas use v11. Historical generated assets are retained as superseded studies only.
+
+The v12 edition renders the reference kayaks and people entirely with brush marks. Traces guide placement only; the final bristled edges are not cut to a photographic silhouette. No new image sources or generated artwork are used.

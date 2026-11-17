@@ -87,3 +87,7 @@ The kayak cutouts receive larger loaded brush marks (scale .55), with horizontal
 ## Direct reference kayakers (v11)
 
 The user requested the exact reference with paint applied over the actual kayak graphics. Generated kayak studies are no longer used. All four hulls, people, blades and thin shafts are traced in the supplied photograph's 1600x1000 center crop. Only source colors enter the shared brush painter; no photographic patch is drawn on the visible artwork. Unscaled painted silhouettes retain the actual poses and paddle positions. Motion starts at zero displacement and roll so the initial frame aligns with the reference, then the existing drift/bob continues. The original terrain renderer and shoreline remain in use. QA checks reference bounding boxes, transparent gaps between paddlers, initial alignment, short motion and background preservation.
+
+## Brushstrokes only (v12)
+
+The user requested only brushstrokes for the kayaks and paddlers. Reference traces now guide stroke centers rather than clipping the finished paint to hard silhouettes. Larger .65-scale marks and 32-step pigments suppress photographic detail; complete broken bristle ends remain visible beyond the traces. Sixteen-pixel sprite padding preserves those edges. Paddle shafts use short, irregular three-bristle marks instead of continuous outlined paths. Reference placement/colors, transparent gaps and the original terrain remain.

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});
- const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v11');fs.mkdirSync(output,{recursive:true});
+ const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v12');fs.mkdirSync(output,{recursive:true});
  try{
   for(const width of[1600,390]){
    const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[],authoringRequests=[];
@@ -12,12 +12,12 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
    await page.evaluate(()=>window.pauseScene(true));
    const result=await page.evaluate(async()=>{
-    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v11.json',location.href))).json(),boats=meta.state.boats;
-    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v11.webp',location.href);await image.decode();
+    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v12.json',location.href))).json(),boats=meta.state.boats;
+    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v12.webp',location.href);await image.decode();
     const atlas=document.createElement('canvas');atlas.width=image.width;atlas.height=image.height;
     const g=atlas.getContext('2d');g.drawImage(image,0,0);
     const backgrounds=[];
-    for(const version of[7,11]){
+    for(const version of[7,12]){
      const art=new Image();art.src=new URL(`assets/sleeping-bear/painting-v${version}.webp`,location.href);await art.decode();
      const c=document.createElement('canvas');c.width=1600;c.height=1000;const brush=c.getContext('2d');brush.drawImage(art,0,0);
      backgrounds.push([[50,40,260,120],[400,300,300,250],[250,800,650,150]].map(r=>brush.getImageData(...r).data));
@@ -58,7 +58,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     return{count:boats.length,depth:boats.map(b=>b.depth),cutouts,referenceBounds,gaps,leafLight,waterMask,backgroundError,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
    });
    assert.equal(result.count,4);assert.deepEqual(result.depth,[1,1,0,2]);assert.ok(result.cutouts.every(s=>s.coverage>.1&&s.coverage<.75&&s.corners.every(a=>a<20)),'Painted boats retain transparent silhouettes');
-   assert.deepEqual(result.referenceBounds,[[96,659,188,70],[785,655,192,45],[1163,652,142,39],[1151,643,255,73]],'Unscaled cutouts stay aligned with the reference');
+   assert.deepEqual(result.referenceBounds,[[84,647,212,94],[773,643,216,69],[1151,640,166,63],[1139,631,279,97]],'Unscaled cutouts stay aligned with the reference');
    assert.deepEqual(result.gaps,[0,0,0,0],'Gaps between the actual paddlers remain transparent');
    assert.ok(result.cutouts.every(s=>s.red>.015)&&result.cutouts.filter((_,i)=>i!==2).every(s=>s.green>.1),'Painted cutouts retain reference jacket and foreground hull pigments');
    assert.ok(result.moved&&result.repeat&&result.fixed);

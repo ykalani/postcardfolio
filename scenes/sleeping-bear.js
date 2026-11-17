@@ -40,13 +40,11 @@ async function prepareKayakArt({ctx,sourcePixels,random}) {
   kayakSprites=[];
   for(const boat of BOATS){
     const points=[...boat.parts.flat(),...boat.shafts.flat()],xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
-    const x=Math.min(...xs)-4,y=Math.min(...ys)-4,w=Math.max(...xs)-x+5,h=Math.max(...ys)-y+5;
+    const x=Math.min(...xs)-16,y=Math.min(...ys)-16,w=Math.max(...xs)-x+17,h=Math.max(...ys)-y+17;
     const mask=canvas(w,h),m=mask.getContext('2d'),sprite=canvas(w,h),c=sprite.getContext('2d');
     for(const points of boat.parts){
       m.beginPath();points.forEach(([px,py],i)=>i?m.lineTo(px-x,py-y):m.moveTo(px-x,py-y));m.closePath();m.fill();
     }
-    m.lineWidth=2;m.lineCap='round';
-    for(const points of boat.shafts){m.beginPath();points.forEach(([px,py],i)=>i?m.lineTo(px-x,py-y):m.moveTo(px-x,py-y));m.stroke();}
     const silhouette=m.getImageData(0,0,w,h),samples=new Uint8ClampedArray(w*h*4);
     for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
       const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4;
@@ -55,13 +53,22 @@ async function prepareKayakArt({ctx,sourcePixels,random}) {
       const r=samples[local],g=samples[local+1],b=samples[local+2];
       if(b>r*1.12&&b>g*.99&&r+g+b>350)silhouette.data[local+3]=0;
     }
-    m.putImageData(silhouette,0,0);
-    await paintBrushwork({ctx:c,pixels:samples,width:w,height:h,random,scale:.3,pigmentStep:24,
+    // The trace places stroke centers only; full bristle marks form every visible edge.
+    await paintBrushwork({ctx:c,pixels:samples,width:w,height:h,random,scale:.65,pigmentStep:32,
+      skip:(px,py)=>silhouette.data[(py*w+px)*4+3]<200,
       angle:(px,py)=>y+py>=boat.parts[0][0][1]-3?-.04:1.2});
-    c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';
-    // Keep the reference's thin paddle shafts legible between the broader painted forms.
-    c.strokeStyle='#34473c';c.lineWidth=1.1;c.lineCap='butt';
-    for(const points of boat.shafts){c.beginPath();points.forEach(([px,py],i)=>i?c.lineTo(px-x,py-y):c.moveTo(px-x,py-y));c.stroke();}
+    c.strokeStyle='#34473c';c.lineCap='butt';
+    for(const points of boat.shafts)for(let i=1;i<points.length;i++){
+      const [ax,ay]=points[i-1],[bx,by]=points[i],length=Math.hypot(bx-ax,by-ay);
+      for(let d=0;d<length;d+=5){
+        c.save();c.translate(ax-x+(bx-ax)*d/length,ay-y+(by-ay)*d/length);c.rotate(Math.atan2(by-ay,bx-ax));
+        for(let bristle=-1;bristle<=1;bristle++){
+          c.globalAlpha=.5+random()*.35;c.lineWidth=.4+random()*.4;
+          c.beginPath();c.moveTo(-1,bristle*.65);c.lineTo(2+random()*3,bristle*.65+(random()-.5)*.4);c.stroke();
+        }
+        c.restore();
+      }
+    }
     kayakSprites.push({sprite,x,y,w,h});
   }
   // Remove the reference kayakers from the original painting before adding independent sprites.
@@ -233,8 +240,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:11,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v11.webp',
+  liveVersion:12,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v12.webp',
   background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.72,
   grade:(r,g,b,x,y)=>{
     const light=r*.3+g*.55+b*.15;
