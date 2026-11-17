@@ -127,7 +127,8 @@ function draw({ctx, t, state, wind}) {
     const gust = Math.sin(delayed * .73) * .47 + wind * .5;
     const rustle = Math.sin(t * 2.6 + branch.phase) * .085 + Math.sin(t * 4.1 + branch.phase * 2) * .035;
     const flowering = branch.kind === 'blossom';
-    const bend = (flowering ? Math.sin(t*.95-branch.x*.001+branch.phase*.2)*.75+Math.sin(t*1.8+branch.phase)*.15 : gust+rustle) * branch.strength;
+    const strength = branch.strength * (flowering && branch.anchorX < 600 ? 1.8 : 1);
+    const bend = (flowering ? Math.sin(t*.95-branch.x*.001+branch.phase*.2)*.75+Math.sin(t*1.8+branch.phase)*.15 : gust+rustle) * strength;
     ctx.save(); ctx.translate(branch.anchorX, branch.anchorY);
     // A shear pivots the photographed cluster around its fixed woody attachment.
     ctx.transform(1, 0, bend * (flowering ? .01 : .016), 1, 0, 0);

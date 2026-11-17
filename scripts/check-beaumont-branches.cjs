@@ -47,6 +47,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   assert.ok(report.opaque.every(n=>n>1000),'Opaque flowering silhouettes replace faint overlays');
   assert.ok(report.cleared>15000,'Resting blossoms are removed from the live background');
   assert.ok(report.travel.every(n=>n>10),'Each flowering tip moves over ten scene pixels');
+  assert.ok(report.travel.slice(0,3).every(n=>n>20),'Left flowering tips have a broad, readable sway');
   assert.ok(report.fixed);assert.equal(report.rects,0);assert.deepEqual(errors,[]);
   for(const t of [0,1.5,3,4.5]){await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`${width}-${t}.png`)});}
   await page.close();
