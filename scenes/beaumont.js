@@ -111,23 +111,26 @@ function draw({ctx, t, state, wind}) {
     const fold=Math.sin(clamp((age-.15)/.7)*Math.PI)**2;
     const fade=clamp(age/.12)*clamp((1-age)/.22);
     const size=.8+random(1)*.35,turn=Math.PI*(3+random(2)),direction=random(5)<.5?-1:1;
-    const travel=t*.075+Math.sin(t*.65+i)*.009;
     ctx.save();ctx.translate(550+random(3)*350+(age-.5)*800,380+random(4)*270);
-    for(let lane=0;lane<3;lane++)for(let j=0;j<36;j++){
-      const u=(j/36+Math.sin(j*2.4+lane)*.004+travel+lane*.013+1)%1;
-      const angle=u*turn-.45;
-      const radius=108-u*100+(lane-1)*5;
-      const x=((u-.5)*300*(1-fold)+Math.cos(angle)*radius*1.25*fold)*size;
-      const y=((lane-1)*6*(1-fold)+Math.sin(angle)*radius*.85*fold)*size*direction;
-      const dx=300*(1-fold)+(-100*Math.cos(angle)-radius*Math.sin(angle)*turn)*1.25*fold;
-      const dy=(-100*Math.sin(angle)+radius*Math.cos(angle)*turn)*.85*fold*direction;
-      ctx.globalAlpha=fade*Math.sin(u*Math.PI)**.8*(.42+lane*.08);
-      ctx.fillStyle=['#dededb','#eeeeeb','#c9cbc8'][(Math.floor(j/4)+lane)%3];
-      const length=6+(j%3)*2;
-      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));
-      ctx.fillRect(-length/2,-2,length,4);
-      ctx.fillRect(-length/2+2,-4,length-4,2);
-      ctx.restore();
+    const boundary=1-fold*.9,step=430/35*size;
+    let x=-215*size,y=0;
+    // Curvature starts at the leading tip and travels back along the straight tail.
+    for(let j=0;j<36;j++){
+      const u=j/35,angle=direction*turn*clamp((u-boundary)/.9)**2;
+      if(j){
+        const middle=direction*turn*clamp(((j-.5)/35-boundary)/.9)**2;
+        x+=Math.cos(middle)*step;y+=Math.sin(middle)*step;
+      }
+      for(let lane=0;lane<3;lane++){
+        const offset=(lane-1)*5*size;
+        ctx.globalAlpha=fade*clamp(u/.12)*clamp((1-u)/.08)*(.42+lane*.08);
+        ctx.fillStyle=['#dededb','#eeeeeb','#c9cbc8'][(Math.floor(j/4)+lane)%3];
+        const length=6+(j%3)*2;
+        ctx.save();ctx.translate(x-Math.sin(angle)*offset,y+Math.cos(angle)*offset);ctx.rotate(angle);
+        ctx.fillRect(-length/2,-2,length,4);
+        ctx.fillRect(-length/2+2,-4,length-4,2);
+        ctx.restore();
+      }
     }
     ctx.restore();
   }

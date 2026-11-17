@@ -24,7 +24,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
         const draw=t=>{marks=[];window.seekScene(t);return marks;};
         try {
           for(let t=0;t<84;t+=.5) frames.push({t,marks:draw(t)});
-          const samples={straight:null,spiral:null,exit:null};
+          const samples={straight:null,tipCurl:null,spiral:null,exit:null};
           let neutral=true,one=false,two=false,fading=false,variations=new Set();
           for(const frame of frames) {
             if(frame.marks.length>216) throw Error('More than two gusts');
@@ -34,7 +34,9 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
               const gust=frame.marks.slice(i,i+108),peak=Math.max(...gust.map(m=>m.alpha));
               const straight=gust.every(m=>Math.cos(m.angle)>.98);
               const spiral=gust.some(m=>Math.cos(m.angle)<-.5)&&gust.some(m=>Math.sin(m.angle)>.5)&&gust.some(m=>Math.sin(m.angle)<-.5);
+              const tipCurl=gust.slice(0,54).every(m=>Math.cos(m.angle)>.999)&&gust.slice(-27).some(m=>Math.abs(Math.sin(m.angle))>.5);
               if(straight&&peak>.1&&samples.straight===null)samples.straight=frame.t;
+              if(tipCurl&&peak>.3&&samples.tipCurl===null)samples.tipCurl=frame.t;
               if(spiral&&peak>.3&&samples.spiral===null)samples.spiral=frame.t;
               if(straight&&peak>.03&&peak<.2){samples.exit=frame.t;fading=true;}
               if(spiral)variations.add(Math.round(gust.reduce((sum,m)=>sum+m.y,0)/gust.length/20));
@@ -48,7 +50,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       assert.ok(report.one&&report.two,'Gusts alternate between one and two');
       assert.ok(report.neutral&&report.fading&&report.repeatable&&report.fixed);
       assert.ok(report.variations>2,'Placement varies between gusts');
-      assert.ok(Object.values(report.samples).every(t=>t!==null),'Straight entry, spiral, and fading straight exit are visible');
+      assert.ok(Object.values(report.samples).every(t=>t!==null),'A straight tail remains while the leading end curls, then the gust spirals and straightens');
       assert.deepEqual(errors,[]);
       for(const [phase,t] of Object.entries(report.samples)) {
         await page.evaluate(t=>window.seekScene(t),t);
