@@ -49,7 +49,7 @@ If you have repository access, read the actual current files. This document expl
 
 ## 2. User decisions to preserve
 
-- Home now includes a light textured postcard, requested on November 16, 2026. The painted clouds open first, then the card slides across the scene and settles at the center. Keep the blank stamp space and the put-away/restore controls. The original postcard remains in `archive/postcard/` and excluded from deployment.
+- Home now includes a light textured postcard, requested on November 16, 2026. The painted clouds open first, then the card slides across the scene and settles at the center. The stamp uses the supplied `assets/pfp_stamp.webp` portrait; preserve its paper border and the put-away/restore controls. The original postcard remains in `archive/postcard/` and excluded from deployment.
 - The browser tab says **Yash Kalani**.
 - The park-name/coordinates slip was removed. Keep it removed.
 - The bottom park/time/breeze controls and the heading “POSTCARDS FROM THE OUTSIDE” were removed. Do not bring them back.

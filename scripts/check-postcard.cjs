@@ -18,6 +18,7 @@ fs.mkdirSync(output, {recursive: true});
       await page.screenshot({path: path.join(output, `clouds-${width}.png`)});
       await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true');
       const card = page.locator('.postcard');
+      assert.equal(await card.locator('.postcard-stamp img').evaluate(img => img.complete && img.naturalWidth > 0), true, 'Portrait stamp loads');
       await card.evaluate(card => {card.getAnimations()[0].pause();card.getAnimations()[0].currentTime = 640;});
       await page.screenshot({path: path.join(output, `flight-${width}.png`)});
       const flying = await card.boundingBox();
