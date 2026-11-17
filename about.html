@@ -9,6 +9,8 @@
   <script>try{if(sessionStorage.getItem('postcard-cloud-arrival')===location.pathname){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),3000)}}catch{}</script>
   <link rel="preload" as="image" href="assets/sleeping-bear/painting-v12.webp" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="paper.css">
+  <script src="paper.js" defer></script>
   <link rel="stylesheet" href="cloud-transition.css">
   <script type="module" src="scenes/sleeping-bear.js"></script>
   <script src="cloud-transition.js" defer></script>
@@ -22,6 +24,21 @@
     <div class="grain" aria-hidden="true"></div>
   </main>
   <a class="scene-credit" href="credits.html#pictured-rocks">image credits</a>
+  <button type="button" class="content-slip" aria-controls="paper-sheet" aria-expanded="false" aria-haspopup="dialog">
+    <span>About</span>
+    <svg class="paper-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 15 7-7 7 7"/></svg>
+  </button>
+  <dialog class="paper-sheet" id="paper-sheet" aria-labelledby="paper-title">
+    <header class="paper-sheet-header">
+      <button type="button" class="paper-collapse" aria-label="Collapse paper" autofocus>
+        <svg class="paper-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
+      </button>
+    </header>
+    <div class="paper-content" tabindex="0">
+      <h2 id="paper-title">About</h2>
+      <!-- Add about content here. This area scrolls beneath the collapse arrow. -->
+    </div>
+  </dialog>
   <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link>home</a><a href="experiences" data-cloud-link>experience</a><a href="projects" data-cloud-link>projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link aria-current="page">about</a></nav>
 </body>
 </html>
