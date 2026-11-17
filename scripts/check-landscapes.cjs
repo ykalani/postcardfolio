@@ -8,7 +8,7 @@ const output = process.env.QA_OUTPUT || path.join(os.tmpdir(),'postcardfolio-sce
 const routes = ['','experiences','projects','writing','tech-blog','about'].filter(route=>!process.env.SCENE_ROUTES||process.env.SCENE_ROUTES.split(',').includes(route||'home'));
 const sizes = [{width:1600,height:1000},{width:390,height:844},{width:320,height:700},{width:2560,height:1080}].filter(size=>!process.env.SCENE_WIDTHS||process.env.SCENE_WIDTHS.split(',').includes(String(size.width)));
 assert.ok(routes.length&&sizes.length,'Select at least one valid scene and viewport');
-const versions = {projects:12,experiences:5,writing:12,'tech-blog':8,about:7};
+const versions = {projects:12,experiences:5,writing:12,'tech-blog':9,about:7};
 const sceneNames = {experiences:'hawaii-volcanoes',projects:'great-sand-dunes',writing:'sleeping-bear','tech-blog':'beaumont',about:'banff'};
 fs.mkdirSync(output,{recursive:true});
 

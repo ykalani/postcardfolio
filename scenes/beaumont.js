@@ -88,7 +88,31 @@ async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
   const {paintBrushwork}=await import('./brush-painting.js');
   await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.75,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
   const d=detail.getContext('2d');d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);
-  ctx.drawImage(detail,x,y);return mask;
+  ctx.drawImage(detail,x,y);
+  const focus=document.createElement('canvas');focus.width=w;focus.height=h;
+  const f=focus.getContext('2d');f.filter='blur(2px)';
+  f.beginPath();f.ellipse(700-x,407-y,39,48,0,0,Math.PI*2);f.fill();
+  f.beginPath();[[603,590],[718,610],[721,754],[604,733]].forEach(([xx,yy],i)=>i?f.lineTo(xx-x,yy-y):f.moveTo(xx-x,yy-y));f.closePath();f.fill();
+  f.filter='none';f.globalCompositeOperation='destination-in';f.drawImage(mask,x,y,w,h,0,0,w,h);
+  const coverage=f.getImageData(0,0,w,h).data;
+  const verify=new URLSearchParams(location.search).has('check-detail');
+  const before=verify?ctx.getImageData(x,y,w,h).data:null;
+  const fine=document.createElement('canvas');fine.width=w;fine.height=h;
+  const fc=fine.getContext('2d');
+  // Finer marks belong only to the clock face and the carved stone panel.
+  await paintBrushwork({ctx:fc,pixels:samples,width:w,height:h,random,scale:.25,pigmentStep:12,
+    angle:(xx,yy)=>yy+y<500?Math.atan2(yy+y-407,xx+x-700)+Math.PI/2:1.55,
+    skip:(xx,yy)=>!coverage[(yy*w+xx)*4+3]});
+  fc.globalCompositeOperation='destination-in';fc.drawImage(focus,0,0);ctx.drawImage(fine,x,y);
+  if(verify){
+    const after=ctx.getImageData(x,y,w,h).data,report={clock:0,relief:0,leaked:0};
+    for(let at=0;at<after.length;at+=4)if(after[at]!==before[at]||after[at+1]!==before[at+1]||after[at+2]!==before[at+2]){
+      if(!coverage[at+3])report.leaked++;
+      else report[Math.floor(at/4/w)+y<500?'clock':'relief']++;
+    }
+    window.beaumontDetailReport=report;
+  }
+  return mask;
 }
 
 function prepare({painting, pixels, W, H, random}) {
@@ -153,8 +177,8 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:8,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v8.webp',
+  liveVersion:9,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v9.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;
