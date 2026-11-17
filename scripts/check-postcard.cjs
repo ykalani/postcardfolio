@@ -34,15 +34,21 @@ fs.mkdirSync(output, {recursive: true});
       assert.equal(await page.locator('.postcard-message,.postcard-subtitle,.postcard-signature,.postcard-heading').count(), 0, 'Old copy removed');
       const nav = await page.locator('.scene-nav').boundingBox();
       assert.ok(landed.y + landed.height < nav.y, 'Navigation stays clear');
-      if (width === 390) {
-        assert.equal(await page.getByRole('button', {name: 'Enjoy the view'}).isVisible(), false);
-        assert.equal((await card.innerText()).replace(/\s+/g, ' ').trim(), 'place stamp here Yash Kalani');
-      } else {
-        await page.getByRole('button', {name: 'Enjoy the view'}).click();
-        assert.equal(await card.isVisible(), false);
-        await page.getByRole('button', {name: 'A postcard from Yash'}).click();
-        assert.equal(await card.isVisible(), true);
-      }
+      const close = page.getByRole('button', {name: 'Close postcard', exact: true});
+      const closePosition = await close.boundingBox();
+      assert.ok(closePosition.x < landed.x + 60 && closePosition.y < landed.y + 60, 'Close is at the top left');
+      await close.click();
+      assert.equal(await card.isVisible(), false);
+      const folded = page.getByRole('button', {name: 'Open postcard from Yash'});
+      await folded.focus();
+      assert.equal(await folded.evaluate(button => button === document.activeElement), true);
+      assert.equal(await folded.locator('img').evaluate(img => img.complete && img.naturalWidth > 0), true);
+      const foldedPosition = await folded.boundingBox();
+      assert.ok(foldedPosition.x >= 0 && foldedPosition.x + foldedPosition.width <= width, 'Folded card fits viewport');
+      await page.screenshot({path: path.join(output, `folded-${width}.png`)});
+      await folded.press('Enter');
+      assert.equal(await card.isVisible(), true);
+      assert.equal(await close.evaluate(button => button === document.activeElement), true);
       assert.deepEqual(errors, []);
       await page.close();
     }
