@@ -21,8 +21,23 @@ fs.mkdirSync(output, {recursive: true});
       await card.evaluate(card => {card.getAnimations()[0].pause();card.getAnimations()[0].currentTime = 640;});
       await page.screenshot({path: path.join(output, `flight-${width}.png`)});
       const flying = await card.boundingBox();
+      const continuity = await card.evaluate(card => {
+        const animation = card.getAnimations()[0];
+        const position = time => {
+          animation.currentTime = time;
+          const matrix = new DOMMatrix(getComputedStyle(card).transform);
+          return [matrix.m41, matrix.m42];
+        };
+        return [800, 1600, 2400].map(time => {
+          const before = position(time - 8), at = position(time), after = position(time + 8);
+          const incoming = at.map((v, i) => v - before[i]);
+          const outgoing = after.map((v, i) => v - at[i]);
+          return Math.hypot(...incoming.map((v, i) => v - outgoing[i])) / Math.hypot(...incoming);
+        });
+      });
+      assert.ok(continuity.every(change => change < .12), `Loop velocity stays continuous: ${continuity}`);
       const loop = [];
-      for (const [label, time] of [['loop-top', 1280], ['loop-bottom', 2240]]) {
+      for (const [label, time] of [['loop-top', 1200], ['loop-bottom', 2000]]) {
         await card.evaluate((card, time) => {card.getAnimations()[0].currentTime = time;}, time);
         await page.screenshot({path: path.join(output, `${label}-${width}.png`)});
         const box = await card.boundingBox();
