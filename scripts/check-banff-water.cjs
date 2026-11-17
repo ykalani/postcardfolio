@@ -42,19 +42,22 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
             ['canoes and dock',1180,565,80,16,false],['far forest',900,420,100,50,false]
           ];
           const first=regions.map(([,x,y,w,h])=>g.getImageData(x,y,w,h).data);
-          let strokes=0;const original=CanvasRenderingContext2D.prototype.stroke;
+          let strokes=0,snowDabs=0,maxSnowAlpha=0;const original=CanvasRenderingContext2D.prototype.stroke,originalFill=CanvasRenderingContext2D.prototype.fill;
           CanvasRenderingContext2D.prototype.stroke=function(...args){strokes++;return original.apply(this,args);};
-          try {window.seekScene(2);} finally {CanvasRenderingContext2D.prototype.stroke=original;}
-          return {strokes,regions:regions.map(([name,x,y,w,h,moving],i)=>{
+          CanvasRenderingContext2D.prototype.fill=function(...args){snowDabs++;maxSnowAlpha=Math.max(maxSnowAlpha,this.globalAlpha);return originalFill.apply(this,args);};
+          try {window.seekScene(2);} finally {CanvasRenderingContext2D.prototype.stroke=original;CanvasRenderingContext2D.prototype.fill=originalFill;}
+          return {strokes,snowDabs,maxSnowAlpha,regions:regions.map(([name,x,y,w,h,moving],i)=>{
             const next=g.getImageData(x,y,w,h).data;let changed=0;
             for(let k=0;k<next.length;k+=4)if(next[k]!==first[i][k]||next[k+1]!==first[i][k+1]||next[k+2]!==first[i][k+2]||next[k+3]!==first[i][k+3])changed++;
             return {name,moving,coverage:changed/(w*h)};
           })};
         });
         assert.equal(report.strokes,0,'No added wave lines');
+        assert.equal(report.snowDabs,54,'Sparse painted snowfall');
+        assert.ok(report.maxSnowAlpha<=.35,'Snow remains translucent');
         for(const region of report.regions) {
           if(region.moving)assert.ok(region.coverage>.8,`${region.name}: whole water surface moves (${region.coverage})`);
-          else assert.equal(region.coverage,0,`${region.name}: stays fixed`);
+          else assert.ok(region.coverage<.005,`${region.name}: stays fixed apart from sparse snowfall`);
         }
         console.log(JSON.stringify(report));
       }

@@ -39,3 +39,5 @@ The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The ac
 Source SHA-256: wooden post `25EA9859F791422AE17769F40111A78DBB622E22A5C9E8C92282E140A0091306`; pika `2B50A125F9828A1CDF13BF1D9291CEA77D26E45F62A2DD39B093130EB32E0E40`.
 
 Current cutouts: post-natural-v2.webp and pika-natural-v2.webp were refined with ImageGen from the supplied source photographs and earlier painted cutouts on November 17, 2026. They retain visible brushwork with clearer wood planes, fur, facial features and paws, on transparent backgrounds.
+
+The brush-v3 cutouts were further edited with ImageGen on November 17, 2026 for broader visible brushstrokes. The post has a flat sawn top, chipped corners, painted cracks, faded scuffs and a knot. Banff also has sparse translucent snow dabs that drift over the painting; reduced-motion visitors see a still scene.
