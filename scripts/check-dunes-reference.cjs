@@ -5,10 +5,18 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});
   const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-dunes-reference');fs.mkdirSync(output,{recursive:true});
   try{
+    if(process.env.CHECK_AUTHORING==='1'){
+      const authored=await browser.newPage({viewport:{width:1600,height:1000}});
+      await authored.goto(`${process.env.SCENE_URL||'http://127.0.0.1:5178'}/projects?repaint=1&check-detail=1`);
+      await authored.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true',null,{timeout:90000});
+      const detail=await authored.evaluate(()=>window.sceneDetailReport);
+      assert.ok(detail.changed>1500,'Middle slopes gain small painted greenery strokes');assert.equal(detail.leaked,0,'Greenery paint stays within its stroke mask');
+      console.log(JSON.stringify({greenery:detail}));await authored.close();
+    }
     const page=await browser.newPage({viewport:{width:1600,height:1000}});
     await page.goto(`${process.env.SCENE_URL||'http://127.0.0.1:5178'}/projects`);
     await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
-    assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/great-sand-dunes/painting-v11.webp');
+    assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/great-sand-dunes/painting-v12.webp');
     const report=await page.evaluate(async()=>{
       const {metadata,atlas}=window.exportSceneAssets(),image=new Image();image.src=atlas;await image.decode();
       const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const g=c.getContext('2d');g.drawImage(image,0,0);let cloudHighlights=0;
@@ -33,7 +41,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
           return[name,{rgb,spread:Math.sqrt(light.reduce((sum,v)=>sum+(v-mean)**2,0)/light.length)}];
         }));
       }
-      return{before:await sample(8),previous:await sample(10),after:await sample(11)};
+      return{before:await sample(8),previous:await sample(10),after:await sample(12)};
     });
     const distance=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
     assert.ok(Math.abs(contrast.after.hills.rgb[1]-contrast.after.hills.rgb[0])<18,'Foothills retain the reference muted olive tones');

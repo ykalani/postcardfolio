@@ -57,7 +57,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
         assert.ok(report.movement[0]>10000,'Sky clouds visibly change within three seconds');
         assert.equal(report.movement[1],0,'Mountains stay fixed');
         assert.ok(report.movement[2]>10000,'Wind moves painted sand on the new dune ridges');
-        assert.ok(report.movement[3]>10000,'Foreground grass moves');
+        assert.ok(report.movement[3]>10000,'Foreground brush moves');
         assert.ok(report.seams.every(energy=>energy<report.movement[0]*.05),'Cloud wrapping has no visible pop');
         assert.equal(report.stream.backwards,0,'Every cloud bank travels left to right');
         assert.ok(report.stream.gaps>=12&&report.stream.gaps<report.stream.frames/2,'Cloud stream has recurring clear intervals');
@@ -68,6 +68,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
       }
       assert.deepEqual(errors,[]);await page.close();
     }
-    console.log(`Passed: intermittent clouds, windblown sand, grass and fixed mountains. Screenshots: ${output}`);
+    console.log(`Passed: intermittent clouds, windblown sand, dry brush and fixed mountains. Screenshots: ${output}`);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

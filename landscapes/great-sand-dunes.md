@@ -16,7 +16,7 @@ Yosemite's painted cloud banks travel only left to right, with recurring gaps be
 
 Preserve the 160svh stage. Focus at .54 across the painting and start at .7 scroll to show the dunes and waving foreground together. Scrolling upward reveals the snowy peaks and more sky.
 
-The scene uses the v11 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that clouds stay behind the mountains. Normal visits use cached art, never the supplied photograph.
+The scene uses the v12 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that clouds stay behind the mountains. Normal visits use cached art, never the supplied photograph.
 
 ## Contrast and foreground brush (v9)
 
@@ -30,3 +30,8 @@ At the user's request, the sky is a richer blue field and the three cloud banks 
 ## Reference-matched scrub and paler sky (v11)
 
 The user asked for a closer match to the supplied photograph and brush rather than leafy bushes. Tall invented shrub masses are removed. Low, irregular scrub is lifted from the actual painted foreground and accented with sparse dry bristle stalks in sampled ground colors. The sky is paler blue, foothills are muted brown-olive, and sand saturation is restrained. The scrub keeps its back-and-forth sway with fixed bases, and Yosemite cloud banks still pass left to right.
+
+
+## Brush tips and middle-slope greenery (v12)
+
+Short, ragged dry-bristle sprays give the foreground scrub fuller, brushy tips without creating leafy bushes. Small clusters of muted olive strokes sit only on the middle slopes, selected by their mapped position and subdued source colors. The greenery is baked into the terrain and stays fixed as cloud banks pass and low scrub sways. The pale sky and reference-based landscape palette remain in place.
