@@ -1,5 +1,9 @@
 # Banff — user-provided reference and painting
 
+## Verified publication
+
+The matching photograph appears as the header of Fora Travel's guide curated by Anna Staudt: https://www.foratravel.com/guides/L6R7DT/luxury-and-adventure-the-ultimate-guide-to-banff-national-park-anna-staudt . Verified visually November 16, 2026 against the supplied reference (same clouds, boats, people, and shoreline, with a different crop). The page identifies the curator but does not explicitly credit the photographer or state a reuse license.
+
 - Source: the image supplied by the user for this portfolio, received November 16, 2026. The user identifies the setting as Banff.
 - Preserved input: `provided-reference.webp`, copied byte-for-byte from the supplied image before any painter preparation. `guide.webp` is a second exact copy for offscreen authoring and regeneration.
 - Original dimensions: 2846 × 3794. Original filename, photographer, capture date, and a public reuse license were not supplied; none is invented here. No external stock photograph replaces this reference.
@@ -30,6 +34,10 @@ Current motion/detail edition uses `painting-v5.webp`, `fallback-v5.webp`, and `
 
 ## Foreground post and pika
 
-The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The actual photo subjects are polygon-masked and repainted with the shared flat-brush renderer as `post-painted.webp` and `pika-painted.webp`. Only the top cap and short neck of the post are used; signage, background and the pika's original rock are excluded. The source photographs are preserved and excluded from production. No generated-image artwork is used in the deployed props. Photographer, capture date and public reuse license were not supplied.
+The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The actual photo subjects are polygon-masked and repainted with the shared flat-brush renderer as `post-painted.webp` and `pika-painted.webp`. Only the top cap and short neck of the post are used; signage, background and the pika's original rock are excluded. The source photographs are preserved and excluded from production. Photographer, capture date and public reuse license were not supplied.
 
 Source SHA-256: wooden post `25EA9859F791422AE17769F40111A78DBB622E22A5C9E8C92282E140A0091306`; pika `2B50A125F9828A1CDF13BF1D9291CEA77D26E45F62A2DD39B093130EB32E0E40`.
+
+Current cutouts: post-natural-v2.webp and pika-natural-v2.webp were refined with ImageGen from the supplied source photographs and earlier painted cutouts on November 17, 2026. They retain visible brushwork with clearer wood planes, fur, facial features and paws, on transparent backgrounds.
+
+The brush-v3 cutouts were further edited with ImageGen on November 17, 2026 for broader visible brushstrokes. The post has a flat sawn top, chipped corners, painted cracks, faded scuffs and a knot. Banff also has sparse translucent snow dabs that drift over the painting; reduced-motion visitors see a still scene.
