@@ -35,7 +35,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
             if(sky&&args[0]+sprite.width>0&&args[0]<1600){
               if(!ids.has(sprite))ids.set(sprite,serial++);positions.set(ids.get(sprite),args[0]);
             }
-            if(this.canvas===document.querySelector('#motion')&&sprite.width>=280&&sprite.width<600&&sprite.height>=235){
+            if(this.canvas===document.querySelector('#motion')&&args[0]===-sprite.width/2&&args[1]===-sprite.height){
               const matrix=this.getTransform(),root=[matrix.e,matrix.f];
               if(roots.has(sprite)&&Math.hypot(...root.map((v,i)=>v-roots.get(sprite)[i]))>.1)rootDrift++;
               roots.set(sprite,root);swayMin=Math.min(swayMin,matrix.c);swayMax=Math.max(swayMax,matrix.c);

@@ -10,7 +10,7 @@ const skyAt=x=>contourAt(skyline,x);
 const hills=[[0,340],[180,300],[360,286],[500,278],[660,246],[800,226],[990,182]].map(point);
 const dunes=[[0,485],[150,466],[300,461],[460,445],[600,405],[760,375],[820,387],[990,443]].map(point);
 const skyMotion=layer(W,440),skyMask=layer(W,440),sm=skyMask.getContext('2d');
-let foregroundBrush,paintedClouds;
+let paintedClouds;
 for(let x=0;x<W;x++){
   const edge=skyAt(x)-24,fade=sm.createLinearGradient(0,edge-20,0,edge);
   fade.addColorStop(0,'white');fade.addColorStop(1,'transparent');sm.fillStyle=fade;sm.fillRect(x,0,1,440);
@@ -31,20 +31,32 @@ function prepare({painting,pixels,random}){
     }
     return{sprite,x:x0,y:y0,phase:random()};
   });
-  const grass=[];
-  for(let x=0;x<W;x+=180){
-    const w=Math.min(230,W-x),sprite=layer(w,140),g=sprite.getContext('2d');g.drawImage(painting,x,860,w,140,0,0,w,140);
-    const data=g.getImageData(0,0,w,140);
-    for(let y=0;y<140;y++)for(let xx=0;xx<w;xx++){
-      const k=(y*w+xx)*4,at=((y+860)*W+x+xx)*4,r=pixels[at],green=pixels[at+1],b=pixels[at+2];
-      data.data[k+3]*=clamp((r-green-8)/25)*clamp((green-b-5)/25)*Math.sin(xx/w*Math.PI)*Math.sin(y/140*Math.PI);
+  const brush=[];
+  for(let x=0;x<W;x+=270){
+    const w=Math.min(320,W-x),h=160,sprite=layer(w,h),g=sprite.getContext('2d');
+    g.drawImage(painting,x,H-h,w,h,0,0,w,h);const data=g.getImageData(0,0,w,h);
+    // Lift the reference's dry, irregular scrub rather than inventing leafy shrubs.
+    for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){
+      const k=(y*w+xx)*4,at=((y+H-h)*W+x+xx)*4,r=pixels[at],green=pixels[at+1],b=pixels[at+2];
+      data.data[k+3]*=clamp((r-green-4)/18)*clamp((green-b-3)/18)*Math.sin(xx/w*Math.PI)*clamp((y-25)/35);
     }
-    g.putImageData(data,0,0);grass.push({sprite,x,phase:random()*6.28});
+    g.putImageData(data,0,0);g.lineCap='butt';
+    for(let tuft=0;tuft<16;tuft++){
+      const base=12+random()*(w-24),foot=125+random()*30,k=(Math.floor(foot)*w+Math.floor(base))*4;
+      for(let stem=0;stem<4;stem++){
+        const height=18+random()*43,lean=(random()-.5)*35;
+        for(let bristle=0;bristle<3;bristle++){
+          g.strokeStyle=`rgba(${Math.min(255,data.data[k]+15+bristle*3)},${Math.min(255,data.data[k+1]+12+bristle*2)},${Math.min(255,data.data[k+2]+6)},${.45+random()*.3})`;
+          g.lineWidth=.55+random();g.beginPath();g.moveTo(base+bristle,foot);
+          g.quadraticCurveTo(base+lean*.35+bristle,foot-height*.6,base+lean+bristle,foot-height);g.stroke();
+        }
+      }
+    }
+    brush.push({x,y:H,w,h,sprite,phase:random()*6.28});
   }
-  return{clouds:paintedClouds,sand,grass,brush:foregroundBrush};
+  return{clouds:paintedClouds,sand,brush};
 }
-async function refineBrush({random}){
-  const {paintBrushwork}=await import('./brush-painting.js');
+async function prepareClouds(){
   // Reuse Yosemite's actual painted cloud banks; bake them into this scene's own atlas.
   const metadata=await (await fetch('assets/yosemite-live-brush3.json')).json(),atlas=new Image();
   atlas.src=`assets/${metadata.atlas}`;await atlas.decode();
@@ -52,37 +64,9 @@ async function refineBrush({random}){
     const sprite=layer(cloud.w,cloud.h);sprite.getContext('2d').drawImage(atlas,...cloud.rect,0,0,cloud.w,cloud.h);
     return{w:cloud.w,h:cloud.h,y:[14,100,35][i],sprite};
   });
-  foregroundBrush=[];
-  for(const patch of [{x:-80,y:1010,w:440,h:320},{x:230,y:1015,w:330,h:250},{x:470,y:1015,w:300,h:235},{x:680,y:1010,w:330,h:300},{x:940,y:1010,w:310,h:280},{x:1150,y:1015,w:280,h:250},{x:1350,y:1010,w:350,h:330}]){
-    const sprite=layer(patch.w,patch.h),g=sprite.getContext('2d');g.lineCap='butt';
-    for(let stem=0;stem<55;stem++){
-      const base=patch.w*(.25+random()*.5),tip=patch.w*(.08+random()*.84),top=patch.h*(.08+random()*.48),bend=(random()-.5)*24;
-      g.strokeStyle='#42422f';g.lineWidth=1+random()*2;g.beginPath();g.moveTo(base,patch.h);g.quadraticCurveTo(base+bend,patch.h*.6,tip,top);g.stroke();
-      for(let leaf=0;leaf<8;leaf++){
-        const u=.2+leaf*.095,x=base+(tip-base)*u,y=patch.h+(top-patch.h)*u,length=9+random()*16,side=random()<.5?-1:1;
-        const light=random(),rgb=light<.38?[40,58,40]:light<.8?[76,96,52]:[151,150,80];
-        g.strokeStyle=`rgb(${rgb.join(',')})`;g.lineWidth=5+random()*5;g.beginPath();g.moveTo(x,y);
-        g.quadraticCurveTo(x+side*length*.6,y-5,x+side*length,y-9);g.stroke();
-        for(let bristle=0;bristle<3;bristle++){
-          g.strokeStyle=`rgba(${rgb[0]+bristle*5},${rgb[1]+bristle*5},${rgb[2]+bristle*3},${.7+random()*.25})`;
-          g.lineWidth=1.5+random()*2;g.beginPath();g.moveTo(x,y+bristle*1.3);
-          g.quadraticCurveTo(x+side*length*.6,y-5+bristle,x+side*length,y-9+bristle);g.stroke();
-        }
-      }
-    }
-    const samples=g.getImageData(0,0,patch.w,patch.h).data,alpha=new Uint8Array(patch.w*patch.h);
-    for(let i=0;i<samples.length;i+=4){
-      alpha[i/4]=samples[i+3];
-      if(!samples[i+3]){samples[i]=55;samples[i+1]=70;samples[i+2]=39;}
-    }
-    const painted=layer(patch.w,patch.h);
-    await paintBrushwork({ctx:painted.getContext('2d'),pixels:samples,width:patch.w,height:patch.h,random,pigmentStep:16,
-      angle:()=>-.65,skip:(x,y)=>alpha[y*patch.w+x]<96});
-    foregroundBrush.push({...patch,sprite:painted,phase:random()*6.28});
-  }
 }
 function draw({ctx,t,state,wind}){
-  const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,440);sky.globalAlpha=.88;
+  const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,440);sky.globalAlpha=.74;
   for(const [i,cloud] of state.clouds.entries()){
     const age=(t+i*40+12)%120,x=-cloud.w+age*60;
     if(x>=W)continue;
@@ -93,26 +77,22 @@ function draw({ctx,t,state,wind}){
     const age=(t/7+ridge.phase+i/2)%1,fade=Math.sin(age*Math.PI)**2;
     ctx.save();ctx.globalAlpha=fade*(.72+wind*.1);ctx.drawImage(ridge.sprite,ridge.x+age*68,ridge.y-Math.sin(age*Math.PI)*7);ctx.restore();
   }
-  for(const patch of state.grass){
-    ctx.save();ctx.translate(patch.x+patch.sprite.width*.5,H);ctx.transform(1,0,(wind+Math.sin(t*2.1+patch.phase)*.15)*.014,1,0,0);
-    ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-140);ctx.restore();
-  }
   for(const patch of state.brush){
     const sway=Math.sin(t*.9)*.19+wind*.045+Math.sin(t*2.2+patch.phase)*.035;
     ctx.save();ctx.translate(patch.x+patch.w*.5,patch.y);ctx.transform(1,0,sway,1,0,0);
     ctx.drawImage(patch.sprite,-patch.w*.5,-patch.h);ctx.restore();
   }
 }
-startScene({liveVersion:10,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.webp',cache:'assets/great-sand-dunes/painting-v10.webp',background:'#9e8170',focusX:.54,focusY:.5,initialScroll:.7,
+startScene({liveVersion:11,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.webp',cache:'assets/great-sand-dunes/painting-v11.webp',background:'#9e8170',focusX:.54,focusY:.5,initialScroll:.7,
   grade(r,g,b,x,y){
     const l=r*.3+g*.55+b*.15;
     if(y<skyAt(x)){
       const depth=clamp(y/skyAt(x)),pigment=(l-170)*.22;
-      return[66+depth*32+pigment,133+depth*25+pigment,190+depth*20+pigment];
+      return[110+depth*30+pigment,158+depth*25+pigment,191+depth*18+pigment];
     }
     const hill=clamp((y-contourAt(hills,x))/30)*clamp((contourAt(dunes,x)-y)/20)*clamp((145-l)/55)*clamp((1.3-r/(g+1))/.25);
-    if(y<contourAt(dunes,x))return[(r-110)*1.12+102-hill*26,(g-110)*1.12+108+hill*4,(b-110)*1.12+119-hill*25];
+    if(y<contourAt(dunes,x))return[(r-110)*1.12+102-hill*4,(g-110)*1.12+108-hill*8,(b-110)*1.12+119-hill*20];
     const shadow=clamp((95-l)/60);
-    return[(r-110)*1.18+112-shadow*7,(g-110)*1.12+107-shadow*4,(b-110)*1.08+102+shadow*13];
+    return[(r-110)*1.08+110-shadow*5,(g-110)*1.08+110-shadow*3,(b-110)*1.04+108+shadow*10];
   },
-  angle(x,y){if(y>850)return-.08;if(y>480)return-.15+Math.sin(x*.006+y*.008)*.2;return y<skyAt(x)?-.12:x<900?.9:-.8;},prepare,draw,refine:refineBrush});
+  angle(x,y){if(y>850)return-.08;if(y>480)return-.15+Math.sin(x*.006+y*.008)*.2;return y<skyAt(x)?-.12:x<900?.9:-.8;},prepare,draw,refine:prepareClouds});
