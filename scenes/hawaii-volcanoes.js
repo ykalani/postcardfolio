@@ -69,14 +69,14 @@ function prepare({pixels, painting, random, W, H}) {
   return {heat,fractures,gas:gasSprite(random),warmGas:gasSprite(random,true),shimmer};
 }
 
-function draw({ctx,t,state,wind}) {
+function draw({ctx,t,state,wind,painting}) {
   ctx.save();
   // Molten pigment rolls in uneven currents; the heat mask anchors the cold crust.
   const flow=state.lavaFlow??=layer(1600,1000),lava=flow.getContext('2d');
-  lava.clearRect(0,0,1600,1000);lava.lineCap='round';
+  lava.clearRect(0,0,1600,1000);lava.lineCap='butt';
   for(let y=370;y<915;y+=8){
     const drift=Math.sin(y*.035-t*1.8)*9+Math.sin(y*.08+t*.9)*4;
-    lava.drawImage(state.heat,190,y,1090,8,190+drift,y+Math.sin(t*1.5+y*.04)*3,1090,8);
+    lava.drawImage(painting,190,y,1090,8,190+drift,y+Math.sin(t*1.5+y*.04)*3,1090,8);
   }
   for (let i=0;i<state.fractures.length;i+=5) {
     const crack=state.fractures[i];
@@ -84,14 +84,21 @@ function draw({ctx,t,state,wind}) {
     const surge=(Math.sin(crack.x*.025+crack.y*.017-t*2.4)+1)*.5;
     const travel=(age-.5)*34;
     const x=crack.x+crack.dx*travel,y=crack.y+crack.dy*travel;
-    const length=crack.length*(4+surge*4),curl=Math.sin(t*2+crack.phase)*7;
-    lava.strokeStyle=`rgba(238,${55+surge*65},12,${pulse*.95})`;
-    lava.lineWidth=5+surge*5;
-    lava.beginPath();lava.moveTo(x,y);
-    lava.quadraticCurveTo(x+crack.dx*length*.5-crack.dy*curl,y+crack.dy*length*.5+crack.dx*curl,x+crack.dx*length,y+crack.dy*length);lava.stroke();
-    lava.strokeStyle=`rgba(255,${150+surge*90},${35+surge*90},${pulse*(.4+surge*.6)})`;
-    lava.lineWidth=1.5+surge*2;lava.stroke();
+    const length=crack.length*(2+surge*2),breadth=3+surge*4;
+    lava.strokeStyle=surge>.82?'#ffcf66':surge>.4?'#f79026':'#df4f10';
+    lava.globalAlpha=pulse*(.25+surge*.45);lava.lineWidth=breadth/3;
+    // Uneven flat-brush bristles share the terrain's direction and broken ends.
+    lava.beginPath();
+    for(let bristle=0;bristle<3;bristle++){
+      const off=(bristle-1)*breadth/3;
+      const cut=(Math.sin(crack.phase*13+bristle*5)+1)*length*.18;
+      const bx=x-crack.dy*off,by=y+crack.dx*off;
+      lava.moveTo(bx+crack.dx*cut,by+crack.dy*cut);
+      lava.lineTo(bx+crack.dx*(length-cut*.5),by+crack.dy*(length-cut*.5));
+    }
+    lava.stroke();
   }
+  lava.globalAlpha=1;
   lava.globalCompositeOperation='destination-in';lava.drawImage(state.heat,0,0);
   lava.globalCompositeOperation='source-over';
   ctx.globalAlpha=1;ctx.drawImage(flow,0,0);

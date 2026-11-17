@@ -25,7 +25,7 @@ Charcoal and brown-black rock with violet-blue shadows; ember orange, muted red,
 ## Live elements, in priority order
 
 1. A continuous painted gas stem remains attached to the photographed west vent, while thirty overlapping textured wisps rise, billow, and spread broadly left. This is the only animated smoke source; ceiling banks and rim plumes are removed. The texture is cached; it is not regenerated randomly each frame.
-2. A per-pixel source-color mask confines incandescence to actual hot crust fractures. Molten pigment rolls in uneven currents with curling orange strokes, pale-hot cores, and traveling heat surges. Cold crust remains anchored.
+2. A per-pixel source-color mask confines incandescence to actual hot crust fractures. Painted pigment moves in uneven currents, with short flat-brush dabs, broken bristle ends, and traveling heat surges. Cold crust remains anchored. Follow [the project art direction](../ART_DIRECTION.md) for all additions.
 3. A small, feathered cutout of painted crust creates restrained thermal shimmer above the vent. Its narrow strips move less than one logical pixel, leaving the vent and crater geometry fixed. No full-screen distortion or particle emitter is used.
 
 Do not add generic sparks across the sky, floating rock, or compulsory birds. The composition should still read as a painting when paused.
@@ -64,4 +64,4 @@ Source sampling and live-mask construction run only during local authoring (`?re
 
 The main plume retains 30 wisps and is approximately 2–3 times wider, with uneven sideways billowing. Its continuous warm stem remains attached to the vent. No other animated smoke is drawn; the cached painting retains its original atmospheric colors.
 
-Lava pigment shifts through short bands beneath broad curling currents and hot cores, with a stronger compound heat pulse. Every moving lava mark is clipped to the baked heat mask. Desktop and mobile stills and short motion sequences are checked with Playwright; the focused pass measured approximately 27–28 ms median frame drawing time.
+Lava reuses the existing painted surface, shifting its pigment through short bands beneath ember-orange and pale-hot flat-brush marks. Uneven bristle lengths break up each dab; there are no rounded curling outlines. The stronger compound heat pulse remains, and every moving lava mark is clipped to the baked heat mask. Desktop and mobile stills and short motion sequences are checked with Playwright.
