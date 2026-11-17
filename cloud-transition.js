@@ -188,7 +188,7 @@
     arriving = sessionStorage.getItem(key) === location.pathname;
     sessionStorage.removeItem(key);
   } catch {}
-  if (arriving && !reduced.matches) {
+  if ((arriving || document.querySelector('.postcard')) && !reduced.matches) {
     clearTimeout(window.cloudFallback);
     const preparing=++generation;
     Promise.all([prepare(), new Promise(resolve => {

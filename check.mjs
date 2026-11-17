@@ -4,7 +4,7 @@ import {spawnSync} from 'node:child_process';
 
 const pages = ['index.html','projects.html','experiences.html','writing.html','tech-blog.html','about.html'];
 const scenes = [['great-sand-dunes','guide.jpg',5],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',5],['sleeping-bear','guide.webp',8],['beaumont','guide.webp',6]];
-const scripts = ['scene.js','cloud-transition.js','server.mjs',
+const scripts = ['scene.js','cloud-transition.js','postcard.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
 for (const script of scripts) {

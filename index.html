@@ -6,12 +6,14 @@
   <meta name="theme-color" content="#95b8c8">
   <meta name="description" content="Yosemite Valley, painted and alive. A study of granite, wind, clouds, and falling water.">
   <title>Yash Kalani</title>
-  <script>try{if(sessionStorage.getItem('postcard-cloud-arrival')===location.pathname){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),3000)}}catch{}</script>
+  <script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),10000)}</script>
   <link rel="preload" as="image" href="assets/yosemite-display-brush3.webp?v=brush-3" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="cloud-transition.css">
+  <link rel="stylesheet" href="postcard.css">
   <script src="scene.js" defer></script>
   <script src="cloud-transition.js" defer></script>
+  <script src="postcard.js" defer></script>
 </head>
 <body>
   <main aria-label="An animated brush painting of Yosemite Valley">
@@ -21,6 +23,18 @@
     <canvas id="motion" aria-hidden="true"></canvas>
     <div class="grain" aria-hidden="true"></div>
   </main>
+  <div class="postcard-stage">
+    <article class="postcard" id="postcard" aria-labelledby="postcard-name">
+      <header class="postcard-heading"><span>A NOTE FROM</span><span>Yosemite Valley · No. 001</span></header>
+      <div class="postcard-stamp" role="img" aria-label="A space for a postage stamp"><span>place<br>stamp<br>here</span></div>
+      <h2 id="postcard-name">Yash Kalani</h2>
+      <p class="postcard-subtitle">Software, curiosity &amp; a change of scenery.</p>
+      <div class="postcard-message"><p>Hi, I’m Yash.<br>I build things with code and AI.</p><p>This is my little corner of the internet.<br>A few experiments, a few interests,<br>and an open invitation to say hello.</p></div>
+      <p class="postcard-signature">See you out there,<br><em>Yash</em></p>
+      <footer class="postcard-footer"><a href="mailto:kalaniya@msu.edu">Say hello ↗</a><button type="button" id="put-away" aria-controls="postcard">Enjoy the view ↗</button></footer>
+    </article>
+    <button type="button" class="postcard-return" id="show-postcard" aria-controls="postcard" hidden>A postcard from Yash ↗</button>
+  </div>
   <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link aria-current="page">home</a><a href="experiences" data-cloud-link>experience</a><a href="projects" data-cloud-link>projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link>about</a></nav>
 </body>
 </html>
