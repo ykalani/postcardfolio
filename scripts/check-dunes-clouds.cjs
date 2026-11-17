@@ -26,6 +26,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
           const delta=(a,b)=>a.reduce((sum,v,i)=>sum+Math.abs(v-b[i]),0);
           window.seekScene(0);const first=read();window.seekScene(3);const next=read();
           const movement=first.map((v,i)=>delta(v,next[i]));
+          const prominent=[next[0],next[2]].map(data=>{
+            let count=0;for(let i=0;i<data.length;i+=4)if(data[i]>190&&data[i+3]>180)count++;return count;
+          });
           const seams=[(1600-0)/22,(1600-490)/(22+490*.006),(1600-1000)/(22+1000*.006)].map(t=>{
             window.seekScene(t-.001);const a=read()[0];window.seekScene(t+.001);return delta(a,read()[0]);
           });
@@ -38,11 +41,12 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
             window.seekScene(1);const firstBands=bands,firstRipples=ripples;bands=[];ripples=[];window.seekScene(1.1);
             river={bandsLeft:bands.every((x,i)=>x<firstBands[i]),ripplesLeft:ripples.every((x,i)=>x<firstRipples[i]||x-firstRipples[i]>1500),bands:bands.length,ripples:ripples.length};
           }finally{proto.drawImage=draw;proto.moveTo=move;}
-          return{movement,seams,river};
+          return{movement,prominent,seams,river};
         });
         assert.ok(report.movement[0]>10000,'Sky clouds visibly change within three seconds');
         assert.equal(report.movement[1],0,'Mountains stay fixed');
         assert.ok(report.movement[2]>10000,'Low cloud bank visibly changes');
+        assert.ok(report.prominent.every(count=>count>1000),'Sky and low clouds have substantial bright, opaque brushwork');
         assert.ok(report.seams.every(energy=>energy<report.movement[0]*.05),'Cloud wrapping has no visible pop');
         assert.ok(report.river.bands>0&&report.river.bandsLeft,'All river reflections flow right to left');
         assert.ok(report.river.ripples>0&&report.river.ripplesLeft,'All river ripples and crests flow right to left');

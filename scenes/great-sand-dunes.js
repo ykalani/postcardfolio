@@ -90,12 +90,17 @@ function draw({ctx,t,state,wind}){
     }
   }
   c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(water,0,TOP);ctx.restore();
-  ctx.save();ctx.globalAlpha=.95;ctx.drawImage(state.fog,Math.sin(t*.3)*90+wind*3,250);ctx.restore();
+  // Build up the existing dry-brush pigment without smoothing its broken edges.
+  ctx.save();ctx.filter='brightness(1.24)';
+  for(let coat=0;coat<5;coat++)ctx.drawImage(state.fog,Math.sin(t*.3)*90+wind*3,250);
+  ctx.restore();
   const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,205);
+  sky.filter='brightness(1.18)';
   for(const cloud of state.clouds){
     const x=(cloud.x+t*(22+cloud.x*.006)+cloud.w)%(W+cloud.w)-cloud.w;
-    sky.drawImage(cloud.sprite,x,cloud.y);
+    for(let coat=0;coat<4;coat++)sky.drawImage(cloud.sprite,x,cloud.y);
   }
+  sky.filter='none';
   sky.globalCompositeOperation='destination-in';sky.drawImage(skyMask,0,0);sky.globalCompositeOperation='source-over';
   ctx.save();ctx.globalAlpha=.95;ctx.drawImage(skyMotion,0,0);ctx.restore();
   for(const ridge of state.sand)for(let i=0;i<2;i++){
