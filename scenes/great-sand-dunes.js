@@ -10,24 +10,12 @@ const skyAt=x=>contourAt(skyline,x);
 const hills=[[0,340],[180,300],[360,286],[500,278],[660,246],[800,226],[990,182]].map(point);
 const dunes=[[0,485],[150,466],[300,461],[460,445],[600,405],[760,375],[820,387],[990,443]].map(point);
 const skyMotion=layer(W,440),skyMask=layer(W,440),sm=skyMask.getContext('2d');
-let foregroundBrush;
+let foregroundBrush,paintedClouds;
 for(let x=0;x<W;x++){
   const edge=skyAt(x)-24,fade=sm.createLinearGradient(0,edge-20,0,edge);
   fade.addColorStop(0,'white');fade.addColorStop(1,'transparent');sm.fillStyle=fade;sm.fillRect(x,0,1,440);
 }
 function prepare({painting,pixels,random}){
-  const clouds=[];
-  for(const region of [{x:0,y:110,w:380,h:130},{x:150,y:100,w:380,h:130},{x:650,y:0,w:460,h:110}]){
-    const sprite=layer(region.w,region.h),g=sprite.getContext('2d');
-    g.drawImage(painting,region.x,region.y,region.w,region.h,0,0,region.w,region.h);
-    const data=g.getImageData(0,0,region.w,region.h);
-    for(let y=0;y<region.h;y++)for(let x=0;x<region.w;x++){
-      const at=((region.y+y)*W+region.x+x)*4,k=(y*region.w+x)*4;
-      const r=pixels[at],b=pixels[at+2],edge=Math.sin(x/region.w*Math.PI)*Math.sin(y/region.h*Math.PI);
-      data.data[k+3]*=clamp((r-b-4)/22)*clamp((r-145)/40)*edge*clamp((skyAt(region.x+x)-region.y-y-24)/16);
-    }
-    g.putImageData(data,0,0);clouds.push({...region,sprite});
-  }
   const ridges=[[[55,470],[268,459],[510,419]],[[500,464],[660,437],[760,375]],[[575,434],[687,421],[829,424]],[[150,549],[393,509],[555,486]],[[0,556],[254,565],[460,544]],[[605,535],[754,512],[912,519]]].map(r=>r.map(point));
   const sand=ridges.map(points=>{
     const x0=points[0][0],y0=Math.min(...points.map(p=>p[1]))-40,width=Math.ceil(points[2][0]-x0+90),height=Math.ceil(Math.max(...points.map(p=>p[1]))-y0+20);
@@ -53,12 +41,19 @@ function prepare({painting,pixels,random}){
     }
     g.putImageData(data,0,0);grass.push({sprite,x,phase:random()*6.28});
   }
-  return{clouds,sand,grass,brush:foregroundBrush};
+  return{clouds:paintedClouds,sand,grass,brush:foregroundBrush};
 }
 async function refineBrush({random}){
   const {paintBrushwork}=await import('./brush-painting.js');
+  // Reuse Yosemite's actual painted cloud banks; bake them into this scene's own atlas.
+  const metadata=await (await fetch('assets/yosemite-live-brush3.json')).json(),atlas=new Image();
+  atlas.src=`assets/${metadata.atlas}`;await atlas.decode();
+  paintedClouds=metadata.clouds.map((cloud,i)=>{
+    const sprite=layer(cloud.w,cloud.h);sprite.getContext('2d').drawImage(atlas,...cloud.rect,0,0,cloud.w,cloud.h);
+    return{w:cloud.w,h:cloud.h,y:[14,100,35][i],sprite};
+  });
   foregroundBrush=[];
-  for(const patch of [{x:-80,y:1010,w:440,h:290},{x:230,y:1015,w:310,h:210},{x:610,y:1010,w:350,h:250},{x:930,y:1010,w:290,h:240},{x:1260,y:1010,w:420,h:310}]){
+  for(const patch of [{x:-80,y:1010,w:440,h:320},{x:230,y:1015,w:330,h:250},{x:470,y:1015,w:300,h:235},{x:680,y:1010,w:330,h:300},{x:940,y:1010,w:310,h:280},{x:1150,y:1015,w:280,h:250},{x:1350,y:1010,w:350,h:330}]){
     const sprite=layer(patch.w,patch.h),g=sprite.getContext('2d');g.lineCap='butt';
     for(let stem=0;stem<55;stem++){
       const base=patch.w*(.25+random()*.5),tip=patch.w*(.08+random()*.84),top=patch.h*(.08+random()*.48),bend=(random()-.5)*24;
@@ -87,13 +82,13 @@ async function refineBrush({random}){
   }
 }
 function draw({ctx,t,state,wind}){
-  const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,440);sky.filter='brightness(1.12)';
+  const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,440);sky.globalAlpha=.88;
   for(const [i,cloud] of state.clouds.entries()){
     const age=(t+i*40+12)%120,x=-cloud.w+age*60;
     if(x>=W)continue;
-    for(let coat=0;coat<3;coat++)sky.drawImage(cloud.sprite,x,cloud.y);
+    sky.drawImage(cloud.sprite,x,cloud.y);
   }
-  sky.filter='none';sky.globalCompositeOperation='destination-in';sky.drawImage(skyMask,0,0);sky.globalCompositeOperation='source-over';ctx.drawImage(skyMotion,0,0);
+  sky.globalAlpha=1;sky.globalCompositeOperation='destination-in';sky.drawImage(skyMask,0,0);sky.globalCompositeOperation='source-over';ctx.drawImage(skyMotion,0,0);
   for(const ridge of state.sand)for(let i=0;i<2;i++){
     const age=(t/7+ridge.phase+i/2)%1,fade=Math.sin(age*Math.PI)**2;
     ctx.save();ctx.globalAlpha=fade*(.72+wind*.1);ctx.drawImage(ridge.sprite,ridge.x+age*68,ridge.y-Math.sin(age*Math.PI)*7);ctx.restore();
@@ -103,17 +98,17 @@ function draw({ctx,t,state,wind}){
     ctx.drawImage(patch.sprite,-patch.sprite.width*.5,-140);ctx.restore();
   }
   for(const patch of state.brush){
-    const sway=wind*.13+Math.sin(t*2.2+patch.phase)*.025;
+    const sway=Math.sin(t*.9)*.19+wind*.045+Math.sin(t*2.2+patch.phase)*.035;
     ctx.save();ctx.translate(patch.x+patch.w*.5,patch.y);ctx.transform(1,0,sway,1,0,0);
     ctx.drawImage(patch.sprite,-patch.w*.5,-patch.h);ctx.restore();
   }
 }
-startScene({liveVersion:9,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.webp',cache:'assets/great-sand-dunes/painting-v9.webp',background:'#9e8170',focusX:.54,focusY:.5,initialScroll:.7,
+startScene({liveVersion:10,id:'great-sand-dunes',guide:'assets/great-sand-dunes/guide.webp',cache:'assets/great-sand-dunes/painting-v10.webp',background:'#9e8170',focusX:.54,focusY:.5,initialScroll:.7,
   grade(r,g,b,x,y){
     const l=r*.3+g*.55+b*.15;
     if(y<skyAt(x)){
-      const cloud=Math.max(clamp((r-b-3)/18)*clamp((r-150)/45),clamp((Math.min(r,g,b)-178)/35));
-      return[r*.78*(1-cloud)+(r*.95+22)*cloud,(g*.88+2)*(1-cloud)+(g*.92+24)*cloud,(b*1.02+8)*(1-cloud)+(b*.92+24)*cloud];
+      const depth=clamp(y/skyAt(x)),pigment=(l-170)*.22;
+      return[66+depth*32+pigment,133+depth*25+pigment,190+depth*20+pigment];
     }
     const hill=clamp((y-contourAt(hills,x))/30)*clamp((contourAt(dunes,x)-y)/20)*clamp((145-l)/55)*clamp((1.3-r/(g+1))/.25);
     if(y<contourAt(dunes,x))return[(r-110)*1.12+102-hill*26,(g-110)*1.12+108+hill*4,(b-110)*1.12+119-hill*25];

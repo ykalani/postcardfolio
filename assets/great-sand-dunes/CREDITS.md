@@ -2,7 +2,7 @@
 
 The user supplied the new 990 x 742 landscape by replacing `fallback.webp`. Its bytes are preserved as `guide.webp` for local authoring. The image shows orange dune ridges, snow-covered mountain faces in warm light, sparse clouds, and low grassland. No river is visible. Photographer, date, and license were not supplied; the earlier NPS attribution does not apply to this replacement.
 
-The scene center-cover crops the supplied reference into a 1600 x 1000 original brush painting. Runtime assets are `painting-v9.webp`, `fallback-v9.webp`, and the paired `live-v9.json` / `live-v9.webp`. At the user's request, painted foreground brush was added and the material contrast strengthened. The shrubs are authored brushwork, not extra photographic inserts. Neither the supplied photograph nor an authoring guide is downloaded during normal visits.
+The scene center-cover crops the supplied reference into a 1600 x 1000 original brush painting. Runtime assets are `painting-v10.webp`, `fallback-v10.webp`, and the paired `live-v10.json` / `live-v10.webp`. At the user's request, painted foreground brush was added, the material contrast strengthened, and the sky made bluer. Clouds reuse this project's original painted Yosemite cloud sprites, baked into the dunes live atlas. The shrubs are authored brushwork, not extra photographic inserts. Neither the supplied photograph nor an authoring guide is downloaded during normal visits.
 
 ## Previous reference - historical attribution
 
