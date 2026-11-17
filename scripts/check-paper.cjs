@@ -23,8 +23,9 @@ fs.mkdirSync(output, {recursive: true});
         const close = page.getByRole('button', {name: 'Collapse paper'});
         const folded = await slip.boundingBox();
         const nav = await page.locator('.scene-nav').boundingBox();
-        assert.ok(Math.abs(folded.width - Math.min(720, width - 48)) < 2, 'Slip matches postcard width');
-        assert.ok(folded.y + folded.height < nav.y, 'Slip clears navigation');
+        assert.ok(Math.abs(folded.width - Math.min(280, width - 96)) < 2, 'Slip has receipt proportions');
+        assert.ok(folded.y < page.viewportSize().height && folded.y + folded.height > page.viewportSize().height, 'Receipt peeks up from below the viewport');
+        assert.ok(nav.y + nav.height < folded.y, 'Navigation clears receipt');
         await page.screenshot({path: path.join(output, `${route}-${width}-slip.png`)});
         await slip.click();
         if (route === 'projects') {
@@ -39,7 +40,9 @@ fs.mkdirSync(output, {recursive: true});
         await sheet.evaluate(async el => {await Promise.all(el.getAnimations().map(a => a.finished));});
         assert.equal(await slip.getAttribute('aria-expanded'), 'true');
         const full = await sheet.boundingBox();
-        assert.deepEqual(full, {x: 0, y: 0, width, height: width === 390 ? 844 : 1000});
+        assert.ok(full.x >= 20 && full.x + full.width <= width - 20, 'Painting stays visible on both sides');
+        assert.ok(Math.abs(full.y + full.height - page.viewportSize().height) < 2, 'Panel grows from bottom edge');
+        assert.ok(full.y > 0 && full.height > page.viewportSize().height * .8, 'Tall panel keeps painting visible above');
         await page.screenshot({path: path.join(output, `${route}-${width}-expanded.png`)});
         const before = await close.boundingBox();
         await page.locator('.paper-content').evaluate(el => {
@@ -63,6 +66,6 @@ fs.mkdirSync(output, {recursive: true});
       assert.deepEqual(errors, []);
       await page.close();
     }
-    console.log(JSON.stringify({passed: true, output, checks: 'all five pages, home exclusion, paper width, full-screen expansion, scrolling, persistent arrow, collapse, keyboard and focus'}));
+    console.log(JSON.stringify({passed: true, output, checks: 'all five pages, home exclusion, receipt proportions, bottom-anchored expansion with visible painting, scrolling, persistent arrow, collapse, keyboard and focus'}));
   } finally {await browser.close();}
 })().catch(error => {console.error(error);process.exitCode = 1;});
