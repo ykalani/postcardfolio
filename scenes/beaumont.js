@@ -2,6 +2,7 @@ import {startScene} from './scene-painter.js';
 const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const blossom = (r, g, b) => clamp((r - g - 3) / 19) * clamp((b - g + 7) / 17) * clamp((r - 90) / 70) * clamp((b - r * .65) / 28);
 const needle = (r, g, b) => clamp((g - r * .99 - 1) / 18) * clamp((g - b * 1.03) / 16) * clamp((205 - g) / 55);
+const breezeSeed = Math.random() * 10000;
 
 function paintedFoliage(painting, pixels, W, region) {
   const layer = document.createElement('canvas'); layer.width = region.w; layer.height = region.h;
@@ -101,20 +102,28 @@ function draw({ctx, t, state, wind}) {
     ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
     ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
   }
-  // Broken chalk-colored dabs sweep inward around an open spiral.
-  for(const [i,origin] of [[370,530],[1080,430],[730,570]].entries()){
+  // Two staggered streams let each gust arrive, curl, unfurl, and leave.
+  for(let i=0;i<2;i++){
+    const clock=t+i*10.5,cycle=Math.floor(clock/21);
+    const random=n=>{const value=Math.sin(breezeSeed+cycle*127.1+i*311.7+n*74.7)*43758.5453;return value-Math.floor(value);};
+    const duration=13+random(0)*4,age=(clock-cycle*21-random(6)*2)/duration;
+    if(age<0||age>=1)continue;
+    const fold=Math.sin(clamp((age-.15)/.7)*Math.PI)**2;
+    const fade=clamp(age/.12)*clamp((1-age)/.22);
+    const size=.8+random(1)*.35,turn=Math.PI*(3+random(2)),direction=random(5)<.5?-1:1;
     const travel=t*.075+Math.sin(t*.65+i)*.009;
-    ctx.save();ctx.translate(origin[0]+Math.sin(t*.25+i)*24,origin[1]);
+    ctx.save();ctx.translate(550+random(3)*350+(age-.5)*800,380+random(4)*270);
     for(let lane=0;lane<3;lane++)for(let j=0;j<36;j++){
       const u=(j/36+Math.sin(j*2.4+lane)*.004+travel+lane*.013+1)%1;
-      const turn=Math.PI*3.5,angle=u*turn+i*.8-.45;
+      const angle=u*turn-.45;
       const radius=108-u*100+(lane-1)*5;
-      const x=Math.cos(angle)*radius*1.25,y=Math.sin(angle)*radius*.85;
-      const dx=(-100*Math.cos(angle)-radius*Math.sin(angle)*turn)*1.25;
-      const dy=(-100*Math.sin(angle)+radius*Math.cos(angle)*turn)*.85;
-      ctx.globalAlpha=Math.sin(u*Math.PI)**.8*(.42+lane*.08)*(.85+Math.sin(t*.65+i)*.15);
+      const x=((u-.5)*300*(1-fold)+Math.cos(angle)*radius*1.25*fold)*size;
+      const y=((lane-1)*6*(1-fold)+Math.sin(angle)*radius*.85*fold)*size*direction;
+      const dx=300*(1-fold)+(-100*Math.cos(angle)-radius*Math.sin(angle)*turn)*1.25*fold;
+      const dy=(-100*Math.sin(angle)+radius*Math.cos(angle)*turn)*.85*fold*direction;
+      ctx.globalAlpha=fade*Math.sin(u*Math.PI)**.8*(.42+lane*.08);
       ctx.fillStyle=['#dededb','#eeeeeb','#c9cbc8'][(Math.floor(j/4)+lane)%3];
-      const length=8+(j%3)*2;
+      const length=6+(j%3)*2;
       ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));
       ctx.fillRect(-length/2,-2,length,4);
       ctx.fillRect(-length/2+2,-4,length-4,2);
