@@ -1,3 +1,25 @@
+# Banff — Writing, new wide reference (v6)
+
+Read the shared landscape playbook and ART_DIRECTION.md. The user supplied a new reference on November 16, 2026, named `assets/banff/lake-lousie.avif`. It replaces the portrait reference as the current painting guide. The original source and the earlier WebP reference remain intact.
+
+## Composition and palette
+
+The supplied 3000 × 2021 image has orange-lit summits, cool shaded mountain walls and snow gullies, a turquoise lake reflecting the peaks, and a conifer shore with small canoes on the right. Keep this single coherent viewpoint. The user called the image Lake Louise; no narrower geographic identification or photographer attribution has been independently established.
+
+Use proportional center-cover into 1600 × 1000, `sourceY: .5`: scale 1600/3000, crop 38.933 logical pixels from each vertical edge. Keep warm summit pigment against blue-gray rock, deep forest greens, cyan water and warm reflected light. Use the established discrete-pigment brush painter; normal visits never display or download the reference photograph.
+
+## Movement and framing
+
+The v6 lake silhouette follows the new shoreline, with the right-hand dock and stored canoes excluded. Displace the lake's own painted strokes, retaining the v5 continuous row movement and pulse without drawing extra wave lines. Four source-green masked conifer patches on the right sway from fixed lower attachments. Summits, snowfields, terrain, canoes and dock remain fixed.
+
+Use `focusX: .55`, `focusY: .5`, `initialScroll: .5` so the portrait crop contains lit peaks, forest, and lake reflections. Preserve shared stage height and navigation. Check Writing on desktop, mobile, narrow mobile and wide screen, including t0/t6 screenshots, fixed landmarks, whole-water motion, and runtime fallbacks. No reduced-motion tests.
+
+Current runtime assets: `painting-v6.webp`, `fallback-v6.webp`, `live-v6.json`, `live-v6.webp`. Authoring source: `lake-lousie.avif`, excluded from deployment. The foreground adds only the top of the supplied wooden trail post and the source pika, facing into the scene. Both are polygon cutouts from the actual photos, repainted through `paintBrushwork`; neither generated image is shipped. `scripts/bake-banff-companion.cjs` reproduces the painted alpha sprites. `banff.css` keeps the post emerging from the lower-left edge on desktop and immediately above the navigation ledge on mobile. The animal is static and its paws rest on the cap. Preserve transparency and avoid photographic surroundings or signage.
+
+Previous source documentation follows for historical provenance.
+
+---
+
 # Banff â€” Writing
 
 Read [the shared landscape playbook](../LANDSCAPE_PLAYBOOK.md) and repository instructions first. This scene replaces the earlier Olympic forest at the user's request, using the supplied Banff photograph rather than a substitute stock source.

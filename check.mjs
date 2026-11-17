@@ -3,8 +3,8 @@ import {readFile, access, readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 
 const pages = ['index.html','projects.html','experiences.html','writing.html','tech-blog.html','about.html'];
-const scenes = [['great-sand-dunes','guide.webp',11],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',5],['sleeping-bear','guide.webp',12],['beaumont','guide.webp',7]];
-const scripts = ['scene.js','cloud-transition.js','postcard.js','server.mjs',
+const scenes = [['great-sand-dunes','guide.webp',11],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',7],['sleeping-bear','guide.webp',12],['beaumont','guide.webp',7]];
+const scripts = ['scene.js','cloud-transition.js','postcard.js','paper.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
 for (const script of scripts) {
@@ -14,6 +14,7 @@ for (const script of scripts) {
 for (const [scene,guide,version] of scenes) for (const file of [guide,`painting${version===1?'':'-v'+version}.webp`,`fallback${version===1?'':'-v'+version}.webp`,`live-v${version}.json`,`live-v${version}.webp`,'CREDITS.md']) {
   await access(new URL(`assets/${scene}/${file}`,import.meta.url));
 }
+await access(new URL('assets/banff/lake-lousie.avif',import.meta.url));
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
 await access(new URL('assets/yosemite-pine-bough.png',import.meta.url));
 await access(new URL('assets/yosemite-terrain-brush3.webp',import.meta.url));
@@ -46,7 +47,7 @@ for (const page of [...pages,'credits.html']) {
     await access(new URL(target,import.meta.url));
   }
 }
-for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes']]) {
+for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes'],['writing.html','sleeping-bear'],['about.html','banff']]) {
   assert.ok((await readFile(new URL(page,import.meta.url),'utf8')).includes(`src="scenes/${scene}.js"`),`${page}: correct scene`);
 }
 console.log('Passed: script syntax, six landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');
