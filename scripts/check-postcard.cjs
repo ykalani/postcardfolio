@@ -91,7 +91,7 @@ fs.mkdirSync(output, {recursive: true});
       await folded.press('Enter');
       await card.evaluate(async card => {await Promise.all(card.getAnimations().map(animation => animation.finished));});
       assert.equal(await card.isVisible(), true);
-      assert.equal(await card.locator('.postcard-location').count(), route==='about'?1:0, 'About keeps its profile-card heading');
+      assert.equal(await card.locator('.postcard-location').count(), 0, 'Large postcard has no location subtitle');
       assert.equal(await folded.evaluate(el=>getComputedStyle(el).backgroundSize),'240px 240px','Compact postcard retains its paper texture');
       await page.screenshot({path: path.join(output, `${route}-${width}-open.png`)});
       await page.getByRole('button', {name: 'Close postcard', exact: true}).click();

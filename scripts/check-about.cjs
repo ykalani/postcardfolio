@@ -16,6 +16,8 @@ fs.mkdirSync(output, {recursive:true});
       await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true' && document.documentElement.dataset.cloudPhase === 'idle');
       assert.equal(await page.locator('.content-slip,.paper-sheet').count(),0);
       const card = page.locator('#postcard'), folded = page.locator('#show-postcard');
+      assert.equal(await card.locator('.postcard-location').count(),0,'About keeps its current heading without added captions');
+      assert.equal(await folded.evaluate(el=>getComputedStyle(el).backgroundSize),'240px 240px','Small postcard keeps its existing paper texture');
       assert.equal(await card.isVisible(),true, 'About opens by default');
       assert.equal(await folded.isVisible(),false);
       await card.evaluate(async card => {await Promise.all(card.getAnimations().map(a => a.finished));});
