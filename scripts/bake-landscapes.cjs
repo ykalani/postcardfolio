@@ -2,7 +2,7 @@
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs');
 const path = require('node:path');
-const scenes = [['experiences', 'hawaii-volcanoes',5], ['projects', 'great-sand-dunes',10], ['writing', 'banff',7], ['about', 'sleeping-bear',12], ['tech-blog', 'beaumont',7]].filter(([route]) => process.argv.length < 3 || process.argv.slice(2).includes(route));
+const scenes = [['experiences', 'hawaii-volcanoes',5], ['projects', 'great-sand-dunes',11], ['writing', 'banff',7], ['about', 'sleeping-bear',12], ['tech-blog', 'beaumont',7]].filter(([route]) => process.argv.length < 3 || process.argv.slice(2).includes(route));
 (async () => {
   const browser = await chromium.launch({executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined});
   try {
