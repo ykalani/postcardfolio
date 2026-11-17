@@ -1,5 +1,9 @@
 # Beaumont Tower guide and painted scene
 
+## Verified publication
+
+The supplied photograph matches the feature image on Michigan State University's virtual tour: https://virtualtour.msu.edu/tour/campus-highlights-tour/beaumont-tower/ . Image: https://virtualtour.msu.edu/wp-content/uploads/2020/08/beaumont-feature.png . Verified visually November 16, 2026 (same tower, blossoms, and branches). The page does not identify an individual photographer or grant a public reuse license. This identifies the publication, superseding the initial unknown-publication note below.
+
 - **Source:** The photograph supplied by the user as `assets/sleeping-bear/beaumont tower.webp`.
 - **Subject:** Beaumont Tower framed by pink magnolia blossoms and evergreen branches, for the Tech Blog destination.
 - **Photographer and original publication:** Not supplied. No photographer identity, outside source, or public-domain license is asserted.

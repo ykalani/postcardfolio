@@ -7,7 +7,7 @@
   <meta name="description" content="A brush painting of sunlit Banff peaks, turquoise lake reflections, shoreline conifers, and canoes.">
   <title>Yash Kalani</title>
   <script>try{if(sessionStorage.getItem('postcard-cloud-arrival')===location.pathname){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),3000)}}catch{}</script>
-  <link rel="preload" as="image" href="assets/banff/painting-v6.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/banff/painting-v7.webp" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="postcard.css">
   <link rel="stylesheet" href="about.css">
@@ -25,13 +25,16 @@
     <canvas id="motion" aria-hidden="true"></canvas>
     <div class="grain" aria-hidden="true"></div>
     <div class="trail-companion" role="img" aria-label="A painted pika perched on the top of a wooden trail post">
-      <img class="trail-post" src="assets/banff/post-painted.webp" alt="" width="280" height="153">
-      <img class="trail-pika" src="assets/banff/pika-painted.webp" alt="" width="420" height="290">
+      <img class="trail-post" src="assets/banff/post-source-brush-v6.webp" alt="" width="560" height="306">
+      <div class="trail-pika" aria-hidden="true">
+        <img class="trail-pika-body" src="assets/banff/pika-source-brush-v7.webp" alt="" width="420" height="280">
+        <img class="trail-pika-head" src="assets/banff/pika-source-brush-v7.webp" alt="" width="420" height="280">
+      </div>
     </div>
   </main>
   <div class="postcard-stage">
     <article class="postcard postcard-about" id="postcard" hidden aria-labelledby="postcard-name">
-      <div class="postcard-stamp about-stamp"><img src="assets/banff/painting-v6.webp" alt="Painted Lake Louise postage stamp" width="65" height="79"></div>
+      <div class="postcard-stamp about-stamp"><img src="assets/banff/painting-v7.webp" alt="Painted Lake Louise postage stamp" width="65" height="79"></div>
       <header class="about-heading">
         <p class="about-kicker">A postcard from</p>
         <h2 id="postcard-name">Yash Kalani</h2>
@@ -61,8 +64,8 @@
       <button type="button" class="postcard-close" id="put-away" aria-label="Close postcard" aria-controls="postcard">×</button>
     </article>
     <button type="button" class="postcard-return" id="show-postcard" aria-label="Open About postcard and profile links" aria-controls="postcard">
-      <img src="assets/banff/painting-v6.webp" alt="" width="80" height="80">
-      <span class="postcard-return-address"><span class="postcard-return-name">Yash Kalani</span><span class="postcard-return-location">Lake Louise, Alberta</span><span class="about-return-label">About &amp; links ↗</span></span>
+      <img src="assets/pfp_stamp.webp" alt="" width="54" height="60">
+      <span class="postcard-return-address"><span class="postcard-return-name">Yash Kalani</span><span class="postcard-return-location"><span class="postcard-return-place">Lake Louise, Alberta</span><span class="postcard-return-institution">Banff National Park</span></span></span>
     </button>
   </div>
   <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link>home</a><a href="experiences" data-cloud-link>experience</a><a href="projects" data-cloud-link>projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link aria-current="page">about</a></nav>

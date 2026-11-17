@@ -11,4 +11,9 @@
 .content-slip:focus-visible,.paper-collapse:focus-visible{outline:2px solid #b36543;outline-offset:4px}
 html:has(.paper-sheet[open]){overflow:hidden}
 body:has(.content-slip) .scene-nav{bottom:max(100px,env(safe-area-inset-bottom))}
+body:has(.paper-sheet[open]) .scene-nav{pointer-events:none;animation:paper-roll-away .5s cubic-bezier(.22,.7,.25,1) both}
+body:has(.paper-sheet[open]) .scene-nav::after{animation:paper-curl-away .5s cubic-bezier(.22,.7,.25,1) both}
+@keyframes paper-roll-away{from{clip-path:inset(-20px -20px -20px -20px)}to{clip-path:inset(0 0 0 100%)}}
+@keyframes paper-curl-away{0%{left:-22px;opacity:0}15%{opacity:1}100%{left:100%;opacity:1}}
+@media(prefers-reduced-motion:reduce){body:has(.paper-sheet[open]) .scene-nav{animation:none;clip-path:inset(0 0 0 100%)}body:has(.paper-sheet[open]) .scene-nav::after{animation:none}}
 @media(max-width:650px){.paper-sheet{width:calc(100% - 40px)}.paper-content{padding-top:28px}}

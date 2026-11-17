@@ -11,9 +11,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
   const report=await page.evaluate(async()=>{
    window.pauseScene(true);
-   const meta=await(await fetch('/assets/beaumont/live-v8.json')).json();
-   const atlas=new Image();atlas.src='/assets/beaumont/live-v8.webp';await atlas.decode();
-   const cache=new Image();cache.src='/assets/beaumont/painting-v8.webp';await cache.decode();
+   const meta=await(await fetch('/assets/beaumont/live-v9.json')).json();
+   const atlas=new Image();atlas.src='/assets/beaumont/live-v9.webp';await atlas.decode();
+   const cache=new Image();cache.src='/assets/beaumont/painting-v9.webp';await cache.decode();
    const c=document.createElement('canvas');c.width=atlas.width;c.height=atlas.height;
    const sample=c.getContext('2d');sample.drawImage(atlas,0,0);
    const branches=meta.state.foliage.filter(b=>b.kind==='blossom');

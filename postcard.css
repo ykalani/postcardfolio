@@ -1,20 +1,21 @@
 .postcard-stage{position:fixed;inset:0;z-index:4;display:grid;place-items:center;padding:32px 24px 110px;pointer-events:none}
 .postcard{position:relative;width:min(720px,100%);aspect-ratio:7/4;padding:42px;background:#faf5e8;color:#3c5148;border:1px solid #eee4ce;border-radius:2px;box-shadow:inset 0 0 22px #a57f4020,inset 0 0 2px #9d783a40,3px 14px 28px #18362a38,0 2px 3px #18362a26;transform:rotate(-2deg);pointer-events:auto;visibility:hidden}
-.postcard-stamp{position:absolute;right:28px;top:24px;width:65px;height:79px;border:1px dashed #9ba38d;outline:1px solid #c8c9b680;outline-offset:4px;display:grid;place-items:center;transform:rotate(5deg);color:#909783;text-align:center;font:italic 11px/1.4 Georgia,serif}
+.postcard-stamp{position:absolute;right:28px;top:24px;width:65px;height:79px;padding:4px;border:1px dashed #9ba38d;outline:1px solid #c8c9b680;outline-offset:4px;display:grid;transform:rotate(5deg);background:#eee7d0}
+.postcard-stamp img{display:block;width:100%;height:100%;min-height:0;object-fit:cover;object-position:72% 40%}
 .postcard h2{margin:0 0 10px;font:normal 46px/1.1 Georgia,serif;letter-spacing:-1.5px}
-.postcard-location{margin:0;font:italic 16px/1.4 Georgia,serif}
 .postcard-return-location{display:block;margin-top:6px;font:italic 13px/1.4 Georgia,serif}
 .postcard .postcard-close{position:absolute;left:8px;top:8px;width:44px;height:44px;font:28px/1 Georgia,serif}
 .postcard button,.postcard-return{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 .postcard :focus-visible,.postcard-return:focus-visible{outline:2px solid #b36543;outline-offset:5px}
-.postcard-return{pointer-events:auto;position:absolute;top:32px;right:28px;display:flex;align-items:center;gap:18px;width:320px;max-width:calc(100% - 48px);padding:18px;background-color:#f7f1e5;color:#304c44;border:1px solid #c8c9b680;border-radius:3px;box-shadow:3px 9px 16px #18362a33;transform:rotate(-4deg);text-align:left}
-.postcard-return img{width:74px;height:80px;object-fit:cover;border:5px solid #faf5e8;outline:1px solid #9ba38d;box-shadow:2px 3px 0 #18362a26}
-.postcard-return-address{flex:1;min-width:0}
-.postcard-return-name{display:block;white-space:nowrap;font:italic bold 28px/1.2 Georgia,serif}
-.postcard-return-lines{display:block;height:31px;margin-top:14px;border-top:2px solid #304c4435;border-bottom:2px solid #304c4435}
+.postcard-return{pointer-events:auto;position:absolute;top:32px;right:28px;display:flex;align-items:center;gap:14px;max-width:calc(100% - 48px);padding:12px 16px;background:#faf5e8;color:#3c5148;border:1px solid #eee4ce;border-radius:3px;box-shadow:3px 9px 16px #18362a45;transform:rotate(-4deg);text-align:left}
+.postcard-return img{width:54px;height:60px;object-fit:cover;object-position:72% 40%;border:4px solid #eee7d0;outline:1px solid #9ba38d;box-shadow:2px 3px 0 #18362a26}
+.postcard-return-address{min-width:0}
+.postcard-return-place,.postcard-return-institution{display:block}
+.postcard-return img{flex-shrink:0}
+.postcard-return-name{display:block;white-space:nowrap;font:normal 24px/1.1 Georgia,serif;letter-spacing:-.8px}
 .postcard[hidden],.postcard-return[hidden]{display:none}
 html[data-postcard-ready] .postcard{visibility:visible}
-@media(max-width:650px){.postcard-stage{padding:28px 24px 125px}.postcard{padding:24px}.postcard-stamp{right:22px;top:20px;width:49px;height:61px;font-size:10px}.postcard h2{position:absolute;left:24px;bottom:43px;margin:0;font-size:32px}.postcard-location{position:absolute;left:24px;bottom:20px;font-size:13px}}
+@media(max-width:650px){.postcard-stage{padding:28px 24px 125px}.postcard{padding:24px}.postcard-stamp{right:22px;top:20px;width:49px;height:61px;font-size:10px}.postcard h2{position:absolute;left:24px;bottom:24px;margin:0;font-size:32px}}
 @media(max-height:550px){.postcard{width:min(560px,100%);max-height:calc(100svh - 130px)}.postcard h2{font-size:32px}}
 
 .postcard,.postcard-return{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%22240%22%20viewBox%3D%220%200%20240%20240%22%3E%0A%20%20%3Cfilter%20id%3D%22paper%22%20x%3D%220%22%20y%3D%220%22%20width%3D%22100%25%22%20height%3D%22100%25%22%3E%0A%20%20%20%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.045%22%20numOctaves%3D%223%22%20seed%3D%2223%22%20stitchTiles%3D%22stitch%22%2F%3E%0A%20%20%20%20%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%20.48%200%200%200%200%20.35%200%200%200%200%20.20%200%200%200%20.22%200%22%20result%3D%22mottling%22%2F%3E%0A%20%20%20%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.7%22%20numOctaves%3D%223%22%20seed%3D%228%22%20stitchTiles%3D%22stitch%22%2F%3E%0A%20%20%20%20%3CfeDiffuseLighting%20surfaceScale%3D%221.6%22%20diffuseConstant%3D%221%22%20lighting-color%3D%22%23fff9e9%22%3E%0A%20%20%20%20%20%20%3CfeDistantLight%20azimuth%3D%22225%22%20elevation%3D%2255%22%2F%3E%0A%20%20%20%20%3C%2FfeDiffuseLighting%3E%0A%20%20%20%20%3CfeBlend%20in2%3D%22mottling%22%20mode%3D%22multiply%22%20result%3D%22tooth%22%2F%3E%0A%20%20%20%20%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.035%20.55%22%20numOctaves%3D%222%22%20seed%3D%2214%22%20stitchTiles%3D%22stitch%22%2F%3E%0A%20%20%20%20%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%20.49%200%200%200%200%20.38%200%200%200%200%20.24%200%200%200%20.18%200%22%2F%3E%0A%20%20%20%20%3CfeBlend%20in2%3D%22tooth%22%20mode%3D%22multiply%22%2F%3E%0A%20%20%3C%2Ffilter%3E%0A%20%20%3Cpath%20fill%3D%22%23faf5e8%22%20filter%3D%22url(%23paper)%22%20opacity%3D%22.48%22%20d%3D%22M0%200h240v240H0z%22%2F%3E%0A%3C%2Fsvg%3E%0A");background-size:240px 240px}
