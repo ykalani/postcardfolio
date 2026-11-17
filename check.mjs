@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile, access, readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 
-const pages = ['index.html','projects.html','experience.html','writing.html','tech-blog.html','about.html'];
+const pages = ['index.html','projects.html','experiences.html','writing.html','tech-blog.html','about.html'];
 const scenes = [['great-sand-dunes','guide.jpg',5],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',5],['sleeping-bear','guide.webp',7],['beaumont','guide.webp',5]];
 const scripts = ['scene.js','cloud-transition.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
@@ -34,6 +34,7 @@ for (const page of [...pages,'credits.html']) {
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(new Set(ids).size,ids.length,`${page}: unique IDs`);
   if (pages.includes(page)) {
+    assert.deepEqual([...html.matchAll(/data-cloud-link[^>]*>([^<]+)</g)].map(match=>match[1]),['home','experience','projects','writing','tech blog','about'],`${page}: destination order`);
     assert.equal([...html.matchAll(/data-cloud-link/g)].length,6,`${page}: six destinations`);
     assert.equal([...html.matchAll(/aria-current="page"/g)].length,1,`${page}: one current destination`);
   }
@@ -41,8 +42,11 @@ for (const page of [...pages,'credits.html']) {
     if (/^(?:https?:|mailto:|#)/.test(reference)) continue;
     let target = reference.split(/[?#]/)[0];
     if (target==='./') target='index.html';
-    if (/^(projects|experience|writing|tech-blog|about)$/.test(target)) target+='.html';
+    if (/^(projects|experiences|writing|tech-blog|about)$/.test(target)) target+='.html';
     await access(new URL(target,import.meta.url));
   }
+}
+for (const [page,scene] of [['experiences.html','hawaii-volcanoes'],['projects.html','great-sand-dunes']]) {
+  assert.ok((await readFile(new URL(page,import.meta.url),'utf8')).includes(`src="scenes/${scene}.js"`),`${page}: correct scene`);
 }
 console.log('Passed: script syntax, six landscape pages, credits, guides/caches, Yosemite atlases, navigation and local resources.');

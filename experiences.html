@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#42404b">
+  <meta name="description" content="A painted dusk view into Halemaʻumaʻu, with glowing lava crust and rising volcanic gas.">
+  <title>Yash Kalani</title>
+  <script>try{if(sessionStorage.getItem('postcard-cloud-arrival')===location.pathname){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),3000)}}catch{}</script>
+  <link rel="preload" as="image" href="assets/hawaii-volcanoes/painting-v5.webp" fetchpriority="high">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="cloud-transition.css">
+  <script type="module" src="scenes/hawaii-volcanoes.js"></script>
+  <script src="cloud-transition.js" defer></script>
+</head>
+<body>
+  <main aria-label="Hawaiʻi Volcanoes, painted and alive">
+    <h1 class="sr-only" tabindex="-1">Experience — Hawaiʻi Volcanoes</h1>
+    <p class="sr-only">A painted dusk view into Halemaʻumaʻu, with glowing lava crust and rising volcanic gas. Animation follows your reduced motion preference.</p>
+    <canvas id="landscape" aria-hidden="true"></canvas>
+    <canvas id="motion" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+  </main>
+  <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link>home</a><a href="experiences" data-cloud-link aria-current="page">experience</a><a href="projects" data-cloud-link>projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link>about</a></nav>
+</body>
+</html>

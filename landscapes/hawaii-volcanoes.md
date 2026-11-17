@@ -1,10 +1,10 @@
-# Hawaiʻi Volcanoes — Projects
+# Hawaiʻi Volcanoes — Experience
 
 Read [the shared playbook](../LANDSCAPE_PLAYBOOK.md) and repository instructions first. Shared rendering, navigation, QA, and deployment requirements remain there.
 
 ## Status and intent
 
-Implemented for Projects, not a separate Playground destination. The selected guide is B. Carr's USGS public-domain photograph of Halemaʻumaʻu at dusk on October 10, 2021, viewed from the west rim. Asset provenance is recorded in [the scene credits](../assets/hawaii-volcanoes/CREDITS.md). Existing project material can inform a future content task; do not add project copy unasked.
+Implemented for Experience at `/experiences`. The selected guide is B. Carr's USGS public-domain photograph of Halemaʻumaʻu at dusk on October 10, 2021, viewed from the west rim. Asset provenance is recorded in [the scene credits](../assets/hawaii-volcanoes/CREDITS.md). Experience remains landscape-only until content is requested.
 
 The scene should introduce charcoal, violet dusk, and concentrated orange light to the portfolio while retaining the same painted material language as Yosemite.
 

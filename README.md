@@ -3,8 +3,8 @@
 Six expressive brush paintings for Yash Kalani’s portfolio, with visible flat-brush marks and simplified colors:
 
 - Home: Yosemite.
-- Projects: Hawaiʻi Volcanoes.
-- Experience: Great Sand Dunes.
+- Experience (`/experiences`): Hawaiʻi Volcanoes.
+- Projects (`/projects`): Great Sand Dunes.
 - Writing: Banff.
 - Tech Blog: Beaumont Tower.
 - About: Pictured Rocks, using the supplied arch-and-kayaks photo.

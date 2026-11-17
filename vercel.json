@@ -1,5 +1,9 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    {"source":"/experience","destination":"/experiences","permanent":true},
+    {"source":"/experience.html","destination":"/experiences","permanent":true}
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

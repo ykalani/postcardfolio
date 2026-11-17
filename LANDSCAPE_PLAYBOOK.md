@@ -23,8 +23,8 @@ The agreed portfolio has six sections. These are content destinations, not a req
 | Section | Landscape | Scene brief |
 | --- | --- | --- |
 | Home | Yosemite | [Yosemite](landscapes/yosemite.md) |
-| Projects | Hawaiʻi Volcanoes | [Hawaiʻi Volcanoes](landscapes/hawaii-volcanoes.md) |
-| Experience | Great Sand Dunes | [Great Sand Dunes](landscapes/great-sand-dunes.md) |
+| Experience (`/experiences`) | Hawaiʻi Volcanoes | [Hawaiʻi Volcanoes](landscapes/hawaii-volcanoes.md) |
+| Projects (`/projects`) | Great Sand Dunes | [Great Sand Dunes](landscapes/great-sand-dunes.md) |
 | Writing | Banff | [Banff](landscapes/banff.md) |
 | Tech Blog | Beaumont Tower | [Beaumont](landscapes/beaumont.md) |
 | About | Pictured Rocks arch reference | [About arch scene](landscapes/sleeping-bear.md) |

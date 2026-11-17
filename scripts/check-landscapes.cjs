@@ -5,11 +5,11 @@ const path = require('node:path');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
 const output = process.env.QA_OUTPUT || path.join(os.tmpdir(),'postcardfolio-scene-qa');
-const routes = ['','projects','experience','writing','tech-blog','about'].filter(route=>!process.env.SCENE_ROUTES||process.env.SCENE_ROUTES.split(',').includes(route||'home'));
+const routes = ['','experiences','projects','writing','tech-blog','about'].filter(route=>!process.env.SCENE_ROUTES||process.env.SCENE_ROUTES.split(',').includes(route||'home'));
 const sizes = [{width:1600,height:1000},{width:390,height:844},{width:320,height:700},{width:2560,height:1080}].filter(size=>!process.env.SCENE_WIDTHS||process.env.SCENE_WIDTHS.split(',').includes(String(size.width)));
 assert.ok(routes.length&&sizes.length,'Select at least one valid scene and viewport');
-const versions = {projects:5,experience:5,writing:5,'tech-blog':5,about:7};
-const sceneNames = {projects:'hawaii-volcanoes',experience:'great-sand-dunes',writing:'banff','tech-blog':'beaumont',about:'sleeping-bear'};
+const versions = {projects:5,experiences:5,writing:5,'tech-blog':5,about:7};
+const sceneNames = {experiences:'hawaii-volcanoes',projects:'great-sand-dunes',writing:'banff','tech-blog':'beaumont',about:'sleeping-bear'};
 fs.mkdirSync(output,{recursive:true});
 
 async function ready(page,route) {
@@ -31,6 +31,9 @@ async function pixels(page) {
       page.on('pageerror',e=>errors.push(e.message));
       const guideRequests=[];page.on('request',request=>{if((/\/(?:yosemite-)?guide\.(?:jpg|webp)(?:[?#]|$)/).test(request.url()))guideRequests.push(request.url());});
       await page.goto(`${base}/${route}`);await ready(page,route);
+      assert.deepEqual(await page.locator('.scene-nav a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),['./','experiences','projects','writing','tech-blog','about'],`${route}: navigation order`);
+      assert.equal(await page.locator('[aria-current="page"]').getAttribute('href'),route||'./',`${route}: active destination`);
+      if(route)assert.equal(await page.locator('script[type="module"]').getAttribute('src'),`scenes/${sceneNames[route]}.js`,`${route}: assigned landscape`);
       const layout=await page.evaluate(()=>({
         overflow:document.documentElement.scrollWidth>innerWidth,
         scroll:scrollY,stage:document.querySelector('main').clientHeight,
@@ -69,6 +72,9 @@ async function pixels(page) {
     }
     // Every destination must be reachable through a covered cloud transition and native Back.
     const page=await browser.newPage({viewport:sizes[0]});
+    for(const oldRoute of ['experience','experience.html']){
+      await page.goto(`${base}/${oldRoute}`);await page.waitForURL('**/experiences');await ready(page,'experiences');
+    }
     for(const route of routes.slice(1)) {
       await page.goto(base+'/');await ready(page,'');
       await page.evaluate(()=>{
@@ -79,7 +85,7 @@ async function pixels(page) {
           sessionStorage.setItem('qa-covered',JSON.stringify(window.coverage));
         }).observe(document.documentElement,{attributes:true,attributeFilter:['data-cloud-phase']});
       });
-      await page.getByRole('link',{name:route==='tech-blog'?'tech blog':route,exact:true}).click();
+      await page.getByRole('link',{name:route==='tech-blog'?'tech blog':route==='experiences'?'experience':route,exact:true}).click();
       await page.waitForURL(new RegExp('/'+route+'$'));await ready(page,route);
       await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
       assert.ok(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('qa-covered')).every(Boolean)),`${route}: opaque corners`);

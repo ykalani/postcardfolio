@@ -8,7 +8,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     for(const width of [1600,390]){
       const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[];
       page.on('pageerror',error=>errors.push(error.message));
-      await page.goto(`${process.env.SCENE_URL||'http://127.0.0.1:5178'}/experience`);
+      await page.goto(`${process.env.SCENE_URL||'http://127.0.0.1:5178'}/projects`);
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
       await page.screenshot({path:path.join(output,`${width}-initial.png`)});
