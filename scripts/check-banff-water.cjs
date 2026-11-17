@@ -14,6 +14,10 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       await page.goto(base+'/about');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
       await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
+      if(await page.locator('#postcard').isVisible()){
+        await page.locator('#postcard').evaluate(async card=>{await Promise.all(card.getAnimations().map(a=>a.finished));});
+        await page.locator('#put-away').click();
+      }
       assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v7.webp');
       assert.equal(await page.evaluate(()=>window.exportSceneAssets().metadata.state.foliage.length),4,'Four painted shoreline conifers');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
