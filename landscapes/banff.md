@@ -20,7 +20,7 @@ Keep clear rock strata, conifer groups, red/orange canoe accents, and horizontal
 
 ## Live elements
 
-1. Continuous displacement of actual painted lake pigment, with subpixel vertical changes and modest lateral drift. An inset color mask confines movement to verified turquoise water and protects the shore, people/canoes, dock, and mountain terrain.
+1. Continuous displacement of actual painted lake pigment, with subpixel vertical changes and modest lateral drift. A lake-silhouette mask includes turquoise water plus pale and dark reflections, while excluding the shore, people/posts, canoes, dock, and mountain terrain. Motion retains a visible minimum strength at the distant shore.
 2. The existing water brushstrokes gently stretch and contract in a coherent pulse, increasing toward the viewer. No extra traveling lines or synthetic crests are drawn.
 3. Five actual-painted near-conifer patches, source-color masked and edge-feathered. Branch-tip sway increases away from each fixed lower attachment; trunks remain in the still painting.
 

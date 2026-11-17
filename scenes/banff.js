@@ -6,22 +6,24 @@ function layer(width, height) {
   return canvas;
 }
 
+// Follow the lake's silhouette so pale and dark reflections move along with the turquoise paint.
+const lakeMask = layer(W, WATER_DEPTH);
+{
+  const m = lakeMask.getContext('2d');
+  const outline = [[0,651],[330,650],[650,650],[930,649],[1100,650],[1220,665],[1400,673],[1600,676],
+    [1600,785],[1540,791],[1480,788],[1458,793],[1400,790],[1330,801],[1270,796],[1200,788],
+    [1110,795],[1030,815],[1052,846],[1014,850],[930,845],[770,859],[738,880],[640,889],
+    [320,899],[301,967],[130,974],[115,1000],[0,1000]];
+  m.beginPath(); outline.forEach(([x,y],i)=>i?m.lineTo(x,y-WATER_TOP):m.moveTo(x,y-WATER_TOP));
+  m.closePath(); m.fillStyle = '#fff'; m.fill();
+  // Keep the people and mooring posts attached to the stationary dock.
+  m.globalCompositeOperation = 'destination-out';
+  for (const [x,y,w,h] of [[1147,757,43,63],[1370,724,42,80],[1412,705,58,98]])
+    m.fillRect(x,y-WATER_TOP,w,h);
+}
+
 function prepare({painting, pixels}) {
-  const water = layer(W, WATER_DEPTH), mask = layer(W, WATER_DEPTH);
-  const m = mask.getContext('2d'), alpha = m.createImageData(W, WATER_DEPTH);
-  const isWater = (x, y) => {
-    if (x < 0 || x >= W || y < WATER_TOP || y >= H) return false;
-    const at = (y * W + x) * 4, r = pixels[at], g = pixels[at + 1], b = pixels[at + 2];
-    return g > 62 && b > 56 && g > r * 1.24 && b > r * 1.12 && b > g * .73 && g > b * .82;
-  };
-  for (let y = WATER_TOP; y < H; y++) for (let x = 0; x < W; x++) {
-    if (!isWater(x, y)) continue;
-    const inset = isWater(x - 4, y) && isWater(x + 4, y) && isWater(x, y - 3) && isWater(x, y + 3);
-    const k = ((y - WATER_TOP) * W + x) * 4;
-    alpha.data[k] = alpha.data[k + 1] = alpha.data[k + 2] = 255;
-    alpha.data[k + 3] = inset ? Math.min(245, (y - WATER_TOP) * 28) : 0;
-  }
-  m.putImageData(alpha, 0, 0);
+  const water = layer(W, WATER_DEPTH);
 
   const foliage = [];
   for (const region of [
@@ -45,22 +47,21 @@ function prepare({painting, pixels}) {
     c.putImageData(image, 0, 0);
     if (count > 120) foliage.push({...region, sprite});
   }
-  return {water, mask, foliage, painting};
+  return {water, foliage, painting};
 }
 
 function draw({ctx, t, state, wind}) {
   const c = state.water.getContext('2d'); c.clearRect(0, 0, W, WATER_DEPTH);
-  // Warp the existing paint continuously, so strokes breathe without added wave lines or band seams.
   // Smoothly swell and drift the painted strokes themselves, without added ripple lines or band seams.
   for (let y = 0; y < WATER_DEPTH; y++) {
-    const depth = y / WATER_DEPTH, phase = t * 1.25 - y * .028;
+    const depth = .35 + .65 * y / WATER_DEPTH, phase = t * 1.25 - y * .028;
     const pulse = .65 + Math.sin(phase) * .35;
     const stretch = 1 + Math.sin(phase) * depth * .012;
     const sx = Math.sin(t * .85 + y * .018) * depth * 6 * pulse;
     const sy = clamp(WATER_TOP + y + Math.sin(phase) * depth * 1.8, WATER_TOP, H - 1);
     c.drawImage(state.painting, 0, sy, W, 1, sx - W * (stretch - 1) * .5, y, W * stretch, 1);
   }
-  c.globalCompositeOperation = 'destination-in'; c.drawImage(state.mask, 0, 0);
+  c.globalCompositeOperation = 'destination-in'; c.drawImage(lakeMask, 0, 0);
   c.globalCompositeOperation = 'source-over'; ctx.save(); ctx.globalAlpha = .9;
   ctx.drawImage(state.water, 0, WATER_TOP); ctx.restore();
 
