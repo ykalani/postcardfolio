@@ -1,9 +1,9 @@
 import {startScene} from './scene-painter.js';
 const W = 1600, H = 1000, WATER_TOP = 470, WATER_DEPTH = H - WATER_TOP;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
-const snow = Array.from({length:54}, (_,i) => ({
+const snow = Array.from({length:360}, (_,i) => ({
   x:(i * 593.7 + 41) % W, y:(i * 317.3 + 29) % H,
-  size:.7 + (i * .37 % 1) * 1.1, speed:8 + (i * 7.3 % 9), phase:i * 2.4
+  size:1.2 + (i * .37 % 1) * 2.2, speed:14 + (i * 7.3 % 18), phase:i * 2.4
 }));
 function layer(width, height) {
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
@@ -73,12 +73,12 @@ function draw({ctx, t, state, wind}) {
     ctx.drawImage(plant.sprite, -plant.w * .5, -plant.h); ctx.restore();
   }
 
-  // Sparse broken dabs of pale pigment drift behind the foreground cutouts.
+  // Broken dabs of pale pigment drift behind the foreground cutouts.
   ctx.save(); ctx.fillStyle = '#edf1e9';
   for (const flake of snow) {
     const x = ((flake.x + t * 2.5 + Math.sin(t * .3 + flake.phase) * 12) % (W + 40)) - 20;
     const y = ((flake.y + t * flake.speed) % (H + 40)) - 20, s = flake.size;
-    ctx.globalAlpha = .22 + .12 * Math.sin(flake.phase);
+    ctx.globalAlpha = .4 + .22 * Math.sin(flake.phase);
     ctx.beginPath(); ctx.moveTo(x - s, y - s * .3); ctx.lineTo(x + s * .45, y - s);
     ctx.lineTo(x + s * .8, y + s * .8); ctx.lineTo(x - s * .4, y + s * 1.6);
     ctx.closePath(); ctx.fill();

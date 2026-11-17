@@ -53,11 +53,11 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
           })};
         });
         assert.equal(report.strokes,0,'No added wave lines');
-        assert.equal(report.snowDabs,54,'Sparse painted snowfall');
-        assert.ok(report.maxSnowAlpha<=.35,'Snow remains translucent');
+        assert.equal(report.snowDabs,360,'Dense painted snowfall');
+        assert.ok(report.maxSnowAlpha>.6&&report.maxSnowAlpha<=.63,'Snow is visible and translucent');
         for(const region of report.regions) {
           if(region.moving)assert.ok(region.coverage>.8,`${region.name}: whole water surface moves (${region.coverage})`);
-          else assert.ok(region.coverage<.005,`${region.name}: stays fixed apart from sparse snowfall`);
+          else assert.ok(region.coverage<.04,`${region.name}: stays fixed beneath snowfall`);
         }
         console.log(JSON.stringify(report));
       }

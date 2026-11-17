@@ -41,3 +41,5 @@ Source SHA-256: wooden post `25EA9859F791422AE17769F40111A78DBB622E22A5C9E8C9228
 Current cutouts: post-natural-v2.webp and pika-natural-v2.webp were refined with ImageGen from the supplied source photographs and earlier painted cutouts on November 17, 2026. They retain visible brushwork with clearer wood planes, fur, facial features and paws, on transparent backgrounds.
 
 The brush-v3 cutouts were further edited with ImageGen on November 17, 2026 for broader visible brushstrokes. The post has a flat sawn top, chipped corners, painted cracks, faded scuffs and a knot. Banff also has sparse translucent snow dabs that drift over the painting; reduced-motion visitors see a still scene.
+
+The source-brush-v4 cutouts layer deterministic coded flat-brush marks sampled from the original supplied pika and wooden-post photographs over the ImageGen brush-v3 cutouts. The generated silhouettes, flat post top and wear remain underneath; the pika eye, nose and paws remain readable. Regenerate with scripts/bake-banff-source-strokes.cjs. This edition increases snowfall to 360 larger, brighter painted dabs; reduced motion still freezes it.
