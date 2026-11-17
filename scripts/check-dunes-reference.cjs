@@ -8,23 +8,19 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     const page=await browser.newPage({viewport:{width:1600,height:1000}});
     await page.goto(`${process.env.SCENE_URL||'http://127.0.0.1:5178'}/projects`);
     await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
-    assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/great-sand-dunes/painting-v9.webp');
+    assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/great-sand-dunes/painting-v10.webp');
     const report=await page.evaluate(async()=>{
       const {metadata,atlas}=window.exportSceneAssets(),image=new Image();image.src=atlas;await image.decode();
-      const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const g=c.getContext('2d');g.drawImage(image,0,0);let mountainPixels=0;
+      const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const g=c.getContext('2d');g.drawImage(image,0,0);let cloudHighlights=0;
       for(const cloud of metadata.state.clouds){
         const [sx,sy]=cloud.sprite.$sprite;
-        // Mountain faces near the left snowy ridge must not enter sky cutouts.
-        for(const [x,y,w,h] of [[380,210,80,20],[490,200,30,25]]){
-          if(x<cloud.x||x+w>cloud.x+cloud.w||y<cloud.y||y+h>cloud.y+cloud.h)continue;
-          const data=g.getImageData(sx+x-cloud.x,sy+y-cloud.y,w,h).data;
-          for(let i=3;i<data.length;i+=4)if(data[i])mountainPixels++;
-        }
+        const data=g.getImageData(sx,sy,cloud.w,cloud.h).data;
+        for(let i=0;i<data.length;i+=4)if(data[i]>220&&data[i+1]>210&&data[i+3]>170)cloudHighlights++;
       }
-      return{layers:Object.keys(metadata.state).sort(),mountainPixels,clouds:metadata.state.clouds.length,sand:metadata.state.sand.length,grass:metadata.state.grass.length,brush:metadata.state.brush.length};
+      return{layers:Object.keys(metadata.state).sort(),cloudHighlights,clouds:metadata.state.clouds.length,sand:metadata.state.sand.length,grass:metadata.state.grass.length,brush:metadata.state.brush.length};
     });
     assert.deepEqual(report.layers,['brush','clouds','grass','sand'],'Scene has windblown brush, sky clouds, grass and dune crests');
-    assert.equal(report.mountainPixels,0);assert.equal(report.clouds,3);assert.equal(report.sand,6);assert.ok(report.grass>0);assert.equal(report.brush,5);
+    assert.ok(report.cloudHighlights>10000,'Yosemite cloud banks have substantial opaque white brushwork');assert.equal(report.clouds,3);assert.equal(report.sand,6);assert.ok(report.grass>0);assert.equal(report.brush,7);
     const contrast=await page.evaluate(async()=>{
       async function sample(version){
         const image=new Image();image.src=`assets/great-sand-dunes/painting-v${version}.webp`;await image.decode();
@@ -36,12 +32,12 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
           return[name,{rgb,spread:Math.sqrt(light.reduce((sum,v)=>sum+(v-mean)**2,0)/light.length)}];
         }));
       }
-      return{before:await sample(8),after:await sample(9)};
+      return{before:await sample(8),after:await sample(10)};
     });
     const distance=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
     assert.ok(contrast.after.hills.rgb[1]-contrast.after.hills.rgb[0]>contrast.before.hills.rgb[1]-contrast.before.hills.rgb[0]+10,'Foothills have distinct green pigment');
     for(const region of ['mountain','sand'])assert.ok(distance(contrast.after.hills.rgb,contrast.after[region].rgb)>distance(contrast.before.hills.rgb,contrast.before[region].rgb)*1.1,`${region} separates from the green hills`);
-    assert.ok(contrast.after.sky.spread>contrast.before.sky.spread*1.1,'Cloud and sky light values have stronger contrast');
+    assert.ok(contrast.after.sky.rgb[2]-contrast.after.sky.rgb[0]>contrast.before.sky.rgb[2]-contrast.before.sky.rgb[0]+60,'Sky has a strong blue field behind the white clouds');
     await page.evaluate(()=>{window.pauseScene(true);window.seekScene(24);});
     await page.screenshot({path:path.join(output,'reference-desktop.png')});
     await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));
