@@ -35,22 +35,6 @@ function gasSprite(random, warm = false) {
   return sprite;
 }
 
-function smokeBank(random) {
-  const sprite=layer(600,220),c=sprite.getContext('2d');
-  c.lineCap='butt';
-  for(let i=0;i<6500;i++){
-    const x=random()*600,y=random()*220;
-    const center=110+Math.sin(x*.013)*28+Math.sin(x*.031)*9;
-    const envelope=Math.max(0,1-Math.abs(y-center)/75)*Math.sin(x/600*Math.PI);
-    if(!envelope)continue;
-    const tone=76+random()*30;
-    c.strokeStyle=`rgba(${tone|0},${(tone+3)|0},${(tone+14)|0},${envelope*(.055+random()*.12)})`;
-    c.lineWidth=1+random()*3.5;c.beginPath();c.moveTo(x,y);
-    c.quadraticCurveTo(x+8,y-3,x+14+random()*17,y-2+random()*4);c.stroke();
-  }
-  return sprite;
-}
-
 function prepare({pixels, painting, random, W, H}) {
   const heat=layer(W,H), heatContext=heat.getContext('2d');
   const heatPixels=heatContext.createImageData(W,H);
@@ -74,13 +58,6 @@ function prepare({pixels, painting, random, W, H}) {
       red:Math.min(255,r+27),green:Math.min(240,g+35),blue:Math.max(20,b)});
   }
   heatContext.putImageData(heatPixels,0,0);
-  // These origins follow gas visible along the photographed crater margins.
-  const rimVents=[
-    {x:162,y:590,size:108,rise:100,strength:.13,phase:.2},
-    {x:639,y:371,size:85,rise:105,strength:.12,phase:.8},
-    {x:1117,y:482,size:84,rise:100,strength:.12,phase:.45},
-    {x:1402,y:562,size:100,rise:130,strength:.12,phase:.68}
-  ];
   const shimmer=layer(112,160), shimmerContext=shimmer.getContext('2d');
   shimmerContext.drawImage(painting,VENT.x-56,VENT.y-190,112,160,0,0,112,160);
   const shimmerData=shimmerContext.getImageData(0,0,112,160);
@@ -89,61 +66,56 @@ function prepare({pixels, painting, random, W, H}) {
     shimmerData.data[(y*112+x)*4+3]*=edge*.28;
   }
   shimmerContext.putImageData(shimmerData,0,0);
-  return {ceilingSmoke:smokeBank(random),heat,fractures,rimVents,gas:gasSprite(random),warmGas:gasSprite(random,true),shimmer};
+  return {heat,fractures,gas:gasSprite(random),warmGas:gasSprite(random,true),shimmer};
 }
 
 function draw({ctx,t,state,wind}) {
-  // Overlapping painted banks drift through the existing gray ceiling and fade at each cycle end.
   ctx.save();
-  for(let i=0;i<25;i++){
-    const age=(t/28+i/25)%1,fade=Math.sin(age*Math.PI)**2;
-    const width=760+age*390,height=200+age*85;
-    ctx.globalAlpha=fade*.58;
-    ctx.drawImage(state.ceilingSmoke,1420-age*2200,-90+Math.sin(age*6.28)*28,width,height);
-  }
-  ctx.restore();
-
-  ctx.save(); ctx.globalCompositeOperation='screen';
-  // Moving incandescent strokes stay inside the source lava mask, leaving cold crust fixed.
-  ctx.globalAlpha=.24+.12*Math.sin(t*1.4); ctx.drawImage(state.heat,0,0);
+  // Molten pigment rolls in uneven currents; the heat mask anchors the cold crust.
   const flow=state.lavaFlow??=layer(1600,1000),lava=flow.getContext('2d');
   lava.clearRect(0,0,1600,1000);lava.lineCap='round';
-  for (const crack of state.fractures) {
-    const age=(t*.38+crack.phase)%1,pulse=Math.sin(age*Math.PI)**2;
-    const travel=(age-.5)*18;
+  for(let y=370;y<915;y+=8){
+    const drift=Math.sin(y*.035-t*1.8)*9+Math.sin(y*.08+t*.9)*4;
+    lava.drawImage(state.heat,190,y,1090,8,190+drift,y+Math.sin(t*1.5+y*.04)*3,1090,8);
+  }
+  for (let i=0;i<state.fractures.length;i+=5) {
+    const crack=state.fractures[i];
+    const age=(t*.55+crack.phase)%1,pulse=Math.sin(age*Math.PI)**2;
+    const surge=(Math.sin(crack.x*.025+crack.y*.017-t*2.4)+1)*.5;
+    const travel=(age-.5)*34;
     const x=crack.x+crack.dx*travel,y=crack.y+crack.dy*travel;
-    lava.strokeStyle=`rgba(${crack.red},${crack.green},${crack.blue},${pulse*.9})`;
-    lava.lineWidth=.8+pulse*1.2;
+    const length=crack.length*(4+surge*4),curl=Math.sin(t*2+crack.phase)*7;
+    lava.strokeStyle=`rgba(238,${55+surge*65},12,${pulse*.95})`;
+    lava.lineWidth=5+surge*5;
     lava.beginPath();lava.moveTo(x,y);
-    lava.lineTo(x+crack.dx*crack.length*2,y+crack.dy*crack.length*2);lava.stroke();
+    lava.quadraticCurveTo(x+crack.dx*length*.5-crack.dy*curl,y+crack.dy*length*.5+crack.dx*curl,x+crack.dx*length,y+crack.dy*length);lava.stroke();
+    lava.strokeStyle=`rgba(255,${150+surge*90},${35+surge*90},${pulse*(.4+surge*.6)})`;
+    lava.lineWidth=1.5+surge*2;lava.stroke();
   }
   lava.globalCompositeOperation='destination-in';lava.drawImage(state.heat,0,0);
   lava.globalCompositeOperation='source-over';
   ctx.globalAlpha=1;ctx.drawImage(flow,0,0);
+  ctx.globalCompositeOperation='screen';
+  ctx.globalAlpha=.32+.2*Math.sin(t*1.7)+.08*Math.sin(t*3.1);ctx.drawImage(state.heat,0,0);
   ctx.restore();
   // A narrow, feathered strip of painted crust bends above the fixed hot vent.
   ctx.save();
   for (let y=0;y<160;y+=10) {
-    const displacement=Math.sin(t*2.2+y*.075)*(.25+y/160*.65);
+    const displacement=Math.sin(t*2.8+y*.075)*(.5+y/160*1.4);
     ctx.drawImage(state.shimmer,0,y,112,10,VENT.x-56+displacement,VENT.y-190+y,112,10);
   }
   ctx.restore();
   // A continuous stem fixes the source; overlapping expanding wisps carry it upward and left.
-  ctx.save();ctx.globalAlpha=.3;
-  ctx.drawImage(state.warmGas,VENT.x-56,VENT.y-140,100,145);
+  ctx.save();ctx.globalAlpha=.5;
+  ctx.drawImage(state.warmGas,VENT.x-105,VENT.y-165,200,175);
   for(let i=0;i<30;i++){
     const age=(t/11+i/30)%1,fade=Math.sin(age*Math.PI)**2;
-    const w=74+age*146,h=120+age*140;
-    const x=VENT.x-8-age*138+wind*age*22;
+    const w=160+age*430,h=130+age*170;
+    const billow=Math.sin(t*.85+age*8+i*2.4)*age*52;
+    const x=VENT.x-8-age*138+wind*age*35+billow;
     const y=VENT.y-age*420;
     ctx.globalAlpha=fade*.66;
     ctx.drawImage(age<.32?state.warmGas:state.gas,x-w*.5,y-h*.96,w,h);
-  }
-  for(const vent of state.rimVents)for(let i=0;i<15;i++){
-    const age=(t*.045+vent.phase+i/15)%1;
-    const w=vent.size*(.35+age*.65),h=w*1.4;
-    ctx.globalAlpha=Math.sin(age*Math.PI)*vent.strength;
-    ctx.drawImage(state.gas,vent.x-age*22+wind*age*5-w*.5,vent.y-age*vent.rise-h*.92,w,h);
   }
   ctx.restore();
 }
