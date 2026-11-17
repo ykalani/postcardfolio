@@ -40,7 +40,7 @@ async function refineTower({ctx,pixels,sourcePixels,random,W,H}){
   for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)samples.set(pixels.subarray(((y+yy)*W+x+xx)*4,((y+yy)*W+x+xx)*4+4),(yy*w+xx)*4);
   const detail=document.createElement('canvas');detail.width=w;detail.height=h;
   const {paintBrushwork}=await import('./brush-painting.js');
-  await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.23,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
+  await paintBrushwork({ctx:detail.getContext('2d'),pixels:samples,width:w,height:h,random,scale:.46,pigmentStep:12,angle:(xx,yy)=>yy+y<420?1.55:Math.abs(Math.sin((yy+y)*.17))>.75?.02:1.55,skip:(xx,yy)=>!alpha.data[((y+yy)*W+x+xx)*4+3]});
   const d=detail.getContext('2d');d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);
   ctx.drawImage(detail,x,y);return mask;
 }
@@ -101,28 +101,32 @@ function draw({ctx, t, state, wind}) {
     ctx.quadraticCurveTo(0,petal.size, -petal.size,0);ctx.fill();
     ctx.strokeStyle='rgba(255,226,231,.65)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-petal.size*.6,0);ctx.lineTo(petal.size*.5,-petal.size*.3);ctx.stroke();ctx.restore();
   }
-  // Broken pigment dabs follow rolling eddies instead of outlining a wind icon.
+  // Pigment travels through the current; each dab turns with its local flow.
   for(const [i,origin] of [[370,530],[1080,430],[730,570]].entries()){
-    const age=(t/22+i/3)%1,fade=Math.sin(age*Math.PI)**2;
-    ctx.save();ctx.translate(origin[0]+age*65,origin[1]);
-    for(let lane=0;lane<3;lane++)for(let j=0;j<48;j++){
-      const u=j/47,angle=u*Math.PI*2.25-t*.12+i;
-      const x=-120+u*235+Math.sin(angle)*42;
-      const y=Math.cos(angle)*34+lane*8+Math.sin(u*Math.PI)*lane*3;
-      ctx.globalAlpha=fade*Math.sin(u*Math.PI)*(.5+lane*.08);
+    const travel=t*46+Math.sin(t*.65+i)*9+Math.sin(t*1.3+i)*3;
+    ctx.save();ctx.translate(origin[0],origin[1]);
+    for(let lane=0;lane<3;lane++)for(let j=0;j<36;j++){
+      const u=(j/36+Math.sin(j*2.4+lane)*.004+travel/420+lane*.013+1)%1;
+      const angle=u*Math.PI*2-t*.28+i;
+      const ripple=u*Math.PI*3+i+lane*.12;
+      const x=-200+u*420;
+      const y=Math.sin(angle)*30+Math.sin(ripple)*12+(lane-1)*8;
+      const slope=(Math.cos(angle)*30*Math.PI*2+Math.cos(ripple)*12*Math.PI*3)/420;
+      ctx.globalAlpha=Math.sin(u*Math.PI)**.8*(.42+lane*.08)*(.85+Math.sin(t*.65+i)*.15);
       ctx.fillStyle=['#8eacb9','#eee1b8','#c8b578'][(Math.floor(j/4)+lane)%3];
       const length=8+(j%3)*2;
-      // Square-ended, stepped marks keep the breeze in the painting's pixel texture.
-      ctx.fillRect(Math.round(x/2)*2,Math.round(y/2)*2,length,4);
-      ctx.fillRect(Math.round(x/2)*2+2,Math.round(y/2)*2-2,length-4,2);
+      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan(slope));
+      ctx.fillRect(-length/2,-2,length,4);
+      ctx.fillRect(-length/2+2,-4,length-4,2);
+      ctx.restore();
     }
     ctx.restore();
   }
 }
 
 startScene({
-  liveVersion:5,
-  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v5.webp',
+  liveVersion:6,
+  id:'beaumont', guide:'assets/beaumont/guide.webp', cache:'assets/beaumont/painting-v6.webp',
   background:'#7b8d72', focusX:.445, focusY:.47, initialScroll:.25,
   grade:(r, g, b, x, y) => {
     const light = r * .3 + g * .55 + b * .15;

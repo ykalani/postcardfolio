@@ -39,4 +39,6 @@ Current runtime caches are the half-size-brush `painting-v4.webp`, `fallback-v4.
 
 ## Local tower detail edition
 
-The current v5 edition uses an authoring-only masked fine-bristle pass on the tower: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; `scripts/check-tower-people.cjs` verifies zero changed pixels outside it before packing. Runtime visitors load prebuilt v5 assets.
+The current v6 edition doubles the tower's v5 brush size from .23 to .46: masonry, clock, louvers, roof edges, and relief. Flowering branches, pines, sky, and the rest of the painting retain their broad marks. The mask excludes source foliage and sky; verify zero changed pixels outside it before packing. Runtime visitors load prebuilt v6 assets.
+
+The breeze keeps its blue, cream, and muted-gold pixel palette. Individual dabs travel left to right through gently bending currents, rotate with the local tangent, and fade only at the path ends. Integrated gusts vary their forward speed without reversing it. `scripts/check-beaumont-wind.cjs` checks forward travel, vertical flow, turning, fixed architecture, and short desktop/mobile motion sequences.
