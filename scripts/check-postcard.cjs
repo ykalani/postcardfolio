@@ -52,6 +52,47 @@ fs.mkdirSync(output, {recursive: true});
       assert.deepEqual(errors, []);
       await page.close();
     }
+    const locations = {
+      experiences: 'Hawaiʻi Volcanoes, Hawaiʻi',
+      projects: 'Great Sand Dunes, Colorado',
+      writing: 'Pictured Rocks, Michigan',
+      'tech-blog': 'Beaumont Tower, Michigan',
+      about: 'Lake Louise, Alberta'
+    };
+    for (const width of [1600, 390]) for (const [route, location] of Object.entries(locations)) {
+      const page = await browser.newPage({viewport: {width, height: width === 390 ? 844 : 1000}});
+      const errors = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await page.goto(`${base}/${route}`);
+      await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true');
+      await page.waitForFunction(() => document.documentElement.dataset.cloudPhase === 'idle');
+      const card = page.locator('.postcard');
+      const folded = page.getByRole('button', {name: 'Open postcard from Yash'});
+      assert.equal(await card.isVisible(), false, `${route}: starts collapsed`);
+      assert.equal(await folded.isVisible(), true);
+      assert.equal(await folded.locator('.postcard-return-location').textContent(), location);
+      assert.equal(await folded.locator('img').getAttribute('src'), await page.locator('link[as="image"]').getAttribute('href'));
+      const bounds = await folded.boundingBox();
+      assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width, `${route}: slip fits`);
+      await page.screenshot({path: path.join(output, `${route}-${width}-slip.png`)});
+      await folded.focus();
+      await folded.press('Enter');
+      await card.evaluate(async card => {await Promise.all(card.getAnimations().map(animation => animation.finished));});
+      assert.equal(await card.isVisible(), true);
+      assert.equal(await card.locator('.postcard-location').textContent(), location);
+      assert.ok(await card.evaluate(card => {
+        const name = card.querySelector('h2'), label = card.querySelector('.postcard-location');
+        return label.offsetTop >= name.offsetTop + name.offsetHeight;
+      }), `${route}: location sits beneath name`);
+      await page.screenshot({path: path.join(output, `${route}-${width}-open.png`)});
+      await page.getByRole('button', {name: 'Close postcard', exact: true}).click();
+      assert.equal(await folded.evaluate(button => button === document.activeElement), true);
+      await page.locator('.content-slip').click();
+      assert.equal(await page.locator('.paper-sheet').isVisible(), true, `${route}: content remains accessible`);
+      await page.keyboard.press('Escape');
+      assert.deepEqual(errors, []);
+      await page.close();
+    }
     const page = await browser.newPage();
     await page.goto(base + '/projects');
     await page.waitForFunction(() => document.documentElement.dataset.sceneReady === 'true');
@@ -63,6 +104,6 @@ fs.mkdirSync(output, {recursive: true});
     await page.reload();
     await page.waitForFunction(() => document.documentElement.dataset.postcardReady === 'true');
     assert.equal(await page.locator('.postcard').isVisible(), true, 'Cloud failure keeps card available');
-    console.log(JSON.stringify({passed: true, output, checks: 'cloud ordering, flight, centering, mobile fit, hide/show, navigation home, cloud fallback'}));
+    console.log(JSON.stringify({passed: true, output, checks: 'cloud ordering, flight, centering, mobile fit, hide/show, section slips and locations, keyboard focus, content panels, navigation home, cloud fallback'}));
   } finally {await browser.close();}
 })().catch(error => {console.error(error);process.exitCode = 1;});

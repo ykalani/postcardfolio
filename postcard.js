@@ -14,7 +14,7 @@
   const ready = () => {
     if (root.dataset.sceneReady !== 'true' || root.classList.contains('cloud-arrival') || root.dataset.cloudPhase === 'revealing') return;
     root.dataset.postcardReady = 'true';
-    land();
+    if (!card.hidden) land();
     observer.disconnect();
   };
   const observer = new MutationObserver(ready);
