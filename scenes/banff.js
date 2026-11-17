@@ -1,7 +1,7 @@
 import {startScene} from './scene-painter.js';
 const W = 1600, H = 1000, WATER_TOP = 470, WATER_DEPTH = H - WATER_TOP;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
-const snow = Array.from({length:360}, (_,i) => ({
+const snow = Array.from({length:720}, (_,i) => ({
   x:(i * 593.7 + 41) % W, y:(i * 317.3 + 29) % H,
   size:1.2 + (i * .37 % 1) * 2.2, speed:14 + (i * 7.3 % 18), phase:i * 2.4
 }));
