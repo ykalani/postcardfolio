@@ -3,7 +3,7 @@ import {readFile, access, readdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 
 const pages = ['index.html','projects.html','experiences.html','writing.html','tech-blog.html','about.html'];
-const scenes = [['great-sand-dunes','guide.webp',10],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',5],['sleeping-bear','guide.webp',12],['beaumont','guide.webp',7]];
+const scenes = [['great-sand-dunes','guide.webp',10],['hawaii-volcanoes','guide.jpg',5],['banff','guide.webp',6],['sleeping-bear','guide.webp',12],['beaumont','guide.webp',7]];
 const scripts = ['scene.js','cloud-transition.js','postcard.js','server.mjs',
   ...(await readdir(new URL('scenes/',import.meta.url))).filter(name=>name.endsWith('.js')).map(name=>'scenes/'+name),
   ...(await readdir(new URL('scripts/',import.meta.url))).filter(name=>name.endsWith('.cjs')).map(name=>'scripts/'+name)];
@@ -14,6 +14,7 @@ for (const script of scripts) {
 for (const [scene,guide,version] of scenes) for (const file of [guide,`painting${version===1?'':'-v'+version}.webp`,`fallback${version===1?'':'-v'+version}.webp`,`live-v${version}.json`,`live-v${version}.webp`,'CREDITS.md']) {
   await access(new URL(`assets/${scene}/${file}`,import.meta.url));
 }
+await access(new URL('assets/banff/lake-lousie.avif',import.meta.url));
 await access(new URL('assets/yosemite-guide.jpg',import.meta.url));
 await access(new URL('assets/yosemite-pine-bough.png',import.meta.url));
 await access(new URL('assets/yosemite-terrain-brush3.webp',import.meta.url));

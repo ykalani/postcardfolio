@@ -17,3 +17,19 @@ Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `l
 Current half-size brush edition: `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` use marks half the previous editionâ€™s length and breadth. Source provenance remains unchanged.
 
 Current motion/detail edition uses `painting-v5.webp`, `fallback-v5.webp`, and `live-v5.*`. Local painted refinements and motion cutouts retain the same source provenance; no new photographic sources are introduced.
+
+
+## Current wide reference, v6
+
+- Supplied by the user on November 16, 2026 as `lake-lousie.avif`, preserved byte-for-byte (3000 × 2021).
+- SHA-256: `9CBA45C3648A73D2CD932322904324ECB77E964173F644D3EE5160A994C8B0B2`.
+- The user describes the new image as Lake Louise. Exact geographic identification, photographer, capture date and public reuse license were not supplied or independently verified; none is invented here.
+- Authoring uses this new AVIF directly with a proportional centered 1600 × 1000 crop. The original portrait WebP and its provenance above remain preserved.
+- `painting-v6.webp`, `fallback-v6.webp` and `live-v6.*` are source-sampled brush paintings and painted motion cutouts. The AVIF is excluded from production. Lake reflections move inside the new shoreline silhouette, four actual painted conifer patches sway, and terrain, dock and canoes stay fixed.
+
+
+## Foreground post and pika
+
+The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The actual photo subjects are polygon-masked and repainted with the shared flat-brush renderer as `post-painted.webp` and `pika-painted.webp`. Only the top cap and short neck of the post are used; signage, background and the pika's original rock are excluded. The source photographs are preserved and excluded from production. No generated-image artwork is used in the deployed props. Photographer, capture date and public reuse license were not supplied.
+
+Source SHA-256: wooden post `25EA9859F791422AE17769F40111A78DBB622E22A5C9E8C92282E140A0091306`; pika `2B50A125F9828A1CDF13BF1D9291CEA77D26E45F62A2DD39B093130EB32E0E40`.

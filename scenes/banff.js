@@ -1,5 +1,5 @@
 import {startScene} from './scene-painter.js';
-const W = 1600, H = 1000, WATER_TOP = 625, WATER_DEPTH = H - WATER_TOP;
+const W = 1600, H = 1000, WATER_TOP = 470, WATER_DEPTH = H - WATER_TOP;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 function layer(width, height) {
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
@@ -10,16 +10,14 @@ function layer(width, height) {
 const lakeMask = layer(W, WATER_DEPTH);
 {
   const m = lakeMask.getContext('2d');
-  const outline = [[0,651],[330,650],[650,650],[930,649],[1100,650],[1220,665],[1400,673],[1600,676],
-    [1600,785],[1540,791],[1480,788],[1458,793],[1400,790],[1330,801],[1270,796],[1200,788],
-    [1110,795],[1030,815],[1052,846],[1014,850],[930,845],[770,859],[738,880],[640,889],
-    [320,899],[301,967],[130,974],[115,1000],[0,1000]];
+  const outline = [[0,534],[90,530],[170,520],[270,513],[370,500],[470,491],
+    [580,486],[652,488],[665,510],[730,524],[850,532],[960,545],[1060,556],
+    [1140,573],[1165,575],[1165,590],[1210,593],[1265,593],[1269,620],
+    [1320,633],[1360,648],[1380,670],[1410,682],[1430,715],[1470,731],
+    [1490,754],[1530,766],[1560,788],[1600,800],[1600,1000],[0,1000]];
   m.beginPath(); outline.forEach(([x,y],i)=>i?m.lineTo(x,y-WATER_TOP):m.moveTo(x,y-WATER_TOP));
   m.closePath(); m.fillStyle = '#fff'; m.fill();
-  // Keep the people and mooring posts attached to the stationary dock.
-  m.globalCompositeOperation = 'destination-out';
-  for (const [x,y,w,h] of [[1147,757,43,63],[1370,724,42,80],[1412,705,58,98]])
-    m.fillRect(x,y-WATER_TOP,w,h);
+
 }
 
 function prepare({painting, pixels}) {
@@ -27,11 +25,10 @@ function prepare({painting, pixels}) {
 
   const foliage = [];
   for (const region of [
-    {x: 1180, y: 270, w: 145, h: 190, phase: .3},
-    {x: 1290, y: 390, w: 164, h: 212, phase: 1.7},
-    {x: 1442, y: 250, w: 158, h: 236, phase: 3.8},
-    {x: 1440, y: 486, w: 160, h: 177, phase: 5.2},
-    {x: 1167, y: 497, w: 120, h: 155, phase: 2.9}
+    {x: 1440, y: 410, w: 110, h: 220, phase: .3},
+    {x: 1360, y: 490, w: 105, h: 220, phase: 1.7},
+    {x: 1270, y: 520, w: 95, h: 155, phase: 3.8},
+    {x: 1485, y: 550, w: 115, h: 232, phase: 5.2}
   ]) {
     const sprite = layer(region.w, region.h), c = sprite.getContext('2d');
     c.drawImage(painting, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
@@ -74,19 +71,18 @@ function draw({ctx, t, state, wind}) {
 }
 
 startScene({
-  liveVersion:5,
-  id: 'banff', guide: 'assets/banff/guide.webp', cache: 'assets/banff/painting-v5.webp',
-  sourceY: .78, background: '#557e83', focusX: .66, focusY: .63, initialScroll: .82,
+  liveVersion:6,
+  id: 'banff', guide: 'assets/banff/lake-lousie.avif', cache: 'assets/banff/painting-v6.webp',
+  sourceY: .5, background: '#557e83', focusX: .55, focusY: .5, initialScroll: .5,
   grade(r, g, b, x, y) {
     const light = r * .3 + g * .55 + b * .15;
-    // Keep the supplied turquoise water and warm red canoes; separate shadowed rock without a gray wash.
-    const near = clamp((x - 1100) / 290, 0, 1) * clamp((y - 220) / 180, 0, 1);
+    // Keep warm summit light and cool lake reflections, with deeper near-forest pigment.
+    const near = clamp((x - 1160) / 360, 0, 1) * clamp((y - 340) / 250, 0, 1);
     const pine = near * clamp((g - r * .93) / 28, 0, 1) * clamp((g - b * 1.04) / 28, 0, 1);
-    const distant = clamp((620 - y) / 260, 0, 1) * (1 - near);
-    return [r * (.87 + pine * .18 - distant * .08) + light * .07 + 12 - pine * 17 + distant * 10,
-      g * (.88 + pine * .19 - distant * .08) + light * .065 + 12 - pine * 10 + distant * 14,
-      b * (.85 + pine * .08 - distant * .08) + light * .08 + 14 - pine * 24 + distant * 24];
+    return [r * (.9 - pine * .09) + light * .035 + 5 - pine * 7,
+      g * (.9 + pine * .04) + light * .035 + 6,
+      b * (.9 - pine * .08) + light * .035 + 8 - pine * 6];
   },
-  angle(x, y) {return y > WATER_TOP ? -.035 : y < 610 ? 1.46 + Math.sin(x * .009) * .12 : -.9;},
+  angle(x, y) {return y > WATER_TOP && x < 1250 ? -.035 : y < 160 ? .04 : 1.46 + Math.sin(x * .009) * .12;},
   prepare, draw
 });

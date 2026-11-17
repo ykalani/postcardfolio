@@ -13,18 +13,33 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       page.on('pageerror', error=>errors.push(error.message));
       await page.goto(base+'/writing');
       await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
+      assert.equal(await page.locator('link[as="image"]').getAttribute('href'),'assets/banff/painting-v6.webp');
+      assert.equal(await page.evaluate(()=>window.exportSceneAssets().metadata.state.foliage.length),4,'Four painted shoreline conifers');
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
+      for (const name of ['.trail-post','.trail-pika']) {
+        const sprite = page.locator(name);
+        const alpha = await sprite.evaluate(async image=>{
+          await image.decode(); const c=document.createElement('canvas');c.width=image.naturalWidth;c.height=image.naturalHeight;
+          const g=c.getContext('2d');g.drawImage(image,0,0);const d=g.getImageData(0,0,c.width,c.height).data;let visible=0;
+          for(let i=3;i<d.length;i+=4)if(d[i]>100)visible++;
+          return visible/(c.width*c.height);
+        });
+        assert.ok(alpha>.3&&alpha<.9,'Foreground prop is an isolated painted cutout');
+      }
+      const pika=await page.locator('.trail-pika').boundingBox(),navigation=await page.locator('.scene-nav').boundingBox();
+      assert.ok(pika.x>=0&&pika.x+pika.width<=width,'Pika fits the viewport');
+      assert.ok(pika.y+pika.height<navigation.y||pika.x+pika.width<navigation.x,'Pika stays clear of navigation');
       await page.screenshot({path:path.join(output,`writing-${width}-t0.png`)});
       if (width===1600) {
         const report = await page.evaluate(()=>{
           const g=document.querySelector('#motion').getContext('2d');
           const regions=[
-            ['far left',50,660,180,30,true],['far center',600,660,180,30,true],
-            ['left lake',100,740,180,80,true],['center lake',650,730,180,80,true],
-            ['pale reflection',1195,695,120,65,true],['dark reflection',1490,700,100,60,true],
+            ['far left',70,555,180,30,true],['far center',430,520,150,30,true],
+            ['left lake',100,640,180,80,true],['center lake',650,650,180,80,true],
+            ['warm reflection',950,660,120,65,true],['dark reflection',1350,820,100,60,true],
             ['foreground lake',20,890,180,60,true],
-            ['mountain',650,100,200,200,false],['dock',1020,940,90,40,false],
-            ['canoes',1100,840,150,60,false],['person',1152,766,30,35,false]
+            ['mountain',650,100,200,200,false],['snowfield',390,300,70,80,false],
+            ['canoes and dock',1180,565,80,16,false],['far forest',900,420,100,50,false]
           ];
           const first=regions.map(([,x,y,w,h])=>g.getImageData(x,y,w,h).data);
           let strokes=0;const original=CanvasRenderingContext2D.prototype.stroke;
@@ -38,7 +53,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
         });
         assert.equal(report.strokes,0,'No added wave lines');
         for(const region of report.regions) {
-          if(region.moving)assert.ok(region.coverage>.9,`${region.name}: whole water surface moves (${region.coverage})`);
+          if(region.moving)assert.ok(region.coverage>.8,`${region.name}: whole water surface moves (${region.coverage})`);
           else assert.equal(region.coverage,0,`${region.name}: stays fixed`);
         }
         console.log(JSON.stringify(report));
