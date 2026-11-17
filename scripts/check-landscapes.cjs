@@ -32,7 +32,7 @@ async function pixels(page) {
       const guideRequests=[];page.on('request',request=>{if((/\/(?:yosemite-)?guide\.(?:jpg|webp)(?:[?#]|$)/).test(request.url()))guideRequests.push(request.url());});
       await page.goto(`${base}/${route}`);await ready(page,route);
       await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
-      await page.locator('.postcard').evaluate(async card=>{await Promise.all(card.getAnimations().map(a=>a.finished));});
+      if(route==='about')await page.locator('.postcard').evaluate(async card=>{await Promise.all(card.getAnimations().map(a=>a.finished));});
       assert.deepEqual(await page.locator('.scene-nav a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),['./','experiences','projects','writing','tech-blog','about'],`${route}: navigation order`);
       assert.equal(await page.locator('[aria-current="page"]').getAttribute('href'),route||'./',`${route}: active destination`);
       if(route)assert.equal(await page.locator('script[type="module"]').getAttribute('src'),`scenes/${sceneNames[route]}.js`,`${route}: assigned landscape`);

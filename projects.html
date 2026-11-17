@@ -10,8 +10,6 @@
   <link rel="preload" as="image" href="assets/great-sand-dunes/painting-v12.webp" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="paper.css">
-  <link rel="stylesheet" href="postcard.css">
-  <script src="postcard.js" defer></script>
   <script src="paper.js" defer></script>
   <link rel="stylesheet" href="cloud-transition.css">
   <script type="module" src="scenes/great-sand-dunes.js"></script>
@@ -40,17 +38,6 @@
       <!-- Add projects content here. This area scrolls beneath the collapse arrow. -->
     </div>
   </dialog>
-  <div class="postcard-stage">
-    <article class="postcard" id="postcard" aria-labelledby="postcard-name">
-      <div class="postcard-stamp"><img src="assets/pfp_stamp.webp" alt="Yash Kalani" width="65" height="79"></div>
-      <h2 id="postcard-name">Yash Kalani</h2>
-      <button type="button" class="postcard-close" id="put-away" aria-label="Close postcard" aria-controls="postcard">×</button>
-    </article>
-    <button type="button" class="postcard-return" id="show-postcard" hidden aria-label="Open postcard from Yash" aria-controls="postcard">
-      <img src="assets/pfp_stamp.webp" alt="" width="54" height="60">
-      <span class="postcard-return-address"><span class="postcard-return-name">Yash Kalani</span><span class="postcard-return-location"><span class="postcard-return-place">Great Sand Dunes, Colorado</span><span class="postcard-return-institution">Great Sand Dunes National Park</span></span></span>
-    </button>
-  </div>
   <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link>home</a><a href="experiences" data-cloud-link>experience</a><a href="projects" data-cloud-link aria-current="page">projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link>about</a></nav>
 </body>
 </html>

@@ -188,7 +188,7 @@
     arriving = sessionStorage.getItem(key) === location.pathname;
     sessionStorage.removeItem(key);
   } catch {}
-  if ((arriving || document.querySelector('.postcard')) && !reduced.matches) {
+  if ((arriving || root.classList.contains('cloud-arrival') || document.querySelector('.postcard')) && !reduced.matches) {
     clearTimeout(window.cloudFallback);
     const preparing=++generation;
     Promise.all([prepare(), new Promise(resolve => {
@@ -209,7 +209,7 @@
       if(completed){reset();document.querySelector('h1')?.focus({preventScroll:true});}
     }).catch(()=>{reset();document.querySelector('h1')?.focus({preventScroll:true});});
   } else {
-    clearTimeout(window.cloudFallback); root.classList.remove('cloud-arrival');
+    clearTimeout(window.cloudFallback); reset();
   }
   addEventListener('pageshow', event => { if (event.persisted) reset(); });
   addEventListener('pagehide', () => { generation++; busy = false; });
