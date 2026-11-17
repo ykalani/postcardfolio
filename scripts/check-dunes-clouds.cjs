@@ -15,7 +15,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
       await page.evaluate(()=>window.seekScene(.75));
       await page.screenshot({path:path.join(output,`${width}-river-t075.png`)});
       await page.evaluate(()=>scrollTo(0,0));
-      for(const t of [0,3,6]){
+      for(const t of [0,3,6,24,31]){
         await page.evaluate(t=>window.seekScene(t),t);
         await page.screenshot({path:path.join(output,`${width}-t${t}.png`)});
       }
@@ -29,10 +29,27 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
           const prominent=[next[0],next[2]].map(data=>{
             let count=0;for(let i=0;i<data.length;i+=4)if(data[i]>190&&data[i+3]>180)count++;return count;
           });
-          const seams=[(1600-0)/22,(1600-490)/(22+490*.006),(1600-1000)/(22+1000*.006)].map(t=>{
+          const seams=[28,68,108].map(t=>{
             window.seekScene(t-.001);const a=read()[0];window.seekScene(t+.001);return delta(a,read()[0]);
           });
           const proto=CanvasRenderingContext2D.prototype,draw=proto.drawImage,move=proto.moveTo;
+          const ids=new WeakMap();let serial=0,positions=new Map(),last=new Map(),backwards=0,gaps=0,frames=0;
+          proto.drawImage=function(sprite,...args){
+            const sky=this.canvas.width===1600&&this.canvas.height===205&&sprite.width<1000;
+            const fog=this.canvas===document.querySelector('#motion')&&sprite.width===500&&sprite.height===140;
+            if((sky||fog)&&args[0]+sprite.width>0&&args[0]<1600){
+              if(!ids.has(sprite))ids.set(sprite,serial++);positions.set(ids.get(sprite),args[0]);
+            }
+            return draw.call(this,sprite,...args);
+          };
+          try{
+            for(let t=0;t<120;t+=.5){
+              positions=new Map();window.seekScene(t);frames++;if(!positions.size)gaps++;
+              for(const [id,x] of positions)if(last.has(id)&&x<last.get(id))backwards++;
+              last=positions;
+            }
+          }finally{proto.drawImage=draw;}
+          const stream={backwards,gaps,frames};
           let bands=[],ripples=[];
           proto.drawImage=function(...args){if(this.canvas.width===1600&&this.canvas.height===165&&args.length===9)bands.push(args[5]);return draw.apply(this,args);};
           proto.moveTo=function(x,y){if(this.canvas.width===1600&&this.canvas.height===165)ripples.push(x);return move.call(this,x,y);};
@@ -41,13 +58,15 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
             window.seekScene(1);const firstBands=bands,firstRipples=ripples;bands=[];ripples=[];window.seekScene(1.1);
             river={bandsLeft:bands.every((x,i)=>x<firstBands[i]),ripplesLeft:ripples.every((x,i)=>x<firstRipples[i]||x-firstRipples[i]>1500),bands:bands.length,ripples:ripples.length};
           }finally{proto.drawImage=draw;proto.moveTo=move;}
-          return{movement,prominent,seams,river};
+          return{movement,prominent,seams,river,stream};
         });
         assert.ok(report.movement[0]>10000,'Sky clouds visibly change within three seconds');
         assert.equal(report.movement[1],0,'Mountains stay fixed');
         assert.ok(report.movement[2]>10000,'Low cloud bank visibly changes');
-        assert.ok(report.prominent.every(count=>count>1000),'Sky and low clouds have substantial bright, opaque brushwork');
+        assert.ok(report.prominent.every(count=>count>1000),`Sky and low clouds have substantial bright, opaque brushwork: ${report.prominent}`);
         assert.ok(report.seams.every(energy=>energy<report.movement[0]*.05),'Cloud wrapping has no visible pop');
+        assert.equal(report.stream.backwards,0,'Every cloud bank travels left to right');
+        assert.ok(report.stream.gaps>=12&&report.stream.gaps<report.stream.frames/2,'Cloud stream has recurring clear intervals');
         assert.ok(report.river.bands>0&&report.river.bandsLeft,'All river reflections flow right to left');
         assert.ok(report.river.ripples>0&&report.river.ripplesLeft,'All river ripples and crests flow right to left');
         console.log(JSON.stringify(report));

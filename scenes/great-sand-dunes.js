@@ -5,6 +5,7 @@ const layer=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=
 const skyline=[[0,205],[180,124],[330,78],[480,57],[650,124],[800,102],[1000,71],[1130,58],[1290,114],[1460,81],[1600,56]];
 const skyAt=x=>{for(let i=1;i<skyline.length;i++)if(x<=skyline[i][0]){const a=skyline[i-1],b=skyline[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return 56;};
 const skyMotion=layer(W,205),skyMask=layer(W,205),sm=skyMask.getContext('2d');
+let fogSource,fogBanks;
 // Feather traveling pigment before the peaks so the sky has no hard polygon edge.
 for(let x=0;x<W;x++){
   const edge=skyAt(x)-12,fade=sm.createLinearGradient(0,edge-24,0,edge);
@@ -90,14 +91,27 @@ function draw({ctx,t,state,wind}){
     }
   }
   c.globalCompositeOperation='destination-in';c.drawImage(mask,0,0);c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(water,0,TOP);ctx.restore();
-  // Build up the existing dry-brush pigment without smoothing its broken edges.
-  ctx.save();ctx.filter='brightness(1.24)';
-  for(let coat=0;coat<5;coat++)ctx.drawImage(state.fog,Math.sin(t*.3)*90+wind*3,250);
-  ctx.restore();
+  if(fogSource!==state.fog){
+    fogSource=state.fog;
+    fogBanks=[100,600,1100].map(x=>{
+      const sprite=layer(500,140),g=sprite.getContext('2d');g.filter='brightness(1.24)';
+      for(let coat=0;coat<7;coat++)g.drawImage(state.fog,x,0,500,140,0,0,500,140);
+      g.filter='none';g.globalCompositeOperation='destination-in';
+      const edge=g.createLinearGradient(0,0,500,0);
+      for(const [at,color] of [[0,'transparent'],[.18,'white'],[.82,'white'],[1,'transparent']])edge.addColorStop(at,color);
+      g.fillStyle=edge;g.fillRect(0,0,500,140);return sprite;
+    });
+  }
+  // Each bank enters at the left and leaves completely before its next pass.
+  for(let i=0;i<fogBanks.length;i++){
+    const age=(t+i*40+12)%120,x=-500+age*66;
+    if(x<W)ctx.drawImage(fogBanks[i],x,250);
+  }
   const sky=skyMotion.getContext('2d');sky.clearRect(0,0,W,205);
   sky.filter='brightness(1.18)';
-  for(const cloud of state.clouds){
-    const x=(cloud.x+t*(22+cloud.x*.006)+cloud.w)%(W+cloud.w)-cloud.w;
+  for(const [i,cloud] of state.clouds.entries()){
+    const age=(t+i*40+12)%120,x=-cloud.w+age*66;
+    if(x>=W)continue;
     for(let coat=0;coat<4;coat++)sky.drawImage(cloud.sprite,x,cloud.y);
   }
   sky.filter='none';
