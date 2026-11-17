@@ -26,3 +26,9 @@ Current expressive-paint edition: `painting-v3.webp`, `fallback-v3.webp`, and `l
 Current half-size brush edition: `painting-v4.webp`, `fallback-v4.webp`, and `live-v4.*` use marks half the previous edition’s length and breadth. Source provenance remains unchanged.
 
 Current motion/detail edition uses `painting-v5.webp`, `fallback-v5.webp`, and `live-v5.*`. Local painted refinements and motion cutouts retain the same source provenance; no new photographic sources are introduced.
+
+## Gouache reinterpretation (v8)
+
+The user requested a new artistic direction after rejecting the procedural painting. `gouache-master.png` is an AI-generated gouache/oil-pastel interpretation made with OpenAI image generation, using the supplied arch photograph and previous crop as references. `kayak-study.png` contains four matching AI-generated transparent painted kayak studies. These are illustrative interpretations, not human-authored physical paintings or photographs of the place. Original source provenance above remains unchanged.
+
+The landscape was directed toward large warm sandstone planes, cool indigo shadows, dark foliage, a quiet sky and broad teal lake strokes. Kayak studies were generated separately to animate without stationary copies. The source masters are retained for authoring; `painting-v8.webp`, `fallback-v8.webp` and `live-v8.*` contain the production painting and motion layers.

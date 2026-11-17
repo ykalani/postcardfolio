@@ -2,21 +2,26 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});
- const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v7');fs.mkdirSync(output,{recursive:true});
+ const output=process.env.QA_OUTPUT||path.join(os.tmpdir(),'postcardfolio-kayaks-v8');fs.mkdirSync(output,{recursive:true});
  try{
   for(const width of[1600,390]){
-   const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[];
+   const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[],authoringRequests=[];
    page.on('pageerror',e=>errors.push(e.message));
+   page.on('request',r=>{if(/\/(?:gouache-master|kayak-study)\.png/.test(r.url()))authoringRequests.push(r.url());});
    await page.goto((process.env.SCENE_URL||'http://127.0.0.1:5178')+'/about');
    await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
    await page.evaluate(()=>window.pauseScene(true));
    const result=await page.evaluate(async()=>{
-    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v7.json',location.href))).json(),boats=meta.state.boats;
-    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v7.webp',location.href);await image.decode();
+    const meta=await(await fetch(new URL('assets/sleeping-bear/live-v8.json',location.href))).json(),boats=meta.state.boats;
+    const image=new Image();image.src=new URL('assets/sleeping-bear/live-v8.webp',location.href);await image.decode();
     const atlas=document.createElement('canvas');atlas.width=image.width;atlas.height=image.height;
     const g=atlas.getContext('2d');g.drawImage(image,0,0);
-    const gaps=[[210,680],[832,660],[1237,663],[1250,680]].map(([x,y],index)=>{
-     const boat=boats[index],r=boat.sprite.$sprite;return g.getImageData(r[0]+x-boat.x,r[1]+y-boat.y,1,1).data[3];
+    const mask=meta.state.mask.$sprite;
+    const waterMask=[[1050,500],[400,850]].map(([x,y])=>g.getImageData(mask[0]+x,mask[1]+y,1,1).data[3]);
+    const cutouts=boats.map(boat=>{
+     const data=g.getImageData(...boat.sprite.$sprite).data;let solid=0;
+     for(let i=3;i<data.length;i+=4)if(data[i]>20)solid++;
+     return{coverage:solid/(boat.w*boat.h),corners:[data[3],data[(boat.w-1)*4+3],data[(boat.h-1)*boat.w*4+3],data[data.length-1]]};
     });
     const leafLight=meta.state.leafSprites.map(sprite=>{
      const data=g.getImageData(...sprite.$sprite).data;let light=0,alpha=0;
@@ -29,26 +34,28 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     let frame;
     ctx.drawImage=function(sprite,...args){
      const index=boats.findIndex(boat=>boat.w===sprite.width&&boat.h===sprite.height);
-     if(index>=0){const m=this.getTransform();frame[index]={x:m.e,y:m.f};}
+     if(index>=0&&!frame[index]){const m=this.getTransform();frame[index]={x:m.e,y:m.f};}
      return draw.call(this,sprite,...args);
     };
     try{for(const t of[0,2,6,13]){frame=[];window.seekScene(t);frames.push(frame);}}
     finally{ctx.drawImage=draw;}
     window.seekScene(0);const first=hash();window.seekScene(6);const moved=hash()!==first;window.seekScene(0);
-    return{count:boats.length,depth:boats.map(b=>b.depth),gaps,leafLight,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
+    return{count:boats.length,depth:boats.map(b=>b.depth),cutouts,leafLight,waterMask,frames,moved,repeat:hash()===first,fixed:fixed===document.querySelector('#landscape').toDataURL()};
    });
-   assert.equal(result.count,4);assert.deepEqual(result.depth,[1,1,0,2]);assert.deepEqual(result.gaps,[0,0,0,0]);
+   assert.equal(result.count,4);assert.deepEqual(result.depth,[1,1,0,2]);assert.ok(result.cutouts.every(s=>s.coverage>.1&&s.coverage<.75&&s.corners.every(a=>a<20)),'Painted boats retain transparent silhouettes');
    assert.ok(result.moved&&result.repeat&&result.fixed);
+   assert.deepEqual(result.waterMask,[0,255],'Water motion excludes the sky opening');
+   assert.deepEqual(authoringRequests,[],'Normal visits load only baked artwork');
    assert.ok(result.leafLight.every(light=>light>0&&light<125),'Leaves use dark olive brush pigments');
    if(width===1600)for(let i=0;i<4;i++){
     const xs=result.frames.map(frame=>frame[i].x);assert.ok(Math.max(...xs)-Math.min(...xs)>5,`Kayak ${i} visibly moves`);
    }
    for(const t of[0,2,6,13]){
     await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`about-${width}-t${t}.png`)});
-    if(width===1600)await page.screenshot({path:path.join(output,`kayaks-t${t}.png`),clip:{x:55,y:625,width:1400,height:140}});
+    if(width===1600)await page.screenshot({path:path.join(output,`kayaks-t${t}.png`),clip:{x:55,y:675,width:1400,height:150}});
    }
    assert.deepEqual(errors,[]);console.log(width,JSON.stringify(result));await page.close();
   }
-  console.log('Passed: all four kayaks move, dark painted leaves, transparent gaps, deterministic animation and fixed background. '+output);
+  console.log('Passed: all four kayaks move, dark painted leaves, transparent silhouettes, deterministic animation and fixed background. '+output);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

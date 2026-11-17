@@ -69,3 +69,9 @@ Four actual kayaks are separated: the small boat behind the right-hand yellow ka
 ## Visible kayak motion and darker leaves (v7)
 
 The four kayaks now drift through a clearly visible 9-18px range, with depth-scaled bob and roll. The canopy uses deeper green shadows and the falling leaves use dark olive bristled sprites like Yosemite instead of smooth bright shapes. The v7 painting, fallback, and live atlas are baked together. `scripts/check-kayaks.cjs` checks each kayak transform across 0, 2, 6, and 13 seconds, dark leaf pigments, transparent gaps, deterministic animation, and fixed underlying art. Focused desktop/mobile Playwright checks cover About at 1600 and 390px.
+
+## Art-directed gouache edition (v8)
+
+The user rejected the procedural photo-like treatment. The new master is an AI-generated gouache/oil-pastel study art-directed from the supplied arch photograph: large ochre and salmon sandstone planes, indigo-plum shadows, dark forest canopy, quiet powder-blue sky, and broad teal lake strokes. Four matching transparent kayak studies replace traced photo cutouts. `gouache-master.png` and `kayak-study.png` are retained authoring sources, excluded from production. `paintGouache` replaces the procedural underpainting before extracting live layers. The v8 painting, fallback and atlas are baked together; normal visits fetch no authoring art.
+
+Shore geometry follows the new painted edge around y713-747. Boat positions and scale respect the waterline and overlap by depth. Ten sparse falling leaves replace the earlier 42-leaf shower. Water and foliage move from the new painting's own marks. Mobile starts at scroll fraction .72 to keep the arch, kayakers and lake visible above navigation. Focused About browser checks cover desktop and mobile.

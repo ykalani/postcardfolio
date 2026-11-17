@@ -1,53 +1,22 @@
 import {startScene} from './scene-painter.js';
 const clamp = (value, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const W = 1600, H = 1000;
-// Coordinates follow the supplied 800×599 source, doubled and center-cropped by 99px.
-const SHORE = [[0,667],[155,687],[660,691],[810,681],[920,673],[1040,667],[1350,695],[1600,711]];
+// Sprite crops retain the natural painted edges; depth determines scale and overlap.
 const BOATS = [
-  {fillX:300,depth:1,parts:[
-    [[130,695],[167,700],[218,701],[264,695],[269,700],[256,712],[194,720],[151,724],[135,719]],
-    [[173,697],[176,687],[182,683],[183,675],[186,669],[194,670],[199,677],[198,683],[207,688],[213,697]],
-    [[217,696],[218,686],[225,680],[225,668],[231,663],[241,664],[245,669],[244,678],[249,685],[254,695]],
-    [[100,702],[121,697],[137,698],[138,704],[121,711],[100,709]],
-    [[164,670],[177,672],[186,679],[181,686],[169,681],[162,677]],
-    [[253,695],[275,694],[279,700],[257,705]]
-  ],shafts:[[[132,702],[191,689],[262,698]],[[178,681],[204,696],[225,714]]]},
-  {fillX:780,depth:1,parts:[
-    [[789,672],[831,677],[882,681],[932,681],[972,683],[961,690],[911,694],[841,695],[799,687]],
-    [[854,681],[858,676],[869,672],[870,664],[875,662],[880,666],[879,672],[885,678],[890,682]],
-    [[905,683],[910,674],[916,670],[916,662],[921,659],[925,663],[924,670],[932,676],[938,683]],
-    [[847,660],[852,660],[861,674],[859,680],[855,676]],
-    [[932,673],[943,671],[948,676],[942,682]]
-  ],shafts:[[[854,670],[865,678],[881,685]],[[915,682],[933,676],[943,675]]]},
-  // The small kayak behind the right-hand yellow one has its own float/depth.
-  {fillX:1120,depth:0,parts:[
-    [[1168,675],[1201,675],[1240,678],[1289,674],[1300,677],[1288,683],[1207,686],[1175,683]],
-    [[1189,677],[1192,667],[1196,660],[1203,659],[1208,665],[1208,671],[1217,675],[1220,682]],
-    [[1248,677],[1250,668],[1255,664],[1256,657],[1263,656],[1267,662],[1266,668],[1274,675],[1276,680]],
-    [[1167,674],[1180,672],[1186,676],[1181,681]]
-  ],shafts:[[[1178,676],[1200,670],[1220,678]],[[1257,675],[1273,677],[1292,678]]]},
-  {fillX:1430,depth:2,parts:[
-    [[1155,697],[1190,692],[1235,694],[1280,691],[1330,686],[1370,679],[1398,675],[1401,681],[1394,699],[1363,708],[1230,711],[1175,707]],
-    [[1207,695],[1205,683],[1212,679],[1216,671],[1223,666],[1230,669],[1231,676],[1238,680],[1246,687],[1242,696]],
-    [[1254,694],[1257,684],[1269,681],[1270,673],[1276,668],[1283,669],[1286,676],[1283,682],[1290,686],[1295,693]],
-    [[1214,653],[1220,647],[1226,649],[1233,664],[1229,672],[1222,669]]
-  ],shafts:[[[1226,664],[1232,681],[1242,704]],[[1275,684],[1287,688],[1307,696]]]}
+  {crop:[50,190,694,240],x:100,bottom:775,w:190,depth:1},
+  {crop:[868,224,615,157],x:800,bottom:755,w:185,depth:1},
+  {crop:[92,688,587,158],x:1050,bottom:734,w:112,depth:0},
+  {crop:[804,614,686,256],x:1150,bottom:770,w:255,depth:2}
 ];
-const PEOPLE = BOATS.map(boat=>boat.parts.slice(1,3));
-function trace(c,points,ox=0,oy=0){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x-ox,y-oy):c.moveTo(x-ox,y-oy));c.closePath();}
+const SHORE = [[0,713],[155,724],[660,724],[810,720],[920,714],[1040,714],[1280,720],[1500,742],[1600,747]];
+let kayakStudy;
 
-async function refinePeople({ctx,pixels,sourcePixels,random,W,H}){
-  const mask=canvas(W,H),m=mask.getContext('2d');
-  for(const people of PEOPLE)for(const points of people){trace(m,points);m.fill();}
-  const {paintBrushwork}=await import('./brush-painting.js');
-  for(const [x,y,w,h] of [[170,659,86,43],[850,654,93,32],[1187,650,112,48]]){
-    const samples=new Uint8ClampedArray(w*h*4),alpha=m.getImageData(x,y,w,h).data;
-    for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)samples.set(pixels.subarray(((y+yy)*W+x+xx)*4,((y+yy)*W+x+xx)*4+4),(yy*w+xx)*4);
-    const detail=canvas(w,h),d=detail.getContext('2d');
-    await paintBrushwork({ctx:d,pixels:samples,width:w,height:h,random,scale:.12,pigmentStep:12,angle:()=>1.4});
-    d.globalCompositeOperation='destination-in';d.drawImage(mask,x,y,w,h,0,0,w,h);ctx.drawImage(detail,x,y);
-  }
-  return mask;
+async function paintGouache({ctx,sourcePixels}) {
+  const [art,boats]=await Promise.all(['gouache-master.png','kayak-study.png'].map(async file=>{
+    const image=new Image();image.src='assets/sleeping-bear/'+file;await image.decode();return image;
+  }));
+  // Bake the art-directed master before extracting foliage and water layers.
+  ctx.drawImage(art,0,0,W,H);sourcePixels.set(ctx.getImageData(0,0,W,H).data);kayakStudy=boats;
 }
 
 function canvas(width, height) {
@@ -59,52 +28,12 @@ function shoreAt(x) {
   }
   return SHORE.at(-1)[1];
 }
-function prepareBoats(painting,pixels){
-  const c=painting.getContext('2d'),original=c.getImageData(0,0,W,H),clean=c.getImageData(0,0,W,H);
-  const boats=BOATS.map((boat,index)=>{
-    const points=boat.parts.flat(),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
-    const x=Math.min(...xs)-12,y=Math.min(...ys)-20,w=Math.max(...xs)-x+13,h=Math.max(...ys)-y+13;
-    const sprite=canvas(w,h),s=sprite.getContext('2d'),erase=canvas(w,h),e=erase.getContext('2d'),hull=canvas(w,h),hc=hull.getContext('2d'),gear=canvas(w,h),gc=gear.getContext('2d');
-    trace(hc,boat.parts[0],x,y);hc.fill();
-    for(const part of boat.parts.slice(3)){trace(gc,part,x,y);gc.fill();}
-    for(const part of boat.parts){trace(s,part,x,y);s.fill();trace(e,part,x,y);e.fill();e.lineWidth=10;e.lineJoin='round';e.stroke();}
-    // Keep the complete thin paddle shafts, not just detached painted blades.
-    for(const points of boat.shafts){
-      for(const [g,width] of [[s,2.1],[e,9]]){
-        g.lineWidth=width;g.lineCap='round';g.beginPath();points.forEach(([px,py],i)=>i?g.lineTo(px-x,py-y):g.moveTo(px-x,py-y));g.stroke();
-      }
-    }
-
-    const mask=s.getImageData(0,0,w,h),clear=e.getImageData(0,0,w,h),hullAlpha=hc.getImageData(0,0,w,h).data,gearAlpha=gc.getImageData(0,0,w,h).data,image=s.createImageData(w,h);
-    for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){
-      const local=(yy*w+xx)*4,at=((y+yy)*W+x+xx)*4;
-      for(let k=0;k<3;k++)image.data[local+k]=original.data[at+k];const r=pixels[at],g=pixels[at+1],b=pixels[at+2];
-      const sky=b>r*1.12&&b>g*.99&&r+g+b>350;
-      image.data[local+3]=sky?0:mask.data[local+3];
-      if(hullAlpha[local+3]){
-        const shell=g>b*1.4&&r+g>b*3&&r>48;
-        image.data[local+3]=shell?mask.data[local+3]:0;
-        // Keep coarse bristles, but prevent sky-blue overshoot from becoming a raised hull corner.
-        if(shell){image.data[local]=Math.round((original.data[at]*.4+r*.6)/12)*12;image.data[local+1]=Math.round((original.data[at+1]*.4+g*.6)/12)*12;image.data[local+2]=Math.min(original.data[at+2],b+24);}
-      }
-      if(gearAlpha[local+3]&&!sky){
-        for(let k=0;k<3;k++)image.data[local+k]=Math.round((original.data[at+k]*.2+pixels[at+k]*.8)/24)*24;
-      }
-      if(!clear.data[local+3])continue;
-      // Clear paint overshoot separately from the tight moving silhouette; no cliff travels with a person.
-      const wet=y+yy>=shoreAt(x+xx),sampleY=wet?Math.min(H-1,y+yy+74):y+yy;
-      const behindSky=index===1&&y+yy<670||index>=2&&x+xx>1230&&y+yy<664;
-      const sampleX=wet?x+xx:behindSky?990+xx%35:Math.min(W-1,boat.fillX+xx%60),from=(sampleY*W+sampleX)*4;
-      const blend=clear.data[local+3]/255;
-      for(let k=0;k<3;k++)clean.data[at+k]=original.data[at+k]*(1-blend)+original.data[from+k]*blend;
-    }
-    s.putImageData(image,0,0);
-    for(const points of boat.shafts){
-      s.strokeStyle='rgba(37,53,47,.9)';s.lineWidth=1.1;s.lineCap='butt';s.beginPath();points.forEach(([px,py],i)=>i?s.lineTo(px-x,py-y):s.moveTo(px-x,py-y));s.stroke();
-    }
-    return {sprite,x,y,w,h,depth:boat.depth,phase:index*1.9,range:boat.depth===0?2.2:3.5+index*.3};
+function prepareBoats(){
+  return BOATS.map((boat,index)=>{
+    const {x,w,depth,crop,bottom}=boat,h=Math.round(crop[3]*w/crop[2]);
+    const sprite=canvas(w,h);sprite.getContext('2d').drawImage(kayakStudy,...crop,0,0,w,h);
+    return {sprite,x,y:bottom-h,w,h,depth,phase:index*1.9,range:depth===0?2.2:3.5+index*.3};
   });
-  c.putImageData(clean,0,0);return boats;
 }
 
 function foliageCutout(painting,pixels,region) {
@@ -124,12 +53,12 @@ function foliageCutout(painting,pixels,region) {
 }
 
 function prepare({painting,pixels,random}) {
-  const boats=prepareBoats(painting,pixels);
+  const boats=prepareBoats();
   const waterColors=painting.getContext('2d').getImageData(0,0,W,H).data;
   const water=canvas(W,H),mask=canvas(W,H),m=mask.getContext('2d');
   const alpha=m.createImageData(W,H);
   const wavelets=[];
-  for(let y=660;y<H;y++)for(let x=0;x<W;x++){
+  for(let y=710;y<H;y++)for(let x=0;x<W;x++){
     const distance=y-shoreAt(x); if(distance<=0)continue;
     const at=(y*W+x)*4;
     alpha.data[at]=alpha.data[at+1]=alpha.data[at+2]=255;
@@ -137,9 +66,9 @@ function prepare({painting,pixels,random}) {
   }
   m.putImageData(alpha,0,0);
   for(let i=0;i<380;i++){
-    const x=random()*W,y=674+random()*326;
+    const x=random()*W,y=716+random()*284;
     if(y<shoreAt(x)+5)continue;
-    const at=((y|0)*W+(x|0))*4,depth=clamp((y-665)/335);
+    const at=((y|0)*W+(x|0))*4,depth=clamp((y-710)/290);
     wavelets.push({x,y,depth,length:2+random()*(4+depth*27),phase:random()*Math.PI*2,
       bright:random()>.46,color:[waterColors[at],waterColors[at+1],waterColors[at+2]]});
   }
@@ -162,14 +91,14 @@ function prepare({painting,pixels,random}) {
     }
     return sprite;
   });
-  for(let i=0;i<42;i++){
+  for(let i=0;i<10;i++){
     const region=foliage[i%foliage.length];let x,y;
     for(let attempt=0;attempt<80;attempt++){
       x=region.x+random()*region.w;y=region.y+random()*region.h;
       const at=((y|0)*W+(x|0))*4;
       if(pixels[at+1]>pixels[at]*1.02&&pixels[at+1]>pixels[at+2]*1.1)break;
     }
-    leaves.push({x,y,phase:random(),duration:14+random()*12,fall:410+random()*310,
+    leaves.push({x,y,phase:random(),duration:21+random()*12,fall:280+random()*220,
       drift:80+random()*150,size:3+random()*3,turn:random()*6.28,tone:i%leafSprites.length});
   }
   return {water,mask,wavelets,foliage,painting,boats,leaves,leafSprites};
@@ -178,11 +107,11 @@ function prepare({painting,pixels,random}) {
 function draw({ctx,t,state,wind}) {
   const c=state.water.getContext('2d');c.clearRect(0,0,W,H);
   // The real painted reflections move only inside the mapped water, never the arch's sky opening.
-  for(let y=660;y<H;y+=4){
-    const depth=clamp((y-660)/340);
+  for(let y=710;y<H;y+=4){
+    const depth=clamp((y-710)/290);
     const cross=Math.sin(y*.073-t*1.05)+Math.sin(y*.031+t*.48)*.38;
     const dx=cross*(.25+depth*4.2);
-    const sy=clamp(y+Math.sin(y*.046-t*.85)*depth*1.6,660,H-4);
+    const sy=clamp(y+Math.sin(y*.046-t*.85)*depth*1.6,710,H-4);
     c.drawImage(state.painting,0,sy,W,4,dx,y,W,4);
   }
   c.lineCap='round';
@@ -199,7 +128,7 @@ function draw({ctx,t,state,wind}) {
   c.globalCompositeOperation='destination-in';c.drawImage(state.mask,0,0);
   c.globalCompositeOperation='source-over';ctx.save();ctx.globalAlpha=.92;ctx.drawImage(state.water,0,0);ctx.restore();
   for(const boat of [...state.boats].sort((a,b)=>a.depth-b.depth)){
-    const drift=Math.sin(t*.32+boat.phase)*boat.range*4;
+    const drift=Math.sin(t*.22+boat.phase)*boat.range*4;
     const depth=.7+boat.depth*.35;
     const wave=(Math.sin(t*.85+boat.phase)*1.25+Math.sin(t*1.3+boat.phase*1.7)*.35)*depth;
     const roll=Math.cos(t*.85+boat.phase)*.004*depth;
@@ -238,17 +167,8 @@ function draw({ctx,t,state,wind}) {
 }
 
 startScene({
-  liveVersion:7,
-  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v7.webp',
-  background:'#9cb8ad',focusX:.645,focusY:.53,initialScroll:.54,
-  grade:(r,g,b,x,y)=>{
-    const light=r*.3+g*.55+b*.15;
-    const leaf=clamp((g-r*.94-2)/30)*clamp((g-b*1.02)/28)*clamp((360-y)/160);
-    const nearRock=clamp((x-1050)/430)*clamp((r-b)/70)*clamp((670-y)/150);
-    return [r*(.9+leaf*.28+nearRock*.11)+light*.045+9-leaf*49+nearRock*5,
-      g*(.91+leaf*.27+nearRock*.06)+light*.035+8-leaf*43-nearRock*5,
-      b*(.89+leaf*.18)+light*.045+10-leaf*42-nearRock*15];
-  },
-  angle:(x,y)=>y>665?-.025:x>1270?1.3:.045+Math.sin(x*.011+y*.005)*.19,
-  prepare,draw,refine:refinePeople
+  liveVersion:8,
+  id:'sleeping-bear',guide:'assets/sleeping-bear/guide.webp',cache:'assets/sleeping-bear/painting-v8.webp',
+  background:'#244c52',focusX:.63,focusY:.53,initialScroll:.72,
+  prepare,draw,refine:paintGouache
 });
