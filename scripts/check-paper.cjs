@@ -15,7 +15,7 @@ fs.mkdirSync(output, {recursive: true});
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(base);
       assert.equal(await page.locator('.content-slip').count(), 0, 'Home has no content slip');
-      for (const route of ['experiences', 'projects', 'writing', 'tech-blog', 'about']) {
+      for (const route of ['experiences', 'projects', 'writing', 'tech-blog']) {
         await page.goto(`${base}/${route}`);
         await page.waitForFunction(() => document.documentElement.dataset.sceneReady === 'true');
         const slip = page.locator('.content-slip');
@@ -79,6 +79,6 @@ fs.mkdirSync(output, {recursive: true});
       assert.deepEqual(errors, []);
       await page.close();
     }
-    console.log(JSON.stringify({passed: true, output, checks: 'all five pages, home exclusion, receipt proportions, bottom-anchored expansion with visible painting, scrolling, persistent arrow, collapse, keyboard and focus'}));
+    console.log(JSON.stringify({passed: true, output, checks: 'four paper panels, home exclusion, receipt proportions, bottom-anchored expansion with visible painting, scrolling, persistent arrow, collapse, keyboard and focus'}));
   } finally {await browser.close();}
 })().catch(error => {console.error(error);process.exitCode = 1;});

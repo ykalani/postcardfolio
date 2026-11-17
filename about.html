@@ -9,10 +9,9 @@
   <script>try{if(sessionStorage.getItem('postcard-cloud-arrival')===location.pathname){document.documentElement.classList.add('cloud-arrival');window.cloudFallback=setTimeout(()=>document.documentElement.classList.remove('cloud-arrival'),3000)}}catch{}</script>
   <link rel="preload" as="image" href="assets/banff/painting-v7.webp" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="paper.css">
   <link rel="stylesheet" href="postcard.css">
+  <link rel="stylesheet" href="about.css">
   <script src="postcard.js" defer></script>
-  <script src="paper.js" defer></script>
   <link rel="stylesheet" href="cloud-transition.css">
   <link rel="stylesheet" href="banff.css">
   <script type="module" src="scenes/banff.js"></script>
@@ -33,30 +32,39 @@
       </div>
     </div>
   </main>
-  <button type="button" class="content-slip" aria-controls="paper-sheet" aria-expanded="false" aria-haspopup="dialog">
-    <span>About</span>
-    <svg class="paper-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 15 7-7 7 7"/></svg>
-  </button>
-  <dialog class="paper-sheet" id="paper-sheet" aria-labelledby="paper-title">
-    <header class="paper-sheet-header">
-      <button type="button" class="paper-collapse" aria-label="Collapse paper" autofocus>
-        <svg class="paper-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
-      </button>
-    </header>
-    <div class="paper-content" tabindex="0">
-      <h2 id="paper-title">About</h2>
-      <!-- Add about content here. This area scrolls beneath the collapse arrow. -->
-    </div>
-  </dialog>
   <div class="postcard-stage">
-    <article class="postcard" id="postcard" hidden aria-labelledby="postcard-name">
-      <div class="postcard-stamp"><img src="assets/pfp_stamp.webp" alt="Yash Kalani" width="65" height="79"></div>
-      <h2 id="postcard-name">Yash Kalani</h2>
+    <article class="postcard postcard-about" id="postcard" aria-labelledby="postcard-name">
+      <div class="postcard-stamp about-stamp"><img src="assets/pfp_stamp.webp" alt="Yash Kalani" width="65" height="79"></div>
+      <header class="about-heading">
+        <p class="about-kicker">A postcard from</p>
+        <h2 id="postcard-name">Yash Kalani</h2>
+      </header>
+      <div class="about-profiles" tabindex="0" role="region" aria-label="Yash’s links">
+        <p class="about-intro">Find me in these little corners of the internet.</p>
+        <nav class="about-links" aria-label="Yash Kalani’s profiles">
+          <a href="https://www.instagram.com/_yashtagram" target="_blank" rel="noreferrer"><span>Instagram</span><small>@_yashtagram</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://www.linkedin.com/in/ykalani" target="_blank" rel="noreferrer"><span>LinkedIn</span><small>/in/ykalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://substack.com/@ykalani" target="_blank" rel="noreferrer"><span>Substack</span><small>@ykalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://open.spotify.com/user/wryc9ygbfzza83otspz3wrdd2" target="_blank" rel="noreferrer"><span>Spotify</span><small>On repeat</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://i.airbuds.fm/ykal/yGCsWrQ6Uo" target="_blank" rel="noreferrer"><span>Airbuds</span><small>@ykal</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://github.com/ykalani" target="_blank" rel="noreferrer"><span>GitHub</span><small>@ykalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://www.admonymous.co/yash-kalani" target="_blank" rel="noreferrer"><span>Admonymous</span><small>Say hello</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://beliapp.co/app/ykalani" target="_blank" rel="noreferrer"><span>Beli</span><small>@ykalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://letterboxd.com/ykalani" target="_blank" rel="noreferrer"><span>Letterboxd</span><small>@ykalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://www.goodreads.com/user/show/202569379-yash-kalani" target="_blank" rel="noreferrer"><span>Goodreads</span><small>Yash Kalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://link.clashroyale.com/invite/friend/en?tag=2VGYGC8Q0" target="_blank" rel="noreferrer"><span>Clash Royale</span><small>2VGYGC8Q0</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://link.brawlstars.com/invite/friend/en/?tag=GUPPR8UYC" target="_blank" rel="noreferrer"><span>Brawl Stars</span><small>GUPPR8UYC</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://www.chess.com/member/minimagnus2017" target="_blank" rel="noreferrer"><span>Chess.com</span><small>minimagnus2017</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://myanimelist.net/profile/ykal" target="_blank" rel="noreferrer"><span>MyAnimeList</span><small>@ykal</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+          <a href="https://discord.com/users/733835629926023209" target="_blank" rel="noreferrer"><span>Discord</span><small>Yash Kalani</small><span class="about-link-arrow" aria-hidden="true">↗</span></a>
+        </nav>
+        <p class="about-signoff">Until our paths cross again, <em>Yash</em></p>
+      </div>
       <button type="button" class="postcard-close" id="put-away" aria-label="Close postcard" aria-controls="postcard">×</button>
     </article>
-    <button type="button" class="postcard-return" id="show-postcard" aria-label="Open postcard from Yash" aria-controls="postcard">
+    <button type="button" class="postcard-return" id="show-postcard" hidden aria-label="Open About postcard and profile links" aria-controls="postcard">
       <img src="assets/pfp_stamp.webp" alt="" width="54" height="60">
-      <span class="postcard-return-address"><span class="postcard-return-name">Yash Kalani</span><span class="postcard-return-location"><span class="postcard-return-place">Lake Louise, Alberta</span><span class="postcard-return-institution">Banff National Park</span></span></span>
+      <span class="postcard-return-address"><span class="postcard-return-name">Yash Kalani</span><span class="postcard-return-location"><span class="postcard-return-place">Lake Louise, Alberta</span><span class="postcard-return-institution">Banff National Park</span><span class="about-return-label">About &amp; links ↗</span></span></span>
     </button>
   </div>
   <nav class="scene-nav" aria-label="Portfolio"><a href="./" data-cloud-link>home</a><a href="experiences" data-cloud-link>experience</a><a href="projects" data-cloud-link>projects</a><a href="writing" data-cloud-link>writing</a><a href="tech-blog" data-cloud-link>tech blog</a><a href="about" data-cloud-link aria-current="page">about</a></nav>
