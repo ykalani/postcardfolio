@@ -18,7 +18,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       await page.evaluate(()=>{window.pauseScene(true);window.seekScene(0);});
       for (const name of ['.trail-post','.trail-pika']) {
         const sprite = page.locator(name);
-        assert.ok((await sprite.getAttribute('src')).endsWith('-source-brush-v5.webp'),'Loads the bold source-brush cutout');
+        assert.ok((await sprite.getAttribute('src')).endsWith('-source-brush-v6.webp'),'Loads the unified landscape-brush cutout');
         const alpha = await sprite.evaluate(async image=>{
           await image.decode(); const c=document.createElement('canvas');c.width=image.naturalWidth;c.height=image.naturalHeight;
           const g=c.getContext('2d');g.drawImage(image,0,0);const d=g.getImageData(0,0,c.width,c.height).data;let visible=0;
