@@ -34,6 +34,8 @@ Current motion/detail edition uses `painting-v5.webp`, `fallback-v5.webp`, and `
 
 ## Foreground post and pika
 
-The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The actual photo subjects are polygon-masked and repainted with the shared flat-brush renderer as `post-painted.webp` and `pika-painted.webp`. Only the top cap and short neck of the post are used; signage, background and the pika's original rock are excluded. The source photographs are preserved and excluded from production. No generated-image artwork is used in the deployed props. Photographer, capture date and public reuse license were not supplied.
+The user supplied `wooden-post.jpg` and `pika.webp` on November 16, 2026. The actual photo subjects are polygon-masked and repainted with the shared flat-brush renderer as `post-painted.webp` and `pika-painted.webp`. Only the top cap and short neck of the post are used; signage, background and the pika's original rock are excluded. The source photographs are preserved and excluded from production. Photographer, capture date and public reuse license were not supplied.
 
 Source SHA-256: wooden post `25EA9859F791422AE17769F40111A78DBB622E22A5C9E8C92282E140A0091306`; pika `2B50A125F9828A1CDF13BF1D9291CEA77D26E45F62A2DD39B093130EB32E0E40`.
+
+Current cutouts: post-natural-v2.webp and pika-natural-v2.webp were refined with ImageGen from the supplied source photographs and earlier painted cutouts on November 17, 2026. They retain visible brushwork with clearer wood planes, fur, facial features and paws, on transparent backgrounds.
