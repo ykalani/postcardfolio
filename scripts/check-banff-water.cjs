@@ -59,7 +59,7 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
           })};
         });
         assert.equal(report.strokes,0,'No added wave lines');
-        assert.equal(report.snowDabs,360,'Dense painted snowfall');
+        assert.equal(report.snowDabs,720,'Doubled painted snowfall');
         assert.ok(report.maxSnowAlpha>.6&&report.maxSnowAlpha<=.63,'Snow is visible and translucent');
         for(const region of report.regions) {
           if(region.moving)assert.ok(region.coverage>.8,`${region.name}: whole water surface moves (${region.coverage})`);
@@ -69,6 +69,8 @@ const base = process.env.SCENE_URL || 'http://127.0.0.1:5178';
       }
       await page.evaluate(()=>window.seekScene(6));
       await head.evaluate(el=>{el.getAnimations()[0].currentTime=1620;});
+      const bob=await head.evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return{y:m.f,angle:Math.atan2(m.b,m.a)*180/Math.PI};});
+      assert.ok(Math.abs(bob.y-3.9)<.01&&Math.abs(bob.angle-2.7)<.01,'Head bob amplitude is tripled');
       assert.notDeepEqual(await head.boundingBox(),headAtRest,'Head bobs');
       assert.deepEqual(await body.boundingBox(),bodyAtRest,'Body and paws stay anchored');
       await page.screenshot({path:path.join(output,`about-${width}-t6.png`)});
