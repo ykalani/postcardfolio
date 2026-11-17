@@ -10,13 +10,13 @@ Use a centered cover crop into 1600 x 1000. Keep the warm light and deep violet 
 
 ## Motion
 
-Yosemite's painted cloud banks travel only left to right, with recurring gaps between passes, against a stronger blue sky. Their masks stop above the actual mountain silhouette. Six mapped dune crests shed short, broken-bristle sand veils. Low grass pigment and seven foreground brush clumps sway around fixed roots. This reference has no visible river or tall cottonwoods, so the previous creek and mountain-foot fog layers are absent.
+Yosemite's painted cloud banks travel only left to right, with recurring gaps between passes, against a pale blue sky. Their masks stop above the actual mountain silhouette. Six mapped dune crests shed short, broken-bristle sand veils. Six low foreground scrub cutouts sway around fixed roots. This reference has no visible river or tall cottonwoods, so the previous creek and mountain-foot fog layers are absent.
 
 ## Mobile and assets
 
 Preserve the 160svh stage. Focus at .54 across the painting and start at .7 scroll to show the dunes and waving foreground together. Scrolling upward reveals the snowy peaks and more sky.
 
-The scene uses the v10 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that clouds stay behind the mountains. Normal visits use cached art, never the supplied photograph.
+The scene uses the v11 painting, fallback, and paired live caches. Bake only Projects with `node scripts/bake-landscapes.cjs projects`. Test Projects at 1600 and 390 pixels, inspect stills and a short motion comparison, and verify that clouds stay behind the mountains. Normal visits use cached art, never the supplied photograph.
 
 ## Contrast and foreground brush (v9)
 
@@ -25,3 +25,8 @@ The user requested stronger separation between clouds, green foothills, snowy mo
 ## Yosemite clouds and stronger sway (v10)
 
 At the user's request, the sky is a richer blue field and the three cloud banks reuse the actual Yosemite cloud sprites from `yosemite-live-brush3.webp`. The authoring pass copies them into the dunes atlas, so normal visits need only the dunes live pack. Seven overlapping brush clumps frame the foreground; their stronger periodic sway visibly reverses direction while their bases remain fixed.
+
+
+## Reference-matched scrub and paler sky (v11)
+
+The user asked for a closer match to the supplied photograph and brush rather than leafy bushes. Tall invented shrub masses are removed. Low, irregular scrub is lifted from the actual painted foreground and accented with sparse dry bristle stalks in sampled ground colors. The sky is paler blue, foothills are muted brown-olive, and sand saturation is restrained. The scrub keeps its back-and-forth sway with fixed bases, and Yosemite cloud banks still pass left to right.
