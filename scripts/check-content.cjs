@@ -18,8 +18,7 @@ const output = process.env.QA_OUTPUT || path.join(require('node:os').tmpdir(), '
         if (route === 'about') {
           await page.locator('.postcard').evaluate(async el => {await Promise.all(el.getAnimations().map(a=>a.finished));});
           assert.equal(await page.locator('.about-links a').count(),15);
-          assert.match(await page.locator('.about-bio').innerText(), /Michigan State University/);
-          assert.equal(await page.getByRole('link',{name:'kalaniya@msu.edu',exact:true}).getAttribute('href'),'mailto:kalaniya@msu.edu');
+          assert.equal(await page.locator('.about-bio').count(),0, 'About contains profile links only');
         } else {
           await page.locator('.content-slip').click();
           await page.locator('.paper-sheet').evaluate(async el => {await Promise.all(el.getAnimations().map(a=>a.finished));});

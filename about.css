@@ -24,11 +24,3 @@
   .about-links small{font-size:10px}
 }
 @media(max-height:550px){.postcard-about{max-height:calc(100svh - 142px);padding-top:32px}.postcard-about h2{font-size:28px}.about-profiles{margin-top:12px}}
-.about-bio{font-size:16px;line-height:1.65;overflow-wrap:anywhere}
-.about-bio p{margin:0 0 18px}
-.about-bio .about-role{font-style:italic;color:#746f56}
-.about-bio h3{font:normal 22px/1.3 Georgia,serif;margin:28px 0 12px}
-.about-bio a{color:#865035;text-underline-offset:4px}
-.about-bio a:focus-visible{outline:2px solid #b36543;outline-offset:4px}
-.about-bio .about-note{font-style:italic;color:#746f56;border-left:2px solid #b3654366;padding-left:16px;margin-top:24px}
-@media(max-width:650px){.about-bio{font-size:15px}.about-bio h3{font-size:20px}}
