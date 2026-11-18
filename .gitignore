@@ -1,3 +1,8 @@
 .vercel
 node_modules
 archive/postcard/assets/*.pdf
+
+# Local OS files and shortcuts
+.DS_Store
+Thumbs.db
+*.lnk

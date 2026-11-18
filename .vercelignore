@@ -1,31 +1,33 @@
-archive
+archive/
+scripts/
+landscapes/
 server.mjs
 check.mjs
 README.md
+AGENTS.md
+ART_DIRECTION.md
+LANDSCAPE_PLAYBOOK.md
+assets/**/CREDITS.md
 
-scripts
+# Authoring references and intermediate artwork.
 assets/yosemite-guide.jpg
 assets/yosemite-pine-bough.png
 sleeping-source.html
-
-assets/great-sand-dunes/guide.jpg
-assets/hawaii-volcanoes/guide.jpg
-assets/olympic/guide.jpg
-assets/sleeping-bear/guide.jpg
-
+assets/**/guide.jpg
 assets/**/guide.webp
 assets/**/provided-*.webp
 assets/**/user-*.webp
 assets/sleeping-bear/beaumont tower.webp
-assets/olympic/fallback.webp
-assets/sleeping-bear/fallback.webp
-
 assets/sleeping-bear/gouache-master.png
 assets/sleeping-bear/kayak-study.png
-
-assets/great-sand-dunes/fallback.webp
-
 assets/banff/lake-lousie.avif
 assets/banff/wooden-post.jpg
 assets/banff/pika.webp
+
+# Unversioned fallbacks from earlier scenes.
+assets/olympic/fallback.webp
+assets/sleeping-bear/fallback.webp
+assets/great-sand-dunes/fallback.webp
+
+# Public source link from credits.html.
 !assets/sleeping-bear/guide.webp

@@ -29,6 +29,8 @@ async function pixels(page) {
     for(const viewport of sizes) for(const route of routes) {
       const page=await browser.newPage({viewport}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
+      const homePaintingRequests=[];
+      if(!route)page.on('request',request=>{if(new URL(request.url()).pathname.endsWith('/yosemite-display-brush3.webp'))homePaintingRequests.push(request.url());});
       const guideRequests=[];page.on('request',request=>{if((/\/(?:yosemite-)?guide\.(?:jpg|webp)(?:[?#]|$)/).test(request.url()))guideRequests.push(request.url());});
       await page.goto(`${base}/${route}`);await ready(page,route);
       await page.waitForFunction(()=>document.documentElement.dataset.cloudPhase==='idle');
@@ -58,6 +60,7 @@ async function pixels(page) {
       });
       if(!route){
         assert.equal((await page.locator('link[as="image"]').getAttribute('href')).split('?')[0],'assets/yosemite-display-brush3.webp','Home preloads the expressive painting');
+        assert.equal(homePaintingRequests.length,1,'Home reuses its preloaded painting');
         const birds=await page.evaluate(()=>{
           let occupied=0,total=0,backwards=0;const last=new Map();
           for(let t=0;t<128;t+=.1){const visible=window.sceneBirdsAt(t);if(visible.length)occupied++;total++;

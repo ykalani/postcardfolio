@@ -32,7 +32,8 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     assert.ok(report.maxBrushHeight<=160,'Foreground stays low like the reference scrub');
     const contrast=await page.evaluate(async()=>{
       async function sample(version){
-        const image=new Image();image.src=`assets/great-sand-dunes/painting-v${version}.webp`;await image.decode();
+        const image=new Image();const directory = version === 12 ? 'assets' : 'archive/landscape-assets';
+        image.src=`${directory}/great-sand-dunes/painting-v${version}.webp`;await image.decode();
         const c=document.createElement('canvas');c.width=1600;c.height=1000;const g=c.getContext('2d');g.drawImage(image,0,0);
         return Object.fromEntries(Object.entries({sky:[0,30,650,180],hills:[650,420,280,110],mountain:[300,270,280,130],sand:[600,680,320,140]}).map(([name,rect])=>{
           const data=g.getImageData(...rect).data,rgb=[0,0,0],light=[];

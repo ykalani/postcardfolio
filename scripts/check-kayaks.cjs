@@ -8,7 +8,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    const page=await browser.newPage({viewport:{width,height:width===1600?1000:844}}),errors=[],authoringRequests=[];
    page.on('pageerror',e=>errors.push(e.message));
    page.on('request',r=>{if(/\/(?:gouache-master|kayak-study)\.png/.test(r.url()))authoringRequests.push(r.url());});
-   await page.goto((process.env.SCENE_URL||'http://127.0.0.1:5178')+'/about');
+   await page.goto((process.env.SCENE_URL||'http://127.0.0.1:5178')+'/writing');
    await page.waitForFunction(()=>document.documentElement.dataset.sceneComplete==='true');
    await page.evaluate(()=>window.pauseScene(true));
    const result=await page.evaluate(async()=>{
@@ -18,7 +18,8 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     const g=atlas.getContext('2d');g.drawImage(image,0,0);
     const backgrounds=[];
     for(const version of[7,12]){
-     const art=new Image();art.src=new URL(`assets/sleeping-bear/painting-v${version}.webp`,location.href);await art.decode();
+     const directory = version === 12 ? 'assets' : 'archive/landscape-assets';
+     const art=new Image();art.src=new URL(`${directory}/sleeping-bear/painting-v${version}.webp`,location.href);await art.decode();
      const c=document.createElement('canvas');c.width=1600;c.height=1000;const brush=c.getContext('2d');brush.drawImage(art,0,0);
      backgrounds.push([[50,40,260,120],[400,300,300,250],[250,800,650,150]].map(r=>brush.getImageData(...r).data));
     }
@@ -74,7 +75,7 @@ const{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     assert.ok(changes.some(dx=>dx>0)&&changes.some(dx=>dx<0),`Kayak ${i} moves both left and right`);
    }
    for(const t of[0,2,6,13]){
-    await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`about-${width}-t${t}.png`)});
+    await page.evaluate(t=>window.seekScene(t),t);await page.screenshot({path:path.join(output,`writing-${width}-t${t}.png`)});
     if(width===1600)await page.screenshot({path:path.join(output,`kayaks-t${t}.png`),clip:{x:55,y:610,width:1400,height:160}});
    }
    assert.deepEqual(errors,[]);console.log(width,JSON.stringify(result));await page.close();

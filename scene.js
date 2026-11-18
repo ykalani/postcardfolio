@@ -444,7 +444,7 @@
   }
   async function startScene(){
     if(new URLSearchParams(location.search).has('bake')){await prepareAuthoring();return;}
-    try{showPainting(await loadImage('assets/yosemite-display-brush3.webp?v=brush-2','high'));}
+    try{showPainting(await loadImage('assets/yosemite-display-brush3.webp?v=brush-3','high'));}
     catch{try{showPainting(await loadImage('assets/yosemite-terrain-brush3.webp','high'));}catch{document.documentElement.dataset.sceneReady='error';return;}}
     // Yield a frame so the finished painting is visible before preparing live layers.
     requestAnimationFrame(()=>loadLiveAssets());
