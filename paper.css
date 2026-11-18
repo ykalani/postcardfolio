@@ -17,3 +17,16 @@ body:has(.paper-sheet[open]) .scene-nav::after{animation:paper-curl-away .5s cub
 @keyframes paper-curl-away{0%{left:-22px;opacity:0}15%{opacity:1}100%{left:100%;opacity:1}}
 @media(prefers-reduced-motion:reduce){body:has(.paper-sheet[open]) .scene-nav{animation:none;clip-path:inset(0 0 0 100%)}body:has(.paper-sheet[open]) .scene-nav::after{animation:none}}
 @media(max-width:650px){.paper-sheet{width:calc(100% - 40px)}.paper-content{padding-top:28px}}
+.paper-content{font-size:17px;line-height:1.7;overflow-wrap:anywhere}
+.paper-intro{font-size:20px;line-height:1.6;margin:0 0 36px}
+.paper-entry{padding:28px 0;border-top:1px solid #3c51482b}
+.paper-entry h3{font:normal clamp(23px,3vw,30px)/1.25 Georgia,serif;margin:6px 0 12px}
+.paper-entry h4{font-size:19px;margin:26px 0 8px}
+.paper-entry p{margin:12px 0}
+.paper-entry .entry-meta{font:italic 14px/1.5 Georgia,serif;color:#746f56;margin:0 0 6px}
+.entry-company{font-weight:bold}
+.paper-content a{color:#865035;text-underline-offset:4px}
+.paper-content a:focus-visible{outline:2px solid #b36543;outline-offset:4px}
+.project-tools{display:flex;flex-wrap:wrap;gap:6px 20px;list-style:none;padding:0;font:italic 14px/1.5 Georgia,serif;color:#746f56}
+.paper-content pre{max-width:100%;overflow-x:auto;padding:16px;background:#3c51480a;font-size:13px;line-height:1.6}
+@media(max-width:650px){.paper-content{font-size:16px}.paper-intro{font-size:18px}.paper-entry{padding:24px 0}}
